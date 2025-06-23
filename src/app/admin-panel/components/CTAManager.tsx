@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -43,8 +42,8 @@ export default function CTAManager() {
     text: '',
     url: '',
     icon: '',
-    style: 'primary' as 'primary' | 'secondary' | 'outline' | 'ghost',
-    target: '_self' as '_self' | '_blank',
+    style: 'primary' as const,
+    target: '_self' as const,
     isActive: true
   });
 
@@ -237,8 +236,8 @@ export default function CTAManager() {
       text: '',
       url: '',
       icon: '',
-      style: 'primary' as 'primary' | 'secondary' | 'outline' | 'ghost',
-      target: '_self' as '_self' | '_blank',
+      style: 'primary' as const,
+      target: '_self' as const,
       isActive: true
     });
     setEditingCta(null);
@@ -250,7 +249,7 @@ export default function CTAManager() {
       text: cta.text,
       url: cta.url,
       icon: cta.icon || '',
-      style: cta.style as any,
+      style: cta.style,
       target: cta.target,
       isActive: cta.isActive
     });
