@@ -1,173 +1,147 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
+import { CreateGlobalFeatureSchema, UpdateGlobalFeatureSchema, validateAndTransform, type ApiResponse } from '../../../../lib/validations';
 
-// GET - Fetch features (optionally filtered by pageId)
-export async function GET(request: NextRequest) {
+// GET - Fetch all global features
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const pageId = searchParams.get('pageId');
-
-    const features = await prisma.feature.findMany({
-      where: pageId ? { pageId: parseInt(pageId) } : undefined,
-      include: {
-        page: {
-          select: {
-            id: true,
-            slug: true,
-            title: true
-          }
-        }
-      },
-      orderBy: [
-        { position: 'asc' },
-        { createdAt: 'desc' }
-      ]
+    const features = await prisma.globalFeature.findMany({
+      orderBy: {
+        sortOrder: 'asc'
+      }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       data: features
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to fetch features:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch features' },
-      { status: 500 }
-    );
+    const response: ApiResponse = {
+      success: false,
+      message: 'Failed to fetch features'
+    };
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
-// POST - Create a new feature
+// POST - Create a new global feature
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { pageId, iconUrl, heading, subheading, position = 0, visible = true } = body;
+    
+    // Validate input using Zod schema
+    const validatedData = validateAndTransform(CreateGlobalFeatureSchema, body);
 
-    if (!pageId || !heading) {
-      return NextResponse.json(
-        { success: false, message: 'Page ID and heading are required' },
-        { status: 400 }
-      );
+    // If no sortOrder provided, set it to the next available number
+    let finalSortOrder = validatedData.sortOrder;
+    if (!finalSortOrder) {
+      const maxSortOrder = await prisma.globalFeature.findFirst({
+        orderBy: { sortOrder: 'desc' },
+        select: { sortOrder: true }
+      });
+      finalSortOrder = (maxSortOrder?.sortOrder || 0) + 1;
     }
 
-    // Verify page exists
-    const page = await prisma.page.findUnique({
-      where: { id: pageId }
-    });
-
-    if (!page) {
-      return NextResponse.json(
-        { success: false, message: 'Page not found' },
-        { status: 404 }
-      );
-    }
-
-    const feature = await prisma.feature.create({
+    const feature = await prisma.globalFeature.create({
       data: {
-        pageId,
-        iconUrl,
-        heading,
-        subheading,
-        position,
-        visible
-      },
-      include: {
-        page: {
-          select: {
-            id: true,
-            slug: true,
-            title: true
-          }
-        }
+        title: validatedData.title,
+        description: validatedData.description,
+        iconName: validatedData.iconName,
+        category: validatedData.category,
+        sortOrder: finalSortOrder,
+        isVisible: validatedData.isVisible
       }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       data: feature
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to create feature:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create feature' },
-      { status: 500 }
-    );
+    
+    const response: ApiResponse = {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create feature'
+    };
+    
+    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
+    return NextResponse.json(response, { status: statusCode });
   }
 }
 
-// PUT - Update a feature
+// PUT - Update a global feature
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, pageId, iconUrl, heading, subheading, position, visible } = body;
+    
+    // Validate input using Zod schema
+    const validatedData = validateAndTransform(UpdateGlobalFeatureSchema, body);
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: 'Feature ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const feature = await prisma.feature.update({
-      where: { id },
+    const feature = await prisma.globalFeature.update({
+      where: { id: validatedData.id },
       data: {
-        ...(pageId && { pageId }),
-        iconUrl,
-        ...(heading && { heading }),
-        subheading,
-        ...(typeof position === 'number' && { position }),
-        ...(typeof visible === 'boolean' && { visible })
-      },
-      include: {
-        page: {
-          select: {
-            id: true,
-            slug: true,
-            title: true
-          }
-        }
+        ...(validatedData.title !== undefined && { title: validatedData.title }),
+        ...(validatedData.description !== undefined && { description: validatedData.description }),
+        ...(validatedData.iconName !== undefined && { iconName: validatedData.iconName }),
+        ...(validatedData.category !== undefined && { category: validatedData.category }),
+        ...(validatedData.sortOrder !== undefined && { sortOrder: validatedData.sortOrder }),
+        ...(validatedData.isVisible !== undefined && { isVisible: validatedData.isVisible }),
+        updatedAt: new Date()
       }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       data: feature
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to update feature:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to update feature' },
-      { status: 500 }
-    );
+    
+    const response: ApiResponse = {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update feature'
+    };
+    
+    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
+    return NextResponse.json(response, { status: statusCode });
   }
 }
 
-// DELETE - Delete a feature
+// DELETE - Delete a global feature
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const body = await request.json();
+    const { id } = body;
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: 'Feature ID is required' },
-        { status: 400 }
-      );
+    if (!id || typeof id !== 'number') {
+      const response: ApiResponse = {
+        success: false,
+        message: 'Valid feature ID is required'
+      };
+      return NextResponse.json(response, { status: 400 });
     }
 
-    await prisma.feature.delete({
-      where: { id: parseInt(id) }
+    await prisma.globalFeature.delete({
+      where: { id: parseInt(id.toString()) }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       message: 'Feature deleted successfully'
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to delete feature:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to delete feature' },
-      { status: 500 }
-    );
+    
+    const response: ApiResponse = {
+      success: false,
+      message: 'Failed to delete feature'
+    };
+    return NextResponse.json(response, { status: 500 });
   }
 } 

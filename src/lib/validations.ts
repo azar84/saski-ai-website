@@ -56,7 +56,7 @@ export const UpdateHeroSectionSchema = CreateHeroSectionSchema.extend({
   id: IdSchema,
 }).partial().required({ id: true });
 
-// Feature Schema
+// Feature Schema (for page-specific features)
 export const FeatureCategoryEnum = z.enum(['integration', 'ai', 'automation', 'analytics', 'security', 'support']);
 
 export const CreateFeatureSchema = z.object({
@@ -79,6 +79,20 @@ export const TrustIndicatorSchema = z.object({
   sortOrder: z.number().int().min(0).default(0),
   isVisible: z.boolean().default(true),
 });
+
+// Global Feature Schema (for site-wide features)
+export const CreateGlobalFeatureSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(100),
+  description: z.string().min(1, 'Description is required').max(500),
+  iconName: z.string().min(1, 'Icon name is required').max(50),
+  category: FeatureCategoryEnum.default('integration'),
+  sortOrder: z.number().int().min(0).default(0),
+  isVisible: z.boolean().default(true),
+});
+
+export const UpdateGlobalFeatureSchema = CreateGlobalFeatureSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
 
 // Home Hero Schema  
 export const HomeHeroSchema = z.object({

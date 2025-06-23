@@ -1,18 +1,81 @@
 'use client';
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import { Plus, Edit, Trash2, Save, X, Star } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  Save, 
+  X, 
+  Star,
+  AlertCircle,
+  CheckCircle,
+  MessageSquare,
+  Users,
+  Settings,
+  Languages,
+  BookOpen,
+  Zap,
+  Shield,
+  Clock,
+  Globe,
+  Code,
+  Award,
+  TrendingUp,
+  Heart,
+  Sparkles,
+  Play,
+  ArrowRight,
+  Download,
+  ExternalLink,
+  Mail,
+  Phone,
+  Video,
+  Calendar,
+  Gift,
+  Rocket
+} from 'lucide-react';
+import { Button, Input } from '@/components/ui';
 
-interface Feature {
+// Available icons for features
+const availableIcons = [
+  { name: 'MessageSquare', icon: MessageSquare, label: 'Message Square' },
+  { name: 'Users', icon: Users, label: 'Users' },
+  { name: 'Settings', icon: Settings, label: 'Settings' },
+  { name: 'Languages', icon: Languages, label: 'Languages' },
+  { name: 'BookOpen', icon: BookOpen, label: 'Book Open' },
+  { name: 'Zap', icon: Zap, label: 'Lightning' },
+  { name: 'Shield', icon: Shield, label: 'Shield' },
+  { name: 'Clock', icon: Clock, label: 'Clock' },
+  { name: 'Globe', icon: Globe, label: 'Globe' },
+  { name: 'Code', icon: Code, label: 'Code' },
+  { name: 'Award', icon: Award, label: 'Award' },
+  { name: 'TrendingUp', icon: TrendingUp, label: 'Trending Up' },
+  { name: 'Heart', icon: Heart, label: 'Heart' },
+  { name: 'Sparkles', icon: Sparkles, label: 'Sparkles' },
+  { name: 'Play', icon: Play, label: 'Play' },
+  { name: 'ArrowRight', icon: ArrowRight, label: 'Arrow Right' },
+  { name: 'Download', icon: Download, label: 'Download' },
+  { name: 'ExternalLink', icon: ExternalLink, label: 'External Link' },
+  { name: 'Mail', icon: Mail, label: 'Mail' },
+  { name: 'Phone', icon: Phone, label: 'Phone' },
+  { name: 'Video', icon: Video, label: 'Video' },
+  { name: 'Calendar', icon: Calendar, label: 'Calendar' },
+  { name: 'Gift', icon: Gift, label: 'Gift' },
+  { name: 'Rocket', icon: Rocket, label: 'Rocket' }
+];
+
+interface GlobalFeature {
   id: number;
   title: string;
   description: string;
+  iconName: string;
   category: 'integration' | 'ai' | 'automation' | 'analytics' | 'security' | 'support';
-  benefits: string[];
+  sortOrder: number;
+  isVisible: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const categoryColors = {
@@ -24,187 +87,249 @@ const categoryColors = {
   support: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
 };
 
-export default function FeaturesManager() {
-  const [features, setFeatures] = useState<Feature[]>([
-    {
-      id: 1,
-      title: "Multi-Channel Support",
-      description: "Deploy across WhatsApp, Facebook, Instagram, web chat, and more with a single platform",
-      category: "integration",
-      benefits: ["Unified dashboard", "Cross-platform analytics", "Seamless handoffs"]
-    },
-    {
-      id: 2,
-      title: "Advanced AI Understanding",
-      description: "Natural language processing that understands context, intent, and sentiment",
-      category: "ai",
-      benefits: ["Smart routing", "Emotion detection", "Learning algorithms"]
-    },
-    {
-      id: 3,
-      title: "Automation Workflows",
-      description: "Create sophisticated conversation flows with visual builder tools",
-      category: "automation",
-      benefits: ["Visual flow builder", "Conditional logic", "Custom integrations"]
-    }
-  ]);
+const FeaturesManager: React.FC = () => {
+  const [features, setFeatures] = useState<GlobalFeature[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editingFeature, setEditingFeature] = useState<GlobalFeature | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [formData, setFormData] = useState<{
+    title: string;
+    description: string;
+    iconName: string;
+    category: 'integration' | 'ai' | 'automation' | 'analytics' | 'security' | 'support';
+    sortOrder: number;
+    isVisible: boolean;
+  }>({
+    title: '',
+    description: '',
+    iconName: 'MessageSquare',
+    category: 'integration',
+    sortOrder: 0,
+    isVisible: true
+  });
 
-  const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
-  const [isAddingNew, setIsAddingNew] = useState(false);
-
-  const emptyFeature: Feature = {
-    id: 0,
-    title: "",
-    description: "",
-    category: "integration",
-    benefits: [""]
+  const getIconComponent = (iconName: string) => {
+    const iconData = availableIcons.find(icon => icon.name === iconName);
+    return iconData ? iconData.icon : MessageSquare;
   };
 
-  const handleEdit = (feature: Feature) => {
-    setEditingFeature({ ...feature });
-    setIsAddingNew(false);
-  };
-
-  const handleAddNew = () => {
-    setEditingFeature({ ...emptyFeature, id: Date.now() });
-    setIsAddingNew(true);
-  };
-
-  const handleSave = () => {
-    if (!editingFeature) return;
-
-    if (isAddingNew) {
-      setFeatures([...features, editingFeature]);
-    } else {
-      setFeatures(features.map(f => f.id === editingFeature.id ? editingFeature : f));
-    }
-
-    setEditingFeature(null);
-    setIsAddingNew(false);
-  };
-
-  const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this feature?')) {
-      setFeatures(features.filter(f => f.id !== id));
+  const fetchFeatures = async () => {
+    try {
+      const response = await fetch('/api/admin/features');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setFeatures(result.data);
+        } else {
+          throw new Error(result.message || 'Failed to fetch features');
+        }
+      } else {
+        throw new Error('Failed to fetch features');
+      }
+    } catch (error) {
+      console.error('Error fetching features:', error);
+      setMessage({ type: 'error', text: 'Failed to load features' });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    setEditingFeature(null);
-    setIsAddingNew(false);
+  useEffect(() => {
+    fetchFeatures();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      const url = '/api/admin/features';
+      const method = editingFeature ? 'PUT' : 'POST';
+      const body = editingFeature 
+        ? { ...formData, id: editingFeature.id }
+        : formData;
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setMessage({ 
+          type: 'success', 
+          text: editingFeature ? 'Feature updated successfully!' : 'Feature created successfully!' 
+        });
+        await fetchFeatures();
+        resetForm();
+      } else {
+        throw new Error(result.message || 'Failed to save feature');
+      }
+    } catch (error) {
+      console.error('Error saving feature:', error);
+      setMessage({ 
+        type: 'error', 
+        text: error instanceof Error ? error.message : 'Failed to save feature' 
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const updateBenefit = (index: number, value: string) => {
-    if (!editingFeature) return;
-    const newBenefits = [...editingFeature.benefits];
-    newBenefits[index] = value;
-    setEditingFeature({ ...editingFeature, benefits: newBenefits });
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this feature?')) return;
+
+    try {
+      const response = await fetch('/api/admin/features', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setMessage({ type: 'success', text: 'Feature deleted successfully!' });
+        await fetchFeatures();
+      } else {
+        throw new Error(result.message || 'Failed to delete feature');
+      }
+    } catch (error) {
+      console.error('Error deleting feature:', error);
+      setMessage({ type: 'error', text: 'Failed to delete feature' });
+    }
   };
 
-  const addBenefit = () => {
-    if (!editingFeature) return;
-    setEditingFeature({
-      ...editingFeature,
-      benefits: [...editingFeature.benefits, ""]
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      iconName: 'MessageSquare',
+      category: 'integration',
+      sortOrder: 0,
+      isVisible: true
     });
+    setEditingFeature(null);
+    setShowCreateForm(false);
   };
 
-  const removeBenefit = (index: number) => {
-    if (!editingFeature) return;
-    const newBenefits = editingFeature.benefits.filter((_, i) => i !== index);
-    setEditingFeature({ ...editingFeature, benefits: newBenefits });
+  const startEdit = (feature: GlobalFeature) => {
+    setFormData({
+      title: feature.title,
+      description: feature.description,
+      iconName: feature.iconName,
+      category: feature.category,
+      sortOrder: feature.sortOrder,
+      isVisible: feature.isVisible
+    });
+    setEditingFeature(feature);
+    setShowCreateForm(true);
   };
+
+  // Auto-hide messages after 3 seconds
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => setMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5243E9]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center">
-              <Star className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Features Management</h2>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">Manage website features and capabilities</p>
+          <h2 className="text-3xl font-bold text-gray-900">Features Manager</h2>
+          <p className="text-gray-600 mt-1">Manage website features and capabilities</p>
         </div>
-        <Button 
-          onClick={handleAddNew} 
-          disabled={editingFeature !== null}
-          className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-600/25 disabled:opacity-50 disabled:cursor-not-allowed"
+        <Button
+          onClick={() => setShowCreateForm(true)}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Feature
         </Button>
       </div>
 
-      {/* Edit Form */}
-      {editingFeature && (
-        <Card className="p-8 border-2 border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10 shadow-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                {isAddingNew ? <Plus className="w-4 h-4 text-amber-600" /> : <Edit className="w-4 h-4 text-amber-600" />}
-              </div>
-              {isAddingNew ? 'Add New Feature' : 'Edit Feature'}
+      {/* Success/Error Messages */}
+      <AnimatePresence>
+        {message && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`flex items-center gap-2 p-4 rounded-lg ${
+              message.type === 'success' 
+                ? 'bg-green-50 text-green-800 border border-green-200' 
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}
+          >
+            {message.type === 'success' ? (
+              <CheckCircle className="w-5 h-5" />
+            ) : (
+              <AlertCircle className="w-5 h-5" />
+            )}
+            {message.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Create/Edit Form */}
+      {showCreateForm && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">
+              {editingFeature ? 'Edit Feature' : 'Create New Feature'}
             </h3>
-            <div className="flex gap-3">
-              <Button 
-                onClick={handleSave} 
-                className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/25"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleCancel}
-                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetForm}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            <div className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                  Feature Title
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Feature Title *
                 </label>
                 <Input
-                  value={editingFeature.title}
-                  onChange={(e) => setEditingFeature({ ...editingFeature, title: e.target.value })}
-                  placeholder="Enter feature title"
-                  className="w-full h-12 px-4 text-lg border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-amber-500 dark:focus:border-amber-400 transition-colors"
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="e.g., Multi-Channel Support"
+                  required
+                  className="h-12"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                  Description
-                </label>
-                <textarea
-                  value={editingFeature.description}
-                  onChange={(e) => setEditingFeature({ ...editingFeature, description: e.target.value })}
-                  placeholder="Enter feature description"
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:border-amber-500 dark:focus:border-amber-400 transition-colors"
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category
                 </label>
                 <select
-                  value={editingFeature.category}
-                  onChange={(e) => setEditingFeature({ 
-                    ...editingFeature, 
-                    category: e.target.value as Feature['category']
-                  })}
-                  className="w-full h-12 px-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-amber-500 dark:focus:border-amber-400 transition-colors"
+                  value={formData.category}
+                  onChange={(e) => {
+                    const value = e.target.value as 'integration' | 'ai' | 'automation' | 'analytics' | 'security' | 'support';
+                    setFormData({ ...formData, category: value });
+                  }}
+                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="integration">Integration</option>
                   <option value="ai">AI</option>
@@ -214,116 +339,158 @@ export default function FeaturesManager() {
                   <option value="support">Support</option>
                 </select>
               </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe the feature and its benefits..."
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Icon
+                </label>
+                <select
+                  value={formData.iconName}
+                  onChange={(e) => setFormData({ ...formData, iconName: e.target.value })}
+                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {availableIcons.map((icon) => (
+                    <option key={icon.name} value={icon.name}>
+                      {icon.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sort Order
+                </label>
+                <Input
+                  type="number"
+                  value={formData.sortOrder}
+                  onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
+                  className="h-12"
+                />
+              </div>
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <label className="block text-sm font-semibold text-gray-900 dark:text-white">
-                  Benefits
-                </label>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={addBenefit}
-                  className="border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {editingFeature.benefits.map((benefit, index) => (
-                  <div key={index} className="flex gap-3">
-                    <Input
-                      value={benefit}
-                      onChange={(e) => updateBenefit(index, e.target.value)}
-                      placeholder="Enter benefit"
-                      className="flex-1 h-10 px-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-amber-500 dark:focus:border-amber-400 transition-colors"
-                    />
-                    {editingFeature.benefits.length > 1 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeBenefit(index)}
-                        className="border-red-300 dark:border-red-600 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="isVisible"
+                checked={formData.isVisible}
+                onChange={(e) => setFormData({ ...formData, isVisible: e.target.checked })}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="isVisible" className="text-sm font-medium text-gray-700">
+                Visible (Show on website)
+              </label>
             </div>
-          </div>
-        </Card>
+
+            <div className="flex space-x-4">
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                {saving ? (
+                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                {saving ? 'Saving...' : (editingFeature ? 'Update Feature' : 'Create Feature')}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={resetForm}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </div>
       )}
 
       {/* Features List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {features.map((feature) => (
-          <Card key={feature.id} className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-gray-900/50 transition-all duration-300 group">
-            <div className="flex items-start justify-between mb-4">
-              <Badge className={`${categoryColors[feature.category]} font-medium px-3 py-1 text-xs border`}>
-                {feature.category}
-              </Badge>
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEdit(feature)}
-                  disabled={editingFeature !== null}
-                  className="border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDelete(feature.id)}
-                  disabled={editingFeature !== null}
-                  className="border-red-300 dark:border-red-600 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {features.map((feature) => {
+          const IconComponent = getIconComponent(feature.iconName);
+          return (
+            <div
+              key={feature.id}
+              className={`border-2 rounded-xl p-6 transition-all duration-200 ${
+                feature.isVisible
+                  ? 'border-gray-200 bg-white hover:shadow-lg'
+                  : 'border-gray-100 bg-gray-50 opacity-60'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="inline-flex px-3 py-1 text-xs border rounded-full font-medium">
+                  <span className={categoryColors[feature.category]}>
+                    {feature.category}
+                  </span>
+                </div>
+                <div className="flex space-x-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => startEdit(feature)}
+                    className="p-1 text-gray-600 hover:text-gray-700"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDelete(feature.id)}
+                    className="p-1 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <IconComponent className="w-5 h-5 text-blue-600" />
+                </div>
+                <h4 className="font-semibold text-gray-900">{feature.title}</h4>
+              </div>
+              
+              <p className="text-sm text-gray-600 mb-4 line-clamp-3">{feature.description}</p>
+              
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span>Order: {feature.sortOrder}</span>
+                <span className={feature.isVisible ? 'text-green-600' : 'text-red-600'}>
+                  {feature.isVisible ? 'Visible' : 'Hidden'}
+                </span>
               </div>
             </div>
-
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
-              {feature.title}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 leading-relaxed">
-              {feature.description}
-            </p>
-
-            <div>
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                Benefits
-              </h4>
-              <ul className="space-y-2">
-                {feature.benefits.map((benefit, index) => (
-                  <li key={index} className="text-sm text-gray-600 dark:text-gray-300 flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <span>{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Card>
-        ))}
+          );
+        })}
       </div>
 
       {features.length === 0 && (
-        <Card className="p-16 text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-          <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Star className="w-10 h-10 text-gray-400" />
-          </div>
-          <div className="text-gray-600 dark:text-gray-400">
-            <p className="text-xl font-semibold mb-2">No features yet</p>
-            <p className="text-sm">Add your first feature to get started</p>
-          </div>
-        </Card>
+        <div className="text-center py-12">
+          <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No features yet</h3>
+          <p className="text-gray-500">Create your first feature to get started.</p>
+        </div>
       )}
     </div>
   );
-}
+};
+
+export default FeaturesManager;

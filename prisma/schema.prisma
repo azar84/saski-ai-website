@@ -169,3 +169,17 @@ model TrustIndicator {
 
   @@map("trust_indicators")
 }
+
+model GlobalFeature {
+  id          Int      @id @default(autoincrement())
+  title       String   // Feature title (e.g., "Multi-Channel Support")
+  description String   // Feature description
+  iconName    String   // Icon name from Lucide React (e.g., "MessageSquare", "Users")
+  category    String   @default("integration") // Category: integration, ai, automation, analytics, security, support
+  sortOrder   Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("global_features")
+}
