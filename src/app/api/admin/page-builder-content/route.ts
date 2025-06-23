@@ -1,0 +1,168 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '../../../../lib/db';
+import { type ApiResponse } from '../../../../lib/validations';
+
+// GET - Fetch available content for page builder
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const contentType = searchParams.get('type');
+
+    if (contentType === 'hero-sections') {
+      // Fetch all hero sections
+      const heroSections = await prisma.heroSection.findMany({
+        where: { visible: true },
+        select: {
+          id: true,
+          heading: true,
+          subheading: true,
+          imageUrl: true,
+          visible: true,
+          page: {
+            select: {
+              id: true,
+              title: true,
+              slug: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: heroSections
+      };
+      return NextResponse.json(response);
+    }
+
+    if (contentType === 'feature-groups') {
+      // Fetch all feature groups
+      const featureGroups = await prisma.featureGroup.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          heading: true,
+          subheading: true,
+          isActive: true,
+          _count: {
+            select: {
+              groupItems: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: featureGroups
+      };
+      return NextResponse.json(response);
+    }
+
+    if (contentType === 'media-sections') {
+      // Fetch all media sections
+      const mediaSections = await prisma.mediaSection.findMany({
+        where: { visible: true },
+        select: {
+          id: true,
+          heading: true,
+          subheading: true,
+          imageUrl: true,
+          videoUrl: true,
+          visible: true,
+          page: {
+            select: {
+              id: true,
+              title: true,
+              slug: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: mediaSections
+      };
+      return NextResponse.json(response);
+    }
+
+    // If no specific type, return all content types
+    const [heroSections, featureGroups, mediaSections] = await Promise.all([
+      prisma.heroSection.findMany({
+        where: { visible: true },
+        select: {
+          id: true,
+          heading: true,
+          subheading: true,
+          imageUrl: true,
+          visible: true,
+          page: {
+            select: {
+              id: true,
+              title: true,
+              slug: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.featureGroup.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          heading: true,
+          subheading: true,
+          isActive: true,
+          _count: {
+            select: {
+              groupItems: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.mediaSection.findMany({
+        where: { visible: true },
+        select: {
+          id: true,
+          heading: true,
+          subheading: true,
+          imageUrl: true,
+          videoUrl: true,
+          visible: true,
+          page: {
+            select: {
+              id: true,
+              title: true,
+              slug: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      })
+    ]);
+
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        heroSections,
+        featureGroups,
+        mediaSections
+      }
+    };
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Failed to fetch page builder content:', error);
+    const response: ApiResponse = {
+      success: false,
+      message: 'Failed to fetch page builder content'
+    };
+    return NextResponse.json(response, { status: 500 });
+  }
+}

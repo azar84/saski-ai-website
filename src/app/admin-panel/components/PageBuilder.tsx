@@ -161,17 +161,32 @@ const SortableItem: React.FC<SortableItemProps> = ({
               </div>
               
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-gray-900">
-                    {section.title || sectionLabels[section.sectionType as keyof typeof sectionLabels]}
-                  </h4>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {section.sectionType}
-                  </span>
-                </div>
-                {section.subtitle && (
-                  <p className="text-sm text-gray-500 mt-1">{section.subtitle}</p>
-                )}
+                                 <div className="flex items-center gap-2">
+                   <h4 className="font-medium text-gray-900">
+                     {section.title || 
+                      (section as any).heroSection?.heading || 
+                      (section as any).featureGroup?.heading || 
+                      sectionLabels[section.sectionType as keyof typeof sectionLabels]}
+                   </h4>
+                   <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                     {section.sectionType}
+                   </span>
+                 </div>
+                 {(section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading) && (
+                   <p className="text-sm text-gray-500 mt-1">
+                     {section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading}
+                   </p>
+                 )}
+                 {(section as any).featureGroup && (
+                   <p className="text-xs text-blue-600 mt-1">
+                     Linked to: {(section as any).featureGroup.name} ({(section as any).featureGroup._count?.groupItems || 0} features)
+                   </p>
+                 )}
+                 {(section as any).heroSection && (
+                   <p className="text-xs text-purple-600 mt-1">
+                     Linked to: Hero from {(section as any).heroSection.page?.title || 'Unknown Page'}
+                   </p>
+                 )}
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
                   <span>Order: {section.sortOrder}</span>
                   <span>•</span>
@@ -244,11 +259,25 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const [formData, setFormData] = useState({
-    sectionType: 'hero' as const,
+    sectionType: 'hero' as string,
     title: '',
     subtitle: '',
     content: '',
-    isVisible: true
+    isVisible: true,
+    heroSectionId: null as number | null,
+    featureGroupId: null as number | null,
+    mediaSectionId: null as number | null
+  });
+
+  // Available content for selection
+  const [availableContent, setAvailableContent] = useState<{
+    heroSections: any[];
+    featureGroups: any[];
+    mediaSections: any[];
+  }>({
+    heroSections: [],
+    featureGroups: [],
+    mediaSections: []
   });
 
   const sensors = useSensors(
@@ -260,6 +289,7 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
 
   useEffect(() => {
     fetchPages();
+    fetchAvailableContent();
   }, []);
 
   useEffect(() => {
@@ -304,6 +334,21 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       setMessage({ type: 'error', text: 'Failed to load sections' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAvailableContent = async () => {
+    try {
+      const response = await fetch('/api/admin/page-builder-content');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setAvailableContent(result.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching available content:', error);
+      setMessage({ type: 'error', text: 'Failed to load available content' });
     }
   };
 
@@ -488,7 +533,10 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       title: section.title || '',
       subtitle: section.subtitle || '',
       content: section.content || '',
-      isVisible: section.isVisible
+      isVisible: section.isVisible,
+      heroSectionId: (section as any).heroSectionId || null,
+      featureGroupId: (section as any).featureGroupId || null,
+      mediaSectionId: (section as any).mediaSectionId || null
     });
     setShowAddSection(true);
   };
@@ -499,7 +547,10 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       title: '',
       subtitle: '',
       content: '',
-      isVisible: true
+      isVisible: true,
+      heroSectionId: null,
+      featureGroupId: null,
+      mediaSectionId: null
     });
     setEditingSection(null);
     setShowAddSection(false);
@@ -680,10 +731,82 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                 </div>
               </div>
 
+              {/* Content Selection */}
+              {formData.sectionType === 'hero' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Select Hero Section *
+                  </label>
+                  <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
+                    {availableContent.heroSections.map((hero) => (
+                      <button
+                        key={hero.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, heroSectionId: hero.id })}
+                        className={`p-3 rounded-lg border-2 text-left transition-all duration-200 ${
+                          formData.heroSectionId === hero.id
+                            ? 'border-blue-500 bg-blue-50 text-blue-900'
+                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <div className="font-medium">{hero.heading || 'Untitled Hero'}</div>
+                        {hero.subheading && (
+                          <div className="text-sm text-gray-500 mt-1">{hero.subheading}</div>
+                        )}
+                        <div className="text-xs text-gray-400 mt-1">
+                          From: {hero.page.title} (/{hero.page.slug})
+                        </div>
+                      </button>
+                    ))}
+                    {availableContent.heroSections.length === 0 && (
+                      <p className="text-gray-500 text-center py-4">
+                        No hero sections available. Create one first in Hero Sections manager.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {formData.sectionType === 'features' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Select Feature Group *
+                  </label>
+                  <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
+                    {availableContent.featureGroups.map((group) => (
+                      <button
+                        key={group.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, featureGroupId: group.id })}
+                        className={`p-3 rounded-lg border-2 text-left transition-all duration-200 ${
+                          formData.featureGroupId === group.id
+                            ? 'border-blue-500 bg-blue-50 text-blue-900'
+                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <div className="font-medium">{group.name}</div>
+                        <div className="text-sm text-gray-600 mt-1">{group.heading}</div>
+                        {group.subheading && (
+                          <div className="text-sm text-gray-500 mt-1">{group.subheading}</div>
+                        )}
+                        <div className="text-xs text-gray-400 mt-1">
+                          {group._count.groupItems} features
+                        </div>
+                      </button>
+                    ))}
+                    {availableContent.featureGroups.length === 0 && (
+                      <p className="text-gray-500 text-center py-4">
+                        No feature groups available. Create one first in Feature Groups manager.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Section Title
+                  Section Title Override
                 </label>
                 <Input
                   type="text"

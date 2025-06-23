@@ -23,6 +23,39 @@ export async function GET(request: NextRequest) {
             slug: true,
             title: true
           }
+        },
+        heroSection: {
+          select: {
+            id: true,
+            heading: true,
+            subheading: true,
+            imageUrl: true,
+            visible: true
+          }
+        },
+        featureGroup: {
+          select: {
+            id: true,
+            name: true,
+            heading: true,
+            subheading: true,
+            isActive: true,
+            _count: {
+              select: {
+                groupItems: true
+              }
+            }
+          }
+        },
+        mediaSection: {
+          select: {
+            id: true,
+            heading: true,
+            subheading: true,
+            imageUrl: true,
+            videoUrl: true,
+            visible: true
+          }
         }
       },
       orderBy: [
@@ -73,7 +106,10 @@ export async function POST(request: NextRequest) {
         subtitle: validatedData.subtitle || null,
         content: validatedData.content || null,
         sortOrder: finalSortOrder,
-        isVisible: validatedData.isVisible
+        isVisible: validatedData.isVisible,
+        heroSectionId: validatedData.heroSectionId || null,
+        featureGroupId: validatedData.featureGroupId || null,
+        mediaSectionId: validatedData.mediaSectionId || null
       },
       include: {
         page: {
@@ -81,6 +117,34 @@ export async function POST(request: NextRequest) {
             id: true,
             slug: true,
             title: true
+          }
+        },
+        heroSection: {
+          select: {
+            id: true,
+            heading: true,
+            subheading: true,
+            imageUrl: true,
+            visible: true
+          }
+        },
+        featureGroup: {
+          select: {
+            id: true,
+            name: true,
+            heading: true,
+            subheading: true,
+            isActive: true
+          }
+        },
+        mediaSection: {
+          select: {
+            id: true,
+            heading: true,
+            subheading: true,
+            imageUrl: true,
+            videoUrl: true,
+            visible: true
           }
         }
       }

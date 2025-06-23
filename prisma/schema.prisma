@@ -39,15 +39,16 @@ model Page {
 }
 
 model HeroSection {
-  id         Int      @id @default(autoincrement())
-  pageId     Int
-  heading    String?
-  subheading String?
-  imageUrl   String?
-  visible    Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  page       Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  id           Int           @id @default(autoincrement())
+  pageId       Int
+  heading      String?
+  subheading   String?
+  imageUrl     String?
+  visible      Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  page         Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pageSections PageSection[] // Page builder references
 
   @@map("hero_sections")
 }
@@ -68,17 +69,18 @@ model Feature {
 }
 
 model MediaSection {
-  id         Int      @id @default(autoincrement())
-  pageId     Int
-  heading    String?
-  subheading String?
-  imageUrl   String?
-  videoUrl   String?
-  position   Int      @default(0)
-  visible    Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  page       Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  id           Int           @id @default(autoincrement())
+  pageId       Int
+  heading      String?
+  subheading   String?
+  imageUrl     String?
+  videoUrl     String?
+  position     Int           @default(0)
+  visible      Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  page         Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pageSections PageSection[] // Page builder references
 
   @@map("media_sections")
 }
@@ -196,6 +198,7 @@ model FeatureGroup {
   updatedAt       DateTime              @updatedAt
   groupItems      FeatureGroupItem[]    // Features in this group
   pageAssignments PageFeatureGroup[]    // Pages that use this group
+  pageSections    PageSection[]         // Page builder references
 
   @@map("feature_groups")
 }
@@ -232,17 +235,24 @@ model PageFeatureGroup {
 
 // Page Builder System
 model PageSection {
-  id          Int       @id @default(autoincrement())
-  pageId      Int
-  sectionType String    // hero, features, media, testimonials, pricing, faq, cta, custom
-  title       String?   // Section title/heading
-  subtitle    String?   // Section subtitle/subheading
-  content     String?   // JSON content for the section
-  sortOrder   Int       @default(0)
-  isVisible   Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  page        Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  id              Int           @id @default(autoincrement())
+  pageId          Int
+  sectionType     String        // hero, features, media, testimonials, pricing, faq, cta, custom
+  title           String?       // Section title/heading (optional override)
+  subtitle        String?       // Section subtitle/subheading (optional override)
+  content         String?       // JSON content for the section
+  sortOrder       Int           @default(0)
+  isVisible       Boolean       @default(true)
+  // References to existing content
+  heroSectionId   Int?          // Reference to HeroSection
+  featureGroupId  Int?          // Reference to FeatureGroup
+  mediaSectionId  Int?          // Reference to MediaSection
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  page            Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  heroSection     HeroSection?  @relation(fields: [heroSectionId], references: [id], onDelete: SetNull)
+  featureGroup    FeatureGroup? @relation(fields: [featureGroupId], references: [id], onDelete: SetNull)
+  mediaSection    MediaSection? @relation(fields: [mediaSectionId], references: [id], onDelete: SetNull)
 
   @@map("page_sections")
 }
