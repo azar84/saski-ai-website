@@ -10,6 +10,8 @@ export async function GET() {
         isActive: true
       },
       include: {
+        primaryCta: true,
+        secondaryCta: true,
         trustIndicators: {
           where: {
             isVisible: true
@@ -27,15 +29,11 @@ export async function GET() {
         id: null,
         heading: "Automate Conversations, Capture Leads, Serve Customers — All Without Code",
         subheading: "Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.",
-        primaryCtaText: "Try Live Demo",
-        primaryCtaUrl: "#demo",
-        primaryCtaIcon: "Play",
-        primaryCtaEnabled: true,
-        secondaryCtaText: "Join Waitlist",
-        secondaryCtaUrl: "#waitlist",
-        secondaryCtaIcon: "Users",
-        secondaryCtaEnabled: true,
+        primaryCtaId: null,
+        secondaryCtaId: null,
         isActive: true,
+        primaryCta: null,
+        secondaryCta: null,
         trustIndicators: [
           { iconName: "Shield", text: "99.9% Uptime", sortOrder: 0, isVisible: true },
           { iconName: "Clock", text: "<30s Response", sortOrder: 1, isVisible: true },
@@ -87,18 +85,14 @@ export async function PUT(request: NextRequest) {
         data: {
           ...(validatedData.heading !== undefined && { heading: validatedData.heading }),
           ...(validatedData.subheading !== undefined && { subheading: validatedData.subheading }),
-          ...(validatedData.primaryCtaText !== undefined && { primaryCtaText: validatedData.primaryCtaText }),
-          ...(validatedData.primaryCtaUrl !== undefined && { primaryCtaUrl: validatedData.primaryCtaUrl }),
-          ...(validatedData.primaryCtaIcon !== undefined && { primaryCtaIcon: validatedData.primaryCtaIcon }),
-          ...(validatedData.primaryCtaEnabled !== undefined && { primaryCtaEnabled: validatedData.primaryCtaEnabled }),
-          ...(validatedData.secondaryCtaText !== undefined && { secondaryCtaText: validatedData.secondaryCtaText }),
-          ...(validatedData.secondaryCtaUrl !== undefined && { secondaryCtaUrl: validatedData.secondaryCtaUrl }),
-          ...(validatedData.secondaryCtaIcon !== undefined && { secondaryCtaIcon: validatedData.secondaryCtaIcon }),
-          ...(validatedData.secondaryCtaEnabled !== undefined && { secondaryCtaEnabled: validatedData.secondaryCtaEnabled }),
+          ...(validatedData.primaryCtaId !== undefined && { primaryCtaId: validatedData.primaryCtaId }),
+          ...(validatedData.secondaryCtaId !== undefined && { secondaryCtaId: validatedData.secondaryCtaId }),
           ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
           updatedAt: new Date()
         },
         include: {
+          primaryCta: true,
+          secondaryCta: true,
           trustIndicators: {
             orderBy: {
               sortOrder: 'asc'
@@ -114,17 +108,13 @@ export async function PUT(request: NextRequest) {
         data: {
           heading: createData.heading,
           subheading: createData.subheading,
-          primaryCtaText: createData.primaryCtaText,
-          primaryCtaUrl: createData.primaryCtaUrl,
-          primaryCtaIcon: createData.primaryCtaIcon,
-          primaryCtaEnabled: createData.primaryCtaEnabled,
-          secondaryCtaText: createData.secondaryCtaText,
-          secondaryCtaUrl: createData.secondaryCtaUrl,
-          secondaryCtaIcon: createData.secondaryCtaIcon,
-          secondaryCtaEnabled: createData.secondaryCtaEnabled,
+          primaryCtaId: createData.primaryCtaId,
+          secondaryCtaId: createData.secondaryCtaId,
           isActive: createData.isActive
         },
         include: {
+          primaryCta: true,
+          secondaryCta: true,
           trustIndicators: {
             orderBy: {
               sortOrder: 'asc'

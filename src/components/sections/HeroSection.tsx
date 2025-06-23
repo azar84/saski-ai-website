@@ -155,14 +155,10 @@ const HeroSection: React.FC = () => {
         setHeroData({
           heading: 'Automate Conversations, Capture Leads, Serve Customers — All Without Code',
           subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
-          primaryCtaText: 'Try Live Demo',
-          primaryCtaUrl: '#demo',
-          primaryCtaIcon: 'Play',
-          primaryCtaEnabled: true,
-          secondaryCtaText: 'Join Waitlist',
-          secondaryCtaUrl: '#waitlist',
-          secondaryCtaIcon: 'Users',
-          secondaryCtaEnabled: true,
+          primaryCtaId: null,
+          primaryCta: null,
+          secondaryCtaId: null,
+          secondaryCta: null,
           trustIndicators: [
             { iconName: 'Shield', text: '99.9% Uptime', isVisible: true },
             { iconName: 'Clock', text: '24/7 Support', isVisible: true },
@@ -324,19 +320,23 @@ const HeroSection: React.FC = () => {
               transition={{ duration: 0.7, delay: 0.8 }}
               className="flex flex-col sm:flex-row gap-4 pt-2"
             >
-              {heroData?.primaryCtaEnabled && (
+              {heroData?.primaryCtaId && heroData?.primaryCta && (
                 <Button 
                   size="lg"
                   className="group bg-gradient-to-r from-[#5243E9] to-[#6366F1] hover:from-[#4338CA] hover:to-[#5243E9] text-white px-8 py-4 text-base font-semibold shadow-lg shadow-[#5243E9]/25 hover:shadow-xl hover:shadow-[#5243E9]/35 transition-all duration-300 relative overflow-hidden rounded-xl"
                   onClick={() => {
-                    if (heroData?.primaryCtaUrl) {
-                      if (heroData.primaryCtaUrl.startsWith('#')) {
+                    if (heroData?.primaryCta?.url) {
+                      if (heroData.primaryCta.url.startsWith('#')) {
                         // Scroll to element for anchor links
-                        const element = document.querySelector(heroData.primaryCtaUrl);
+                        const element = document.querySelector(heroData.primaryCta.url);
                         element?.scrollIntoView({ behavior: 'smooth' });
                       } else {
-                        // Navigate to external URL
-                        window.open(heroData.primaryCtaUrl, '_blank');
+                        // Navigate to URL based on target
+                        if (heroData.primaryCta.target === '_blank') {
+                          window.open(heroData.primaryCta.url, '_blank');
+                        } else {
+                          window.location.href = heroData.primaryCta.url;
+                        }
                       }
                     }
                   }}
@@ -348,29 +348,33 @@ const HeroSection: React.FC = () => {
                     transition={{ duration: 0.6 }}
                   />
                   <span className="relative z-10 flex items-center gap-2">
-                    {(() => {
-                      const IconComponent = getIconComponent(heroData?.primaryCtaIcon || 'Play');
+                    {heroData?.primaryCta?.icon && (() => {
+                      const IconComponent = getIconComponent(heroData.primaryCta.icon);
                       return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
                     })()}
-                    {heroData?.primaryCtaText || 'Try Live Demo'}
+                    {heroData?.primaryCta?.text || 'Try Live Demo'}
                   </span>
                 </Button>
               )}
               
-              {heroData?.secondaryCtaEnabled && (
+              {heroData?.secondaryCtaId && heroData?.secondaryCta && (
                 <Button 
                   size="lg"
                   variant="outline"
                   className="group min-w-[200px] border-2 border-[#5243E9]/30 text-[#0F1A2A] px-8 py-4 text-base font-semibold hover:bg-[#5243E9] hover:text-white hover:border-[#5243E9] backdrop-blur-sm transition-all duration-300 rounded-xl shadow-sm hover:shadow-lg hover:shadow-[#5243E9]/25 relative overflow-hidden"
                   onClick={() => {
-                    if (heroData?.secondaryCtaUrl) {
-                      if (heroData.secondaryCtaUrl.startsWith('#')) {
+                    if (heroData?.secondaryCta?.url) {
+                      if (heroData.secondaryCta.url.startsWith('#')) {
                         // Scroll to element for anchor links
-                        const element = document.querySelector(heroData.secondaryCtaUrl);
+                        const element = document.querySelector(heroData.secondaryCta.url);
                         element?.scrollIntoView({ behavior: 'smooth' });
                       } else {
-                        // Navigate to external URL
-                        window.open(heroData.secondaryCtaUrl, '_blank');
+                        // Navigate to URL based on target
+                        if (heroData.secondaryCta.target === '_blank') {
+                          window.open(heroData.secondaryCta.url, '_blank');
+                        } else {
+                          window.location.href = heroData.secondaryCta.url;
+                        }
                       }
                     }
                   }}
@@ -382,11 +386,11 @@ const HeroSection: React.FC = () => {
                     transition={{ duration: 0.6 }}
                   />
                   <span className="relative z-10 flex items-center gap-2">
-                    {(() => {
-                      const IconComponent = getIconComponent(heroData?.secondaryCtaIcon || 'Users');
+                    {heroData?.secondaryCta?.icon && (() => {
+                      const IconComponent = getIconComponent(heroData.secondaryCta.icon);
                       return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
                     })()}
-                    {heroData?.secondaryCtaText || 'Join Waitlist'}
+                    {heroData?.secondaryCta?.text || 'Join Waitlist'}
                   </span>
                 </Button>
               )}

@@ -76,14 +76,8 @@ export const UpdateFeatureSchema = CreateFeatureSchema.extend({
 export const HomeHeroSchema = z.object({
   heading: z.string().min(1, 'Heading is required').max(200),
   subheading: z.string().max(500),
-  primaryCtaText: z.string().min(1).max(50),
-  primaryCtaUrl: z.string().min(1),
-  primaryCtaIcon: z.string().max(50),
-  primaryCtaEnabled: z.boolean().default(true),
-  secondaryCtaText: z.string().min(1).max(50),
-  secondaryCtaUrl: z.string().min(1),
-  secondaryCtaIcon: z.string().max(50),
-  secondaryCtaEnabled: z.boolean().default(true),
+  primaryCtaId: z.number().int().positive().nullable(),
+  secondaryCtaId: z.number().int().positive().nullable(),
   isActive: z.boolean().default(true),
 });
 

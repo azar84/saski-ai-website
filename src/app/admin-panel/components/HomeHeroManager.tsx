@@ -73,19 +73,25 @@ interface TrustIndicator {
   isVisible: boolean;
 }
 
+interface CTAButton {
+  id: number;
+  text: string;
+  url: string;
+  icon?: string;
+  style: string;
+  target: string;
+  isActive: boolean;
+}
+
 interface HomeHeroData {
   id?: number;
   heading: string;
   subheading: string;
-  primaryCtaText: string;
-  primaryCtaUrl: string;
-  primaryCtaIcon: string;
-  primaryCtaEnabled: boolean;
-  secondaryCtaText: string;
-  secondaryCtaUrl: string;
-  secondaryCtaIcon: string;
-  secondaryCtaEnabled: boolean;
+  primaryCtaId: number | null;
+  secondaryCtaId: number | null;
   isActive: boolean;
+  primaryCta?: CTAButton | null;
+  secondaryCta?: CTAButton | null;
   trustIndicators: TrustIndicator[];
 }
 
@@ -93,14 +99,8 @@ const HomeHeroManager: React.FC = () => {
   const [heroData, setHeroData] = useState<HomeHeroData>({
     heading: 'Automate Conversations, Capture Leads, Serve Customers — All Without Code',
     subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
-    primaryCtaText: 'Try Live Demo',
-    primaryCtaUrl: '#demo',
-    primaryCtaIcon: 'Play',
-    primaryCtaEnabled: true,
-    secondaryCtaText: 'Join Waitlist',
-    secondaryCtaUrl: '#waitlist',
-    secondaryCtaIcon: 'Users',
-    secondaryCtaEnabled: true,
+    primaryCtaId: null,
+    secondaryCtaId: null,
     isActive: true,
     trustIndicators: [
       { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0, isVisible: true },
@@ -109,15 +109,31 @@ const HomeHeroManager: React.FC = () => {
     ]
   });
 
+  const [availableCTAs, setAvailableCTAs] = useState<CTAButton[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
 
-  // Fetch hero data on component mount
+  // Fetch hero data and available CTAs on component mount
   useEffect(() => {
     fetchHeroData();
+    fetchAvailableCTAs();
   }, []);
+
+  const fetchAvailableCTAs = async () => {
+    try {
+      const response = await fetch('/api/admin/cta-buttons');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setAvailableCTAs(result.data.filter((cta: CTAButton) => cta.isActive));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching CTAs:', error);
+    }
+  };
 
   const fetchHeroData = async () => {
     setLoading(true);
@@ -224,6 +240,11 @@ const HomeHeroManager: React.FC = () => {
     return iconData ? iconData.icon : Shield;
   };
 
+  const getSelectedCTA = (ctaId: number | null) => {
+    if (!ctaId) return null;
+    return availableCTAs.find(cta => cta.id === ctaId) || null;
+  };
+
   // Auto-hide messages after 3 seconds
   useEffect(() => {
     if (message) {
@@ -314,22 +335,22 @@ const HomeHeroManager: React.FC = () => {
               {heroData.subheading}
             </p>
             <div className="flex flex-wrap gap-4 mb-8">
-              {heroData.primaryCtaEnabled && (
+              {heroData.primaryCtaId && heroData.primaryCta && (
                 <Button className="bg-[#5243E9] hover:bg-[#4338CA] flex items-center gap-2">
-                  {(() => {
-                    const IconComponent = getIconComponent(heroData.primaryCtaIcon);
+                  {heroData.primaryCta.icon && (() => {
+                    const IconComponent = getIconComponent(heroData.primaryCta.icon);
                     return <IconComponent className="w-4 h-4" />;
                   })()}
-                  {heroData.primaryCtaText}
+                  {heroData.primaryCta.text}
                 </Button>
               )}
-              {heroData.secondaryCtaEnabled && (
+              {heroData.secondaryCtaId && heroData.secondaryCta && (
                 <Button variant="outline" className="flex items-center gap-2">
-                  {(() => {
-                    const IconComponent = getIconComponent(heroData.secondaryCtaIcon);
+                  {heroData.secondaryCta.icon && (() => {
+                    const IconComponent = getIconComponent(heroData.secondaryCta.icon);
                     return <IconComponent className="w-4 h-4" />;
                   })()}
-                  {heroData.secondaryCtaText}
+                  {heroData.secondaryCta.text}
                 </Button>
               )}
             </div>
@@ -403,100 +424,72 @@ const HomeHeroManager: React.FC = () => {
               <div className="space-y-6">
                 {/* Primary CTA */}
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
-                    <input
-                      type="checkbox"
-                      id="primaryCtaEnabled"
-                      checked={heroData.primaryCtaEnabled}
-                      onChange={(e) => setHeroData(prev => ({ ...prev, primaryCtaEnabled: e.target.checked }))}
-                      className="w-4 h-4 text-[#5243E9] border-gray-300 rounded focus:ring-[#5243E9]"
-                    />
-                    <label htmlFor="primaryCtaEnabled" className="font-medium text-gray-900">
-                      Primary CTA Button
-                    </label>
-                  </div>
+                  <h4 className="font-medium text-gray-900 mb-3">Primary CTA Button</h4>
                   
-                  {heroData.primaryCtaEnabled && (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Button Icon
-                        </label>
-                        <select
-                          value={heroData.primaryCtaIcon}
-                          onChange={(e) => setHeroData(prev => ({ ...prev, primaryCtaIcon: e.target.value }))}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5243E9] focus:border-transparent"
-                        >
-                          {availableIcons.map(icon => (
-                            <option key={icon.name} value={icon.name}>
-                              {icon.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <Input
-                        label="Button Text"
-                        value={heroData.primaryCtaText}
-                        onChange={(e) => setHeroData(prev => ({ ...prev, primaryCtaText: e.target.value }))}
-                        placeholder="Try Live Demo"
-                      />
-                      <Input
-                        label="Button URL"
-                        value={heroData.primaryCtaUrl}
-                        onChange={(e) => setHeroData(prev => ({ ...prev, primaryCtaUrl: e.target.value }))}
-                        placeholder="#demo"
-                      />
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Select CTA Button
+                      </label>
+                      <select
+                        value={heroData.primaryCtaId || ''}
+                        onChange={(e) => setHeroData(prev => ({ 
+                          ...prev, 
+                          primaryCtaId: e.target.value ? Number(e.target.value) : null 
+                        }))}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5243E9] focus:border-transparent"
+                      >
+                        <option value="">No CTA Button</option>
+                        {availableCTAs.map(cta => (
+                          <option key={cta.id} value={cta.id}>
+                            {cta.text} ({cta.url})
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  )}
+                    {heroData.primaryCtaId && (
+                      <div className="text-sm text-gray-600 bg-gray-100 p-3 rounded">
+                        <p><strong>Selected:</strong> {getSelectedCTA(heroData.primaryCtaId)?.text}</p>
+                        <p><strong>URL:</strong> {getSelectedCTA(heroData.primaryCtaId)?.url}</p>
+                        <p><strong>Style:</strong> {getSelectedCTA(heroData.primaryCtaId)?.style}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Secondary CTA */}
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
-                    <input
-                      type="checkbox"
-                      id="secondaryCtaEnabled"
-                      checked={heroData.secondaryCtaEnabled}
-                      onChange={(e) => setHeroData(prev => ({ ...prev, secondaryCtaEnabled: e.target.checked }))}
-                      className="w-4 h-4 text-[#5243E9] border-gray-300 rounded focus:ring-[#5243E9]"
-                    />
-                    <label htmlFor="secondaryCtaEnabled" className="font-medium text-gray-900">
-                      Secondary CTA Button
-                    </label>
-                  </div>
+                  <h4 className="font-medium text-gray-900 mb-3">Secondary CTA Button</h4>
                   
-                  {heroData.secondaryCtaEnabled && (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Button Icon
-                        </label>
-                        <select
-                          value={heroData.secondaryCtaIcon}
-                          onChange={(e) => setHeroData(prev => ({ ...prev, secondaryCtaIcon: e.target.value }))}
-                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5243E9] focus:border-transparent"
-                        >
-                          {availableIcons.map(icon => (
-                            <option key={icon.name} value={icon.name}>
-                              {icon.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <Input
-                        label="Button Text"
-                        value={heroData.secondaryCtaText}
-                        onChange={(e) => setHeroData(prev => ({ ...prev, secondaryCtaText: e.target.value }))}
-                        placeholder="Join Waitlist"
-                      />
-                      <Input
-                        label="Button URL"
-                        value={heroData.secondaryCtaUrl}
-                        onChange={(e) => setHeroData(prev => ({ ...prev, secondaryCtaUrl: e.target.value }))}
-                        placeholder="#waitlist"
-                      />
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Select CTA Button
+                      </label>
+                      <select
+                        value={heroData.secondaryCtaId || ''}
+                        onChange={(e) => setHeroData(prev => ({ 
+                          ...prev, 
+                          secondaryCtaId: e.target.value ? Number(e.target.value) : null 
+                        }))}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5243E9] focus:border-transparent"
+                      >
+                        <option value="">No CTA Button</option>
+                        {availableCTAs.map(cta => (
+                          <option key={cta.id} value={cta.id}>
+                            {cta.text} ({cta.url})
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  )}
+                    {heroData.secondaryCtaId && (
+                      <div className="text-sm text-gray-600 bg-gray-100 p-3 rounded">
+                        <p><strong>Selected:</strong> {getSelectedCTA(heroData.secondaryCtaId)?.text}</p>
+                        <p><strong>URL:</strong> {getSelectedCTA(heroData.secondaryCtaId)?.url}</p>
+                        <p><strong>Style:</strong> {getSelectedCTA(heroData.secondaryCtaId)?.style}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
