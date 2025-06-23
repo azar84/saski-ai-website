@@ -5,38 +5,16 @@ import { CreateFeatureGroupSchema, UpdateFeatureGroupSchema, validateAndTransfor
 // GET - Fetch all feature groups
 export async function GET() {
   try {
+    console.log('Attempting to fetch feature groups...');
+    
+    // Start with a simple query first
     const featureGroups = await prisma.featureGroup.findMany({
-      include: {
-        groupItems: {
-          include: {
-            feature: true
-          },
-          orderBy: {
-            sortOrder: 'asc'
-          }
-        },
-        pageAssignments: {
-          include: {
-            page: {
-              select: {
-                id: true,
-                slug: true,
-                title: true
-              }
-            }
-          }
-        },
-        _count: {
-          select: {
-            groupItems: true,
-            pageAssignments: true
-          }
-        }
-      },
       orderBy: {
         createdAt: 'desc'
       }
     });
+
+    console.log('Found feature groups:', featureGroups.length);
 
     const response: ApiResponse = {
       success: true,
@@ -45,6 +23,9 @@ export async function GET() {
     return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to fetch feature groups:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
     const response: ApiResponse = {
       success: false,
       message: 'Failed to fetch feature groups'
