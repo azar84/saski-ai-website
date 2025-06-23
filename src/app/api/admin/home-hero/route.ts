@@ -79,6 +79,27 @@ export async function PUT(request: NextRequest) {
     let homeHero;
     
     if (existingHero) {
+      // If trust indicators are provided, update them
+      if (validatedData.trustIndicators !== undefined) {
+        // Delete existing trust indicators
+        await prisma.trustIndicator.deleteMany({
+          where: { homePageHeroId: existingHero.id }
+        });
+
+        // Create new trust indicators
+        if (validatedData.trustIndicators && validatedData.trustIndicators.length > 0) {
+          await prisma.trustIndicator.createMany({
+            data: validatedData.trustIndicators.map((indicator, index) => ({
+              homePageHeroId: existingHero.id,
+              iconName: indicator.iconName,
+              text: indicator.text,
+              sortOrder: indicator.sortOrder ?? index,
+              isVisible: indicator.isVisible
+            }))
+          });
+        }
+      }
+
       // Update existing hero
       homeHero = await prisma.homePageHero.update({
         where: { id: existingHero.id },
@@ -122,6 +143,33 @@ export async function PUT(request: NextRequest) {
           }
         }
       });
+
+      // Create trust indicators if provided
+      if (createData.trustIndicators && createData.trustIndicators.length > 0) {
+        await prisma.trustIndicator.createMany({
+          data: createData.trustIndicators.map((indicator, index) => ({
+            homePageHeroId: homeHero.id,
+            iconName: indicator.iconName,
+            text: indicator.text,
+            sortOrder: indicator.sortOrder ?? index,
+            isVisible: indicator.isVisible
+          }))
+        });
+
+        // Fetch the updated hero with trust indicators
+        homeHero = await prisma.homePageHero.findFirst({
+          where: { id: homeHero.id },
+          include: {
+            primaryCta: true,
+            secondaryCta: true,
+            trustIndicators: {
+              orderBy: {
+                sortOrder: 'asc'
+              }
+            }
+          }
+        });
+      }
     }
 
     const response: ApiResponse = {

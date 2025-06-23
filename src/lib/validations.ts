@@ -72,17 +72,6 @@ export const UpdateFeatureSchema = CreateFeatureSchema.extend({
   id: IdSchema,
 }).partial().required({ id: true });
 
-// Home Hero Schema  
-export const HomeHeroSchema = z.object({
-  heading: z.string().min(1, 'Heading is required').max(200),
-  subheading: z.string().max(500),
-  primaryCtaId: z.number().int().positive().nullable(),
-  secondaryCtaId: z.number().int().positive().nullable(),
-  isActive: z.boolean().default(true),
-});
-
-export const UpdateHomeHeroSchema = HomeHeroSchema.partial();
-
 // Trust Indicator Schema
 export const TrustIndicatorSchema = z.object({
   iconName: z.string().min(1, 'Icon name is required').max(50),
@@ -90,6 +79,18 @@ export const TrustIndicatorSchema = z.object({
   sortOrder: z.number().int().min(0).default(0),
   isVisible: z.boolean().default(true),
 });
+
+// Home Hero Schema  
+export const HomeHeroSchema = z.object({
+  heading: z.string().min(1, 'Heading is required').max(200),
+  subheading: z.string().max(500),
+  primaryCtaId: z.number().int().positive().nullable(),
+  secondaryCtaId: z.number().int().positive().nullable(),
+  isActive: z.boolean().default(true),
+  trustIndicators: z.array(TrustIndicatorSchema).optional(),
+});
+
+export const UpdateHomeHeroSchema = HomeHeroSchema.partial();
 
 // Header Config Schema
 export const HeaderNavItemSchema = z.object({
