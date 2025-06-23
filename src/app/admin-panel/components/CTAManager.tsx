@@ -249,8 +249,8 @@ export default function CTAManager() {
       text: cta.text,
       url: cta.url,
       icon: cta.icon || '',
-      style: cta.style,
-      target: cta.target,
+      style: cta.style as 'primary' | 'secondary' | 'outline' | 'ghost',
+      target: cta.target as '_self' | '_blank',
       isActive: cta.isActive
     });
     setEditingCta(cta);
