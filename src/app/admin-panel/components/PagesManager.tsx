@@ -166,6 +166,15 @@ export default function PagesManager() {
   };
 
   const handleDelete = async (page: Page) => {
+    // Prevent deletion of home page
+    if (page.slug === 'home') {
+      setMessage({ 
+        type: 'error', 
+        text: 'The home page cannot be deleted as it is required for the website to function properly.' 
+      });
+      return;
+    }
+
     if (!confirm(`Are you sure you want to delete "${page.title}"? This will also delete all associated content.`)) {
       return;
     }
@@ -289,6 +298,11 @@ export default function PagesManager() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
                     <h3 className="text-xl font-semibold text-gray-900">{page.title}</h3>
+                    {page.slug === 'home' && (
+                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                        Default Home Page
+                      </span>
+                    )}
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <ArrowUpDown className="w-4 h-4" />
                       <span>Order: {page.sortOrder}</span>
@@ -337,7 +351,12 @@ export default function PagesManager() {
                     onClick={() => handleDelete(page)}
                     variant="outline"
                     size="sm"
-                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    disabled={page.slug === 'home'}
+                    className={page.slug === 'home' 
+                      ? "text-gray-400 border-gray-200 cursor-not-allowed" 
+                      : "text-red-600 border-red-200 hover:bg-red-50"
+                    }
+                    title={page.slug === 'home' ? 'Home page cannot be deleted' : 'Delete page'}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -412,10 +431,14 @@ export default function PagesManager() {
                   onChange={(e) => handleInputChange('slug', e.target.value)}
                   placeholder="page-url-slug"
                   required
+                  disabled={editingPage?.slug === 'home'}
                   className="w-full"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  This will be the URL path: /{formData.slug}
+                  {editingPage?.slug === 'home' 
+                    ? 'The home page slug cannot be changed as it maps to the base URL (/)' 
+                    : `This will be the URL path: /${formData.slug}`
+                  }
                 </p>
               </div>
 

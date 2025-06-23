@@ -119,6 +119,28 @@ export async function PUT(request: NextRequest) {
     // Validate input using Zod schema
     const validatedData = validateAndTransform(UpdatePageSchema, body);
 
+    // Get the current page to check if it's the home page
+    const currentPage = await prisma.page.findUnique({
+      where: { id: validatedData.id }
+    });
+
+    if (!currentPage) {
+      const response: ApiResponse = {
+        success: false,
+        message: 'Page not found'
+      };
+      return NextResponse.json(response, { status: 404 });
+    }
+
+    // Prevent changing the slug of the home page
+    if (currentPage.slug === 'home' && validatedData.slug && validatedData.slug !== 'home') {
+      const response: ApiResponse = {
+        success: false,
+        message: 'The home page slug cannot be changed as it is required for the website to function properly'
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+
     // Check if slug already exists (excluding current page)
     if (validatedData.slug) {
       const existingPage = await prisma.page.findFirst({
@@ -190,6 +212,28 @@ export async function DELETE(request: NextRequest) {
       const response: ApiResponse = {
         success: false,
         message: 'Valid page ID is required'
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+
+    // Check if page exists and get its slug
+    const existingPage = await prisma.page.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!existingPage) {
+      const response: ApiResponse = {
+        success: false,
+        message: 'Page not found'
+      };
+      return NextResponse.json(response, { status: 404 });
+    }
+
+    // Prevent deletion of home page
+    if (existingPage.slug === 'home') {
+      const response: ApiResponse = {
+        success: false,
+        message: 'The home page cannot be deleted as it is required for the website to function properly'
       };
       return NextResponse.json(response, { status: 400 });
     }

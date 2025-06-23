@@ -5,6 +5,34 @@ import HeroSection from '@/components/sections/HeroSection';
 import FeaturesSection from '@/components/sections/FeaturesSection';
 import { getHomepageData } from '@/lib/api';
 
+interface HomePage {
+  id: number;
+  slug: string;
+  title: string;
+  metaTitle?: string;
+  metaDesc?: string;
+}
+
+async function getHomePage(): Promise<HomePage | null> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/pages`, {
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      return null;
+    }
+    
+    const data = await response.json();
+    const pages = data.data || [];
+    
+    return pages.find((page: HomePage) => page.slug === 'home') || null;
+  } catch (error) {
+    console.error('Failed to fetch home page:', error);
+    return null;
+  }
+}
+
 // Loading components
 const SectionSkeleton = () => (
   <div className="animate-pulse py-24">
@@ -23,6 +51,7 @@ const SectionSkeleton = () => (
 export default async function Home() {
   // Using static data for now since we removed Strapi
   const data = await getHomepageData();
+  const homePage = await getHomePage();
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#0F1A2A] transition-colors duration-300">
@@ -34,7 +63,7 @@ export default async function Home() {
 
       {/* Features Section */}
       <Suspense fallback={<SectionSkeleton />}>
-        <FeaturesSection />
+        <FeaturesSection pageSlug="home" />
       </Suspense>
 
       {/* CTA Section */}
