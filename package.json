@@ -13,6 +13,9 @@
     "clean": "rm -rf .next",
     "analyze": "ANALYZE=true npm run build",
     "db:seed": "tsx prisma/seed.ts",
+    "db:migrate": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "heroku-postbuild": "prisma migrate deploy && npm run db:seed",
     "postinstall": "prisma generate"
   },
   "dependencies": {
