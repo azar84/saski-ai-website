@@ -1,7 +1,51 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    domains: ['saskiai-backend-00cf6a2d4e4f.herokuapp.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'saskiai-backend-00cf6a2d4e4f.herokuapp.com',
+        port: '',
+        pathname: '/uploads/**',
+      },
+    ],
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

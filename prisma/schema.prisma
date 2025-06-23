@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SiteSettings {
+  id         Int      @id @default(autoincrement())
+  logoUrl    String?
+  faviconUrl String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model Page {
+  id               Int               @id @default(autoincrement())
+  slug             String            @unique
+  title            String
+  metaTitle        String?
+  metaDesc         String?
+  sortOrder        Int               @default(0)
+  showInHeader     Boolean           @default(true)
+  showInFooter     Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  features         Feature[]
+  heroSections     HeroSection[]
+  mediaSections    MediaSection[]
+  headerNavItems   HeaderNavItem[]
+
+  @@map("pages")
+}
+
+model HeroSection {
+  id         Int      @id @default(autoincrement())
+  pageId     Int
+  heading    String?
+  subheading String?
+  imageUrl   String?
+  visible    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  page       Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@map("hero_sections")
+}
+
+model Feature {
+  id         Int      @id @default(autoincrement())
+  pageId     Int
+  iconUrl    String?
+  heading    String
+  subheading String?
+  position   Int      @default(0)
+  visible    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  page       Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@map("features")
+}
+
+model MediaSection {
+  id         Int      @id @default(autoincrement())
+  pageId     Int
+  heading    String?
+  subheading String?
+  imageUrl   String?
+  videoUrl   String?
+  position   Int      @default(0)
+  visible    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  page       Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@map("media_sections")
+}
+
+model HeaderConfig {
+  id          Int             @id @default(autoincrement())
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  navItems    HeaderNavItem[]
+  ctaButtons  HeaderCTA[]
+
+  @@map("header_config")
+}
+
+model HeaderNavItem {
+  id             Int          @id @default(autoincrement())
+  headerConfigId Int
+  pageId         Int?         // Optional - can be null for custom links
+  customText     String?      // Custom text for non-page links
+  customUrl      String?      // Custom URL for non-page links
+  sortOrder      Int          @default(0)
+  isVisible      Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
+  page           Page?        @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@map("header_nav_items")
+}
+
+model CTA {
+  id          Int         @id @default(autoincrement())
+  text        String      // Button text
+  url         String      // Button URL/link
+  icon        String?     // Optional Lucide icon name (e.g., "ArrowRight", "ExternalLink")
+  style       String      @default("primary") // primary, secondary, outline, ghost
+  target      String      @default("_self") // _self, _blank
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  headerCTAs  HeaderCTA[]
+
+  @@map("cta_buttons")
+}
+
+model HeaderCTA {
+  id             Int          @id @default(autoincrement())
+  headerConfigId Int
+  ctaId          Int
+  sortOrder      Int          @default(0)
+  isVisible      Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
+  cta            CTA          @relation(fields: [ctaId], references: [id], onDelete: Cascade)
+
+  @@map("header_cta_items")
+}
+
+model HomePageHero {
+  id                    Int                     @id @default(autoincrement())
+  heading               String                  @default("Automate Conversations, Capture Leads, Serve Customers — All Without Code")
+  subheading            String                  @default("Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.")
+  primaryCtaText        String                  @default("Try Live Demo")
+  primaryCtaUrl         String                  @default("#demo")
+  primaryCtaIcon        String                  @default("Play") // Lucide icon name for primary CTA
+  primaryCtaEnabled     Boolean                 @default(true)
+  secondaryCtaText      String                  @default("Join Waitlist")
+  secondaryCtaUrl       String                  @default("#waitlist")
+  secondaryCtaIcon      String                  @default("Users") // Lucide icon name for secondary CTA
+  secondaryCtaEnabled   Boolean                 @default(true)
+  isActive              Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  trustIndicators       TrustIndicator[]
+
+  @@map("home_page_hero")
+}
+
+model TrustIndicator {
+  id              Int            @id @default(autoincrement())
+  homePageHeroId  Int
+  iconName        String         // Icon name from Lucide React (e.g., "Shield", "Clock", "Code")
+  text            String         // Display text (e.g., "99.9% Uptime")
+  sortOrder       Int            @default(0)
+  isVisible       Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  homePageHero    HomePageHero   @relation(fields: [homePageHeroId], references: [id], onDelete: Cascade)
+
+  @@map("trust_indicators")
+}
