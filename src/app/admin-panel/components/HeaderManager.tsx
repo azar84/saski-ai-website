@@ -13,7 +13,12 @@ const HeaderManager = () => {
 
   // Form states
   const [navItems, setNavItems] = useState<Partial<HeaderNavItem>[]>([]);
-  const [selectedCTAs, setSelectedCTAs] = useState<Partial<HeaderCTA>[]>([]);
+  const [selectedCTAs, setSelectedCTAs] = useState<Array<{
+    id?: number; // HeaderCTA ID
+    ctaId: number; // CTA ID
+    sortOrder: number;
+    isVisible: boolean;
+  }>>([]);
   const [newCTA, setNewCTA] = useState({
     text: '',
     url: '',
@@ -45,13 +50,25 @@ const HeaderManager = () => {
       if (Array.isArray(headerData) && headerData.length > 0) {
         const config = headerData[0];
         setHeaderConfig(config);
-        setNavItems(config.headerNavItems || []);
-        setSelectedCTAs(config.headerCtas || []);
+        setNavItems(config.navItems || []);
+        // Map HeaderCTA objects to include both the headerCTA ID and the CTA ID
+        setSelectedCTAs((config.ctaButtons || []).map((headerCta: any) => ({
+          id: headerCta.id, // HeaderCTA ID
+          ctaId: headerCta.ctaId, // CTA ID
+          sortOrder: headerCta.sortOrder,
+          isVisible: headerCta.isVisible
+        })));
       } else if (headerData.success) {
         setHeaderConfig(headerData.data);
         if (headerData.data) {
           setNavItems(headerData.data.navItems || []);
-          setSelectedCTAs(headerData.data.ctaButtons || []);
+          // Map HeaderCTA objects to include both the headerCTA ID and the CTA ID
+          setSelectedCTAs((headerData.data.ctaButtons || []).map((headerCta: any) => ({
+            id: headerCta.id, // HeaderCTA ID
+            ctaId: headerCta.ctaId, // CTA ID
+            sortOrder: headerCta.sortOrder,
+            isVisible: headerCta.isVisible
+          })));
         }
       }
 
@@ -98,21 +115,69 @@ const HeaderManager = () => {
     setNavItems(navItems.filter((_, i) => i !== index));
   };
 
-  const addCTAToHeader = (ctaId: number) => {
-    if (!selectedCTAs.find(item => item.ctaId === ctaId)) {
-      setSelectedCTAs([
-        ...selectedCTAs,
-        {
-          ctaId,
-          sortOrder: selectedCTAs.length,
-          isVisible: true
-        }
-      ]);
+  const addCTAToHeader = async (ctaId: number) => {
+    if (selectedCTAs.find(item => item.ctaId === ctaId)) {
+      alert('CTA is already in header');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/header-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'addCta',
+          ctaId: ctaId
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Refresh the header config to get the proper HeaderCTA ID
+        await fetchData();
+        alert('CTA added to header successfully!');
+      } else {
+        alert(result.message || 'Failed to add CTA to header');
+      }
+    } catch (error) {
+      console.error('Failed to add CTA to header:', error);
+      alert('Failed to add CTA to header');
     }
   };
 
-  const removeCTAFromHeader = (ctaId: number) => {
-    setSelectedCTAs(selectedCTAs.filter(item => item.ctaId !== ctaId));
+  const removeCTAFromHeader = async (ctaId: number) => {
+    const headerCta = selectedCTAs.find(item => item.ctaId === ctaId);
+    if (!headerCta) return;
+
+    try {
+      // If we have the headerCTA ID, use the remove action
+      if (headerCta.id) {
+        const response = await fetch('/api/admin/header-config', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'removeCta',
+            headerCtaId: headerCta.id
+          })
+        });
+
+                 const result = await response.json();
+         if (result.success) {
+           // Refresh the header config to get updated state
+           await fetchData();
+           alert('CTA removed from header successfully!');
+         } else {
+           alert(result.message || 'Failed to remove CTA from header');
+         }
+      } else {
+        // If no headerCTA ID, just remove from local state (for newly added items)
+        setSelectedCTAs(selectedCTAs.filter(item => item.ctaId !== ctaId));
+        alert('CTA removed from header!');
+      }
+    } catch (error) {
+      console.error('Failed to remove CTA from header:', error);
+      alert('Failed to remove CTA from header');
+    }
   };
 
   const createCTA = async () => {
@@ -389,7 +454,7 @@ const HeaderManager = () => {
                       <span className="text-sm text-gray-600">({cta.style})</span>
                     </div>
                     <button
-                      onClick={() => removeCTAFromHeader(cta.id)}
+                      onClick={() => item.ctaId && removeCTAFromHeader(item.ctaId)}
                       className="text-red-600 hover:text-red-800 text-sm font-medium"
                     >
                       Remove
