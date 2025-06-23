@@ -63,14 +63,17 @@ async function getHeaderData() {
 
     // Debug info only in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('Header - Header config fetched:', JSON.stringify(headerConfig, null, 2));
-      console.log('Header - Site settings fetched:', siteSettings);
-      
+      console.log('=== HEADER COMPONENT DEBUG ===');
+      console.log('Header - Header config fetched:', headerConfig ? 'FOUND' : 'NOT FOUND');
       if (headerConfig) {
+        console.log('Header - Header config ID:', headerConfig.id);
+        console.log('Header - Is active:', headerConfig.isActive);
         console.log('Header - Nav items count:', headerConfig.navItems?.length || 0);
         console.log('Header - CTA buttons count:', headerConfig.ctaButtons?.length || 0);
-        console.log('Header - CTA buttons details:', headerConfig.ctaButtons);
+        console.log('Header - CTA buttons raw:', JSON.stringify(headerConfig.ctaButtons, null, 2));
       }
+      console.log('Header - Site settings fetched:', siteSettings ? 'FOUND' : 'NOT FOUND');
+      console.log('==============================');
     }
 
     return { headerConfig, siteSettings };
@@ -102,6 +105,11 @@ export default async function Header() {
       style: item.cta.style,
       target: item.cta.target
     }));
+
+    // Debug the mapped CTA buttons
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Header - Mapped CTA buttons for ClientHeader:', JSON.stringify(ctaButtons, null, 2));
+    }
   } else {
     // Fallback: fetch pages directly if no header configuration exists
     const pages = await prisma.page.findMany({
