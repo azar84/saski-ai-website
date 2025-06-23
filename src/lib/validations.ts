@@ -195,9 +195,9 @@ export const CreatePageSectionSchema = z.object({
   sortOrder: z.number().int().min(0).default(0),
   isVisible: z.boolean().default(true),
   // References to existing content
-  heroSectionId: IdSchema.optional(),
-  featureGroupId: IdSchema.optional(),
-  mediaSectionId: IdSchema.optional(),
+  heroSectionId: z.number().int().positive().nullable().optional(),
+  featureGroupId: z.number().int().positive().nullable().optional(),
+  mediaSectionId: z.number().int().positive().nullable().optional(),
 });
 
 export const UpdatePageSectionSchema = CreatePageSectionSchema.extend({
