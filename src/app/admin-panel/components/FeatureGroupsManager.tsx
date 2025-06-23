@@ -37,7 +37,9 @@ import {
   Rocket,
   GripVertical,
   Eye,
-  EyeOff
+  EyeOff,
+  FileText,
+  Link
 } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 
@@ -92,6 +94,22 @@ interface FeatureGroupItem {
   updatedAt: string;
 }
 
+interface Page {
+  id: number;
+  slug: string;
+  title: string;
+  showInHeader: boolean;
+}
+
+interface PageFeatureGroup {
+  id: number;
+  pageId: number;
+  featureGroupId: number;
+  sortOrder: number;
+  isVisible: boolean;
+  page: Page;
+}
+
 interface FeatureGroup {
   id: number;
   name: string;
@@ -100,9 +118,9 @@ interface FeatureGroup {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  groupItems: FeatureGroupItem[];
-  pageAssignments: any[];
-  _count: {
+  groupItems?: FeatureGroupItem[];
+  pageAssignments?: PageFeatureGroup[];
+  _count?: {
     groupItems: number;
     pageAssignments: number;
   };
@@ -111,12 +129,14 @@ interface FeatureGroup {
 const FeatureGroupsManager: React.FC = () => {
   const [featureGroups, setFeatureGroups] = useState<FeatureGroup[]>([]);
   const [availableFeatures, setAvailableFeatures] = useState<GlobalFeature[]>([]);
+  const [availablePages, setAvailablePages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editingGroup, setEditingGroup] = useState<FeatureGroup | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [expandedGroup, setExpandedGroup] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'features' | 'pages'>('features');
   const [formData, setFormData] = useState<{
     name: string;
     heading: string;
@@ -163,10 +183,24 @@ const FeatureGroupsManager: React.FC = () => {
     }
   };
 
+  const fetchAvailablePages = async () => {
+    try {
+      const response = await fetch('/api/admin/pages');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setAvailablePages(result.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching pages:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      await Promise.all([fetchFeatureGroups(), fetchAvailableFeatures()]);
+      await Promise.all([fetchFeatureGroups(), fetchAvailableFeatures(), fetchAvailablePages()]);
       setLoading(false);
     };
     fetchData();
@@ -284,6 +318,54 @@ const FeatureGroupsManager: React.FC = () => {
     }
   };
 
+  const assignGroupToPage = async (groupId: number, pageId: number) => {
+    try {
+      const response = await fetch('/api/admin/page-feature-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          featureGroupId: groupId,
+          pageId: pageId,
+          isVisible: true
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setMessage({ type: 'success', text: 'Feature group assigned to page successfully!' });
+        await fetchFeatureGroups();
+      } else {
+        throw new Error(result.message || 'Failed to assign feature group to page');
+      }
+    } catch (error) {
+      console.error('Error assigning feature group to page:', error);
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to assign feature group to page' });
+    }
+  };
+
+  const removeGroupFromPage = async (assignmentId: number) => {
+    try {
+      const response = await fetch('/api/admin/page-feature-groups', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: assignmentId })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setMessage({ type: 'success', text: 'Feature group removed from page successfully!' });
+        await fetchFeatureGroups();
+      } else {
+        throw new Error(result.message || 'Failed to remove feature group from page');
+      }
+    } catch (error) {
+      console.error('Error removing feature group from page:', error);
+      setMessage({ type: 'error', text: 'Failed to remove feature group from page' });
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -328,7 +410,7 @@ const FeatureGroupsManager: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Feature Groups Manager</h2>
-          <p className="text-gray-600 mt-1">Create reusable feature collections for different pages</p>
+          <p className="text-gray-600 mt-1">Create reusable feature collections and assign them to pages</p>
         </div>
         <Button
           onClick={() => setShowCreateForm(true)}
@@ -490,8 +572,8 @@ const FeatureGroupsManager: React.FC = () => {
                     <p className="text-sm text-gray-500 mt-1">{group.subheading}</p>
                   )}
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                    <span>{group._count.groupItems} features</span>
-                    <span>{group._count.pageAssignments} pages</span>
+                    <span>{group._count?.groupItems || 0} features</span>
+                    <span>{group._count?.pageAssignments || 0} pages</span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -501,7 +583,7 @@ const FeatureGroupsManager: React.FC = () => {
                     onClick={() => setExpandedGroup(expandedGroup === group.id ? null : group.id)}
                     className="text-gray-600"
                   >
-                    {expandedGroup === group.id ? 'Collapse' : 'Manage Features'}
+                    {expandedGroup === group.id ? 'Collapse' : 'Manage'}
                   </Button>
                   <Button
                     size="sm"
@@ -523,30 +605,141 @@ const FeatureGroupsManager: React.FC = () => {
               </div>
             </div>
 
-            {/* Expanded Feature Management */}
+            {/* Expanded Management Section */}
             {expandedGroup === group.id && (
               <div className="p-6 bg-gray-50">
-                <div className="space-y-6">
-                  {/* Current Features in Group */}
-                  <div>
-                    <h5 className="text-lg font-semibold text-gray-900 mb-4">Features in this Group</h5>
-                    {group.groupItems.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {group.groupItems.map((item) => {
-                          const IconComponent = getIconComponent(item.feature.iconName);
-                          return (
+                {/* Tab Navigation */}
+                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+                  <button
+                    onClick={() => setActiveTab('features')}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === 'features'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <Zap className="w-4 h-4" />
+                    Manage Features
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('pages')}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === 'pages'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <FileText className="w-4 h-4" />
+                    Assign to Pages
+                  </button>
+                </div>
+
+                {/* Features Tab */}
+                {activeTab === 'features' && (
+                  <div className="space-y-6">
+                    {/* Current Features in Group */}
+                    <div>
+                      <h5 className="text-lg font-semibold text-gray-900 mb-4">Features in this Group</h5>
+                      {group.groupItems && group.groupItems.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {group.groupItems.map((item) => {
+                            const IconComponent = getIconComponent(item.feature.iconName);
+                            return (
+                              <div
+                                key={item.id}
+                                className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <GripVertical className="w-4 h-4 text-gray-400" />
+                                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <IconComponent className="w-4 h-4 text-blue-600" />
+                                  </div>
+                                  <div>
+                                    <h6 className="font-medium text-gray-900">{item.feature.title}</h6>
+                                    <p className="text-sm text-gray-500">Order: {item.sortOrder}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="p-1 text-gray-500"
+                                  >
+                                    {item.isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => removeFeatureFromGroup(item.id)}
+                                    className="p-1 text-red-600 hover:text-red-700"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-8">No features in this group yet.</p>
+                      )}
+                    </div>
+
+                    {/* Add Features */}
+                    <div>
+                      <h5 className="text-lg font-semibold text-gray-900 mb-4">Add Features</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {availableFeatures
+                          .filter(feature => !group.groupItems?.some(item => item.featureId === feature.id))
+                          .map((feature) => {
+                            const IconComponent = getIconComponent(feature.iconName);
+                            return (
+                              <div
+                                key={feature.id}
+                                className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <IconComponent className="w-4 h-4 text-gray-600" />
+                                  </div>
+                                  <div>
+                                    <h6 className="font-medium text-gray-900">{feature.title}</h6>
+                                    <p className="text-sm text-gray-500">{feature.category}</p>
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  onClick={() => addFeatureToGroup(group.id, feature.id)}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Pages Tab */}
+                {activeTab === 'pages' && (
+                  <div className="space-y-6">
+                    {/* Current Page Assignments */}
+                    <div>
+                      <h5 className="text-lg font-semibold text-gray-900 mb-4">Pages Using This Group</h5>
+                      {group.pageAssignments && group.pageAssignments.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {group.pageAssignments.map((assignment) => (
                             <div
-                              key={item.id}
+                              key={assignment.id}
                               className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
                             >
                               <div className="flex items-center gap-3">
-                                <GripVertical className="w-4 h-4 text-gray-400" />
-                                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                  <IconComponent className="w-4 h-4 text-blue-600" />
-                                </div>
+                                <FileText className="w-5 h-5 text-blue-600" />
                                 <div>
-                                  <h6 className="font-medium text-gray-900">{item.feature.title}</h6>
-                                  <p className="text-sm text-gray-500">Order: {item.sortOrder}</p>
+                                  <h6 className="font-medium text-gray-900">{assignment.page.title}</h6>
+                                  <p className="text-sm text-gray-500">/{assignment.page.slug}</p>
                                 </div>
                               </div>
                               <div className="flex items-center space-x-2">
@@ -555,61 +748,56 @@ const FeatureGroupsManager: React.FC = () => {
                                   variant="ghost"
                                   className="p-1 text-gray-500"
                                 >
-                                  {item.isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                  {assignment.isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => removeFeatureFromGroup(item.id)}
+                                  onClick={() => removeGroupFromPage(assignment.id)}
                                   className="p-1 text-red-600 hover:text-red-700"
                                 >
                                   <X className="w-4 h-4" />
                                 </Button>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 text-center py-8">No features in this group yet.</p>
-                    )}
-                  </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-8">This group is not assigned to any pages yet.</p>
+                      )}
+                    </div>
 
-                  {/* Add Features */}
-                  <div>
-                    <h5 className="text-lg font-semibold text-gray-900 mb-4">Add Features</h5>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {availableFeatures
-                        .filter(feature => !group.groupItems.some(item => item.featureId === feature.id))
-                        .map((feature) => {
-                          const IconComponent = getIconComponent(feature.iconName);
-                          return (
+                    {/* Assign to Pages */}
+                    <div>
+                      <h5 className="text-lg font-semibold text-gray-900 mb-4">Assign to Pages</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {availablePages
+                          .filter(page => !group.pageAssignments?.some(assignment => assignment.pageId === page.id))
+                          .map((page) => (
                             <div
-                              key={feature.id}
-                              className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                              key={page.id}
+                              className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-green-300 transition-colors"
                             >
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                  <IconComponent className="w-4 h-4 text-gray-600" />
-                                </div>
+                                <FileText className="w-5 h-5 text-gray-600" />
                                 <div>
-                                  <h6 className="font-medium text-gray-900">{feature.title}</h6>
-                                  <p className="text-sm text-gray-500">{feature.category}</p>
+                                  <h6 className="font-medium text-gray-900">{page.title}</h6>
+                                  <p className="text-sm text-gray-500">/{page.slug}</p>
                                 </div>
                               </div>
                               <Button
                                 size="sm"
-                                onClick={() => addFeatureToGroup(group.id, feature.id)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={() => assignGroupToPage(group.id, page.id)}
+                                className="bg-green-600 hover:bg-green-700 text-white"
                               >
-                                <Plus className="w-4 h-4" />
+                                <Link className="w-4 h-4" />
                               </Button>
                             </div>
-                          );
-                        })}
+                          ))}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>

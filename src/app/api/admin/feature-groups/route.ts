@@ -7,8 +7,34 @@ export async function GET() {
   try {
     console.log('Attempting to fetch feature groups...');
     
-    // Start with a simple query first
     const featureGroups = await prisma.featureGroup.findMany({
+      include: {
+        groupItems: {
+          include: {
+            feature: true
+          },
+          orderBy: {
+            sortOrder: 'asc'
+          }
+        },
+        pageAssignments: {
+          include: {
+            page: {
+              select: {
+                id: true,
+                slug: true,
+                title: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            groupItems: true,
+            pageAssignments: true
+          }
+        }
+      },
       orderBy: {
         createdAt: 'desc'
       }
