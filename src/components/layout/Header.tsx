@@ -61,6 +61,18 @@ async function getHeaderData() {
       }
     });
 
+    // Debug info only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Header - Header config fetched:', JSON.stringify(headerConfig, null, 2));
+      console.log('Header - Site settings fetched:', siteSettings);
+      
+      if (headerConfig) {
+        console.log('Header - Nav items count:', headerConfig.navItems?.length || 0);
+        console.log('Header - CTA buttons count:', headerConfig.ctaButtons?.length || 0);
+        console.log('Header - CTA buttons details:', headerConfig.ctaButtons);
+      }
+    }
+
     return { headerConfig, siteSettings };
   } catch (error) {
     console.error('Failed to fetch header data:', error);
@@ -70,16 +82,6 @@ async function getHeaderData() {
 
 export default async function Header() {
   const { headerConfig, siteSettings } = await getHeaderData();
-
-  // Debug: Log the fetched data
-  console.log('Header - Header config fetched:', JSON.stringify(headerConfig, null, 2));
-  console.log('Header - Site settings fetched:', siteSettings);
-  
-  if (headerConfig) {
-    console.log('Header - Nav items count:', headerConfig.navItems?.length || 0);
-    console.log('Header - CTA buttons count:', headerConfig.ctaButtons?.length || 0);
-    console.log('Header - CTA buttons details:', headerConfig.ctaButtons);
-  }
 
   // Generate navigation items from header configuration
   let navigationItems: Array<{name: string; href: string; isActive: boolean}> = [];

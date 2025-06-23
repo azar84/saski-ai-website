@@ -40,9 +40,11 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Debug: Log the navigation items and CTA buttons received
-  console.log('ClientHeader - Navigation items received:', navigationItems);
-  console.log('ClientHeader - CTA buttons received:', ctaButtons);
+  // Debug info only in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('ClientHeader - Navigation items received:', navigationItems);
+    console.log('ClientHeader - CTA buttons received:', ctaButtons);
+  }
 
   // Available icons for CTA buttons
   const availableIcons = {

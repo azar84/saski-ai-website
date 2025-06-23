@@ -38,12 +38,19 @@ export default function CTAManager() {
   const [loading, setLoading] = useState(true);
   const [editingCta, setEditingCta] = useState<CTA | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    text: string;
+    url: string;
+    icon: string;
+    style: 'primary' | 'secondary' | 'outline' | 'ghost';
+    target: '_self' | '_blank';
+    isActive: boolean;
+  }>({
     text: '',
     url: '',
     icon: '',
-    style: 'primary' as const,
-    target: '_self' as const,
+    style: 'primary',
+    target: '_self',
     isActive: true
   });
 
@@ -128,7 +135,10 @@ export default function CTAManager() {
         ? { ...formData, id: editingCta.id }
         : formData;
 
-      console.log('Submitting CTA:', { method, body });
+      // Debug info only in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Submitting CTA:', { method, body });
+      }
 
       const response = await fetch(url, {
         method,
@@ -137,10 +147,17 @@ export default function CTAManager() {
       });
 
       const result = await response.json();
-      console.log('API Response:', result);
+      
+      // Debug info only in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('API Response:', result);
+      }
 
       if (response.ok) {
-        console.log('CTA saved successfully');
+        // Debug info only in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log('CTA saved successfully');
+        }
         await fetchCtas();
         await fetchHeaderConfig();
         resetForm();
@@ -236,8 +253,8 @@ export default function CTAManager() {
       text: '',
       url: '',
       icon: '',
-      style: 'primary' as const,
-      target: '_self' as const,
+      style: 'primary',
+      target: '_self',
       isActive: true
     });
     setEditingCta(null);
@@ -349,7 +366,10 @@ export default function CTAManager() {
                 </label>
                 <select
                   value={formData.style}
-                  onChange={(e) => setFormData({ ...formData, style: e.target.value as any })}
+                  onChange={(e) => {
+                    const value = e.target.value as 'primary' | 'secondary' | 'outline' | 'ghost';
+                    setFormData({ ...formData, style: value });
+                  }}
                   className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="primary">Primary (Filled)</option>
@@ -365,7 +385,10 @@ export default function CTAManager() {
                 </label>
                 <select
                   value={formData.target}
-                  onChange={(e) => setFormData({ ...formData, target: e.target.value as any })}
+                  onChange={(e) => {
+                    const value = e.target.value as '_self' | '_blank';
+                    setFormData({ ...formData, target: value });
+                  }}
                   className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="_self">Same Tab</option>

@@ -1,116 +1,154 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '../../../../lib/db';
+import { HomeHeroSchema, UpdateHomeHeroSchema, validateAndTransform, type ApiResponse } from '../../../../lib/validations';
 
-// GET - Fetch home page hero data
+// GET - Fetch home hero data
 export async function GET() {
   try {
-    const hero = await prisma.homePageHero.findFirst({
-      where: { isActive: true },
+    const homeHero = await prisma.homePageHero.findFirst({
+      where: {
+        isActive: true
+      },
       include: {
         trustIndicators: {
-          where: { isVisible: true },
-          orderBy: { sortOrder: 'asc' }
+          where: {
+            isVisible: true
+          },
+          orderBy: {
+            sortOrder: 'asc'
+          }
         }
       }
     });
 
-    // If no hero exists, create a default one
-    if (!hero) {
-      const defaultHero = await prisma.homePageHero.create({
-        data: {
-          trustIndicators: {
-            create: [
-              { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0 },
-              { iconName: 'Clock', text: '24/7 Support', sortOrder: 1 },
-              { iconName: 'Code', text: 'No Code Required', sortOrder: 2 }
-            ]
-          }
-        },
-        include: {
-          trustIndicators: {
-            where: { isVisible: true },
-            orderBy: { sortOrder: 'asc' }
-          }
-        }
-      });
-      return NextResponse.json(defaultHero);
+    // If no home hero exists, return default data
+    if (!homeHero) {
+      const defaultData = {
+        id: null,
+        heading: "Automate Conversations, Capture Leads, Serve Customers — All Without Code",
+        subheading: "Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.",
+        primaryCtaText: "Try Live Demo",
+        primaryCtaUrl: "#demo",
+        primaryCtaIcon: "Play",
+        primaryCtaEnabled: true,
+        secondaryCtaText: "Join Waitlist",
+        secondaryCtaUrl: "#waitlist",
+        secondaryCtaIcon: "Users",
+        secondaryCtaEnabled: true,
+        isActive: true,
+        trustIndicators: [
+          { iconName: "Shield", text: "99.9% Uptime", sortOrder: 0, isVisible: true },
+          { iconName: "Clock", text: "<30s Response", sortOrder: 1, isVisible: true },
+          { iconName: "Users", text: "10K+ Customers", sortOrder: 2, isVisible: true },
+          { iconName: "Globe", text: "50+ Countries", sortOrder: 3, isVisible: true }
+        ]
+      };
+      
+      const response: ApiResponse = {
+        success: true,
+        data: defaultData
+      };
+      return NextResponse.json(response);
     }
 
-    return NextResponse.json(hero);
+    const response: ApiResponse = {
+      success: true,
+      data: homeHero
+    };
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching home page hero:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch home page hero data' },
-      { status: 500 }
-    );
+    console.error('Failed to fetch home hero data:', error);
+    
+    const response: ApiResponse = {
+      success: false,
+      message: 'Failed to fetch home hero data'
+    };
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
-// PUT - Update home page hero data
+// PUT - Update home hero data
 export async function PUT(request: NextRequest) {
   try {
-    const data = await request.json();
-    const { trustIndicators, ...heroData } = data;
+    const body = await request.json();
+    
+    // Validate input using Zod schema
+    const validatedData = validateAndTransform(UpdateHomeHeroSchema, body);
 
-    // First, get the current hero or create one
-    let hero = await prisma.homePageHero.findFirst({
-      where: { isActive: true }
-    });
+    // Check if a home hero already exists
+    const existingHero = await prisma.homePageHero.findFirst();
 
-    if (!hero) {
-      hero = await prisma.homePageHero.create({
-        data: {}
+    let homeHero;
+    
+    if (existingHero) {
+      // Update existing hero
+      homeHero = await prisma.homePageHero.update({
+        where: { id: existingHero.id },
+        data: {
+          ...(validatedData.heading !== undefined && { heading: validatedData.heading }),
+          ...(validatedData.subheading !== undefined && { subheading: validatedData.subheading }),
+          ...(validatedData.primaryCtaText !== undefined && { primaryCtaText: validatedData.primaryCtaText }),
+          ...(validatedData.primaryCtaUrl !== undefined && { primaryCtaUrl: validatedData.primaryCtaUrl }),
+          ...(validatedData.primaryCtaIcon !== undefined && { primaryCtaIcon: validatedData.primaryCtaIcon }),
+          ...(validatedData.primaryCtaEnabled !== undefined && { primaryCtaEnabled: validatedData.primaryCtaEnabled }),
+          ...(validatedData.secondaryCtaText !== undefined && { secondaryCtaText: validatedData.secondaryCtaText }),
+          ...(validatedData.secondaryCtaUrl !== undefined && { secondaryCtaUrl: validatedData.secondaryCtaUrl }),
+          ...(validatedData.secondaryCtaIcon !== undefined && { secondaryCtaIcon: validatedData.secondaryCtaIcon }),
+          ...(validatedData.secondaryCtaEnabled !== undefined && { secondaryCtaEnabled: validatedData.secondaryCtaEnabled }),
+          ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
+          updatedAt: new Date()
+        },
+        include: {
+          trustIndicators: {
+            orderBy: {
+              sortOrder: 'asc'
+            }
+          }
+        }
+      });
+    } else {
+      // Create new hero with validated data
+      const createData = validateAndTransform(HomeHeroSchema, body);
+      
+      homeHero = await prisma.homePageHero.create({
+        data: {
+          heading: createData.heading,
+          subheading: createData.subheading,
+          primaryCtaText: createData.primaryCtaText,
+          primaryCtaUrl: createData.primaryCtaUrl,
+          primaryCtaIcon: createData.primaryCtaIcon,
+          primaryCtaEnabled: createData.primaryCtaEnabled,
+          secondaryCtaText: createData.secondaryCtaText,
+          secondaryCtaUrl: createData.secondaryCtaUrl,
+          secondaryCtaIcon: createData.secondaryCtaIcon,
+          secondaryCtaEnabled: createData.secondaryCtaEnabled,
+          isActive: createData.isActive
+        },
+        include: {
+          trustIndicators: {
+            orderBy: {
+              sortOrder: 'asc'
+            }
+          }
+        }
       });
     }
 
-    // Update the hero data
-    const updatedHero = await prisma.homePageHero.update({
-      where: { id: hero.id },
-      data: heroData,
-      include: {
-        trustIndicators: {
-          orderBy: { sortOrder: 'asc' }
-        }
-      }
-    });
-
-    // Handle trust indicators if provided
-    if (trustIndicators && Array.isArray(trustIndicators)) {
-      // Delete existing trust indicators
-      await prisma.trustIndicator.deleteMany({
-        where: { homePageHeroId: hero.id }
-      });
-
-      // Create new trust indicators
-      if (trustIndicators.length > 0) {
-        await prisma.trustIndicator.createMany({
-          data: trustIndicators.map((indicator: any, index: number) => ({
-            homePageHeroId: hero.id,
-            iconName: indicator.iconName,
-            text: indicator.text,
-            sortOrder: indicator.sortOrder || index,
-            isVisible: indicator.isVisible !== false
-          }))
-        });
-      }
-    }
-
-    // Fetch the updated hero with trust indicators
-    const finalHero = await prisma.homePageHero.findUnique({
-      where: { id: hero.id },
-      include: {
-        trustIndicators: {
-          orderBy: { sortOrder: 'asc' }
-        }
-      }
-    });
-
-    return NextResponse.json(finalHero);
+    const response: ApiResponse = {
+      success: true,
+      data: homeHero,
+      message: existingHero ? 'Home hero updated successfully' : 'Home hero created successfully'
+    };
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating home page hero:', error);
-    return NextResponse.json(
-      { error: 'Failed to update home page hero data' },
-      { status: 500 }
-    );
+    console.error('Failed to update home hero:', error);
+    
+    const response: ApiResponse = {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update home hero'
+    };
+    
+    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
+    return NextResponse.json(response, { status: statusCode });
   }
 } 

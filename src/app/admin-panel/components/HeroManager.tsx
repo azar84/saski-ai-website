@@ -35,7 +35,10 @@ export default function HeroManager() {
 
   const handleSave = () => {
     // Here you would typically save to your backend/CMS
-    console.log('Saving hero data:', heroData);
+    // Debug info only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Saving hero data:', heroData);
+    }
     alert('Hero section saved successfully!');
   };
 

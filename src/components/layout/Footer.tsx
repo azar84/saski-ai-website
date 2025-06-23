@@ -29,7 +29,11 @@ async function getFooterData() {
       }
     });
 
-    console.log('Footer - Pages fetched:', pages);
+    // Debug info only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Footer - Pages fetched:', pages);
+    }
+    
     return { pages };
   } catch (error) {
     console.error('Failed to fetch footer data:', error);

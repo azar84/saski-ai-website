@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
+import { CreateCTASchema, UpdateCTASchema, validateAndTransform, type ApiResponse } from '../../../../lib/validations';
 
 // GET - Fetch all CTA buttons
 export async function GET() {
@@ -13,10 +14,11 @@ export async function GET() {
     return NextResponse.json(ctaButtons);
   } catch (error) {
     console.error('Failed to fetch CTA buttons:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch CTA buttons' },
-      { status: 500 }
-    );
+    const response: ApiResponse = {
+      success: false,
+      message: 'Failed to fetch CTA buttons'
+    };
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
@@ -24,36 +26,36 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, url, icon, style = 'primary', target = '_self', isActive = true } = body;
-
-    if (!text || !url) {
-      return NextResponse.json(
-        { success: false, message: 'Text and URL are required' },
-        { status: 400 }
-      );
-    }
+    
+    // Validate input using Zod schema
+    const validatedData = validateAndTransform(CreateCTASchema, body);
 
     const ctaButton = await prisma.cTA.create({
       data: {
-        text,
-        url,
-        ...(icon && { icon }),
-        style,
-        target,
-        isActive
+        text: validatedData.text,
+        url: validatedData.url,
+        icon: validatedData.icon || null,
+        style: validatedData.style,
+        target: validatedData.target,
+        isActive: validatedData.isActive
       }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       data: ctaButton
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to create CTA button:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create CTA button' },
-      { status: 500 }
-    );
+    
+    const response: ApiResponse = {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create CTA button'
+    };
+    
+    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
+    return NextResponse.json(response, { status: statusCode });
   }
 }
 
@@ -61,38 +63,38 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, text, url, icon, style, target, isActive } = body;
-
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: 'CTA button ID is required' },
-        { status: 400 }
-      );
-    }
+    
+    // Validate input using Zod schema
+    const validatedData = validateAndTransform(UpdateCTASchema, body);
 
     const ctaButton = await prisma.cTA.update({
-      where: { id },
+      where: { id: validatedData.id },
       data: {
-        ...(text !== undefined && { text }),
-        ...(url !== undefined && { url }),
-        ...(icon !== undefined && { icon: icon || null }),
-        ...(style !== undefined && { style }),
-        ...(target !== undefined && { target }),
-        ...(isActive !== undefined && { isActive }),
+        ...(validatedData.text !== undefined && { text: validatedData.text }),
+        ...(validatedData.url !== undefined && { url: validatedData.url }),
+        ...(validatedData.icon !== undefined && { icon: validatedData.icon || null }),
+        ...(validatedData.style !== undefined && { style: validatedData.style }),
+        ...(validatedData.target !== undefined && { target: validatedData.target }),
+        ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
         updatedAt: new Date()
       }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       data: ctaButton
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to update CTA button:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to update CTA button' },
-      { status: 500 }
-    );
+    
+    const response: ApiResponse = {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update CTA button'
+    };
+    
+    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
+    return NextResponse.json(response, { status: statusCode });
   }
 }
 
@@ -102,11 +104,12 @@ export async function DELETE(request: NextRequest) {
     const body = await request.json();
     const { id } = body;
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: 'CTA button ID is required' },
-        { status: 400 }
-      );
+    if (!id || typeof id !== 'number') {
+      const response: ApiResponse = {
+        success: false,
+        message: 'Valid CTA button ID is required'
+      };
+      return NextResponse.json(response, { status: 400 });
     }
 
     // First, remove any header CTA associations
@@ -116,18 +119,21 @@ export async function DELETE(request: NextRequest) {
 
     // Then delete the CTA button
     await prisma.cTA.delete({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id.toString()) }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       message: 'CTA button deleted successfully'
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to delete CTA button:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to delete CTA button' },
-      { status: 500 }
-    );
+    
+    const response: ApiResponse = {
+      success: false,
+      message: 'Failed to delete CTA button'
+    };
+    return NextResponse.json(response, { status: 500 });
   }
 } 

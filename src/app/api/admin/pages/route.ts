@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
+import { CreatePageSchema, UpdatePageSchema, validateAndTransform, type ApiResponse } from '../../../../lib/validations';
 
 // GET - Fetch all pages
 export async function GET() {
@@ -22,16 +23,18 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       data: pages
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to fetch pages:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to fetch pages' },
-      { status: 500 }
-    );
+    const response: ApiResponse = {
+      success: false,
+      message: 'Failed to fetch pages'
+    };
+    return NextResponse.json(response, { status: 500 });
   }
 }
 
@@ -39,30 +42,25 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { slug, title, metaTitle, metaDesc, sortOrder, showInHeader, showInFooter } = body;
-
-    // Validate required fields
-    if (!slug || !title) {
-      return NextResponse.json(
-        { success: false, message: 'Slug and title are required' },
-        { status: 400 }
-      );
-    }
+    
+    // Validate input using Zod schema
+    const validatedData = validateAndTransform(CreatePageSchema, body);
 
     // Check if slug already exists
     const existingPage = await prisma.page.findUnique({
-      where: { slug }
+      where: { slug: validatedData.slug }
     });
 
     if (existingPage) {
-      return NextResponse.json(
-        { success: false, message: 'A page with this slug already exists' },
-        { status: 400 }
-      );
+      const response: ApiResponse = {
+        success: false,
+        message: 'A page with this slug already exists'
+      };
+      return NextResponse.json(response, { status: 400 });
     }
 
     // If no sortOrder provided, set it to the next available number
-    let finalSortOrder = sortOrder;
+    let finalSortOrder = validatedData.sortOrder;
     if (!finalSortOrder) {
       const maxSortOrder = await prisma.page.findFirst({
         orderBy: { sortOrder: 'desc' },
@@ -73,13 +71,13 @@ export async function POST(request: NextRequest) {
 
     const page = await prisma.page.create({
       data: {
-        slug,
-        title,
-        metaTitle,
-        metaDesc,
+        slug: validatedData.slug,
+        title: validatedData.title,
+        metaTitle: validatedData.metaTitle || null,
+        metaDesc: validatedData.metaDesc || null,
         sortOrder: finalSortOrder,
-        showInHeader: showInHeader !== undefined ? showInHeader : true,
-        showInFooter: showInFooter !== undefined ? showInFooter : false
+        showInHeader: validatedData.showInHeader,
+        showInFooter: validatedData.showInFooter
       },
       include: {
         heroSections: true,
@@ -95,16 +93,21 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       data: page
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to create page:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to create page' },
-      { status: 500 }
-    );
+    
+    const response: ApiResponse = {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to create page'
+    };
+    
+    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
+    return NextResponse.json(response, { status: statusCode });
   }
 }
 
@@ -112,42 +115,38 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, slug, title, metaTitle, metaDesc, sortOrder, showInHeader, showInFooter } = body;
-
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: 'Page ID is required' },
-        { status: 400 }
-      );
-    }
+    
+    // Validate input using Zod schema
+    const validatedData = validateAndTransform(UpdatePageSchema, body);
 
     // Check if slug already exists (excluding current page)
-    if (slug) {
+    if (validatedData.slug) {
       const existingPage = await prisma.page.findFirst({
         where: {
-          slug,
-          NOT: { id }
+          slug: validatedData.slug,
+          NOT: { id: validatedData.id }
         }
       });
 
       if (existingPage) {
-        return NextResponse.json(
-          { success: false, message: 'A page with this slug already exists' },
-          { status: 400 }
-        );
+        const response: ApiResponse = {
+          success: false,
+          message: 'A page with this slug already exists'
+        };
+        return NextResponse.json(response, { status: 400 });
       }
     }
 
     const page = await prisma.page.update({
-      where: { id },
+      where: { id: validatedData.id },
       data: {
-        ...(slug && { slug }),
-        ...(title && { title }),
-        metaTitle,
-        metaDesc,
-        ...(sortOrder !== undefined && { sortOrder }),
-        ...(showInHeader !== undefined && { showInHeader }),
-        ...(showInFooter !== undefined && { showInFooter })
+        ...(validatedData.slug && { slug: validatedData.slug }),
+        ...(validatedData.title && { title: validatedData.title }),
+        ...(validatedData.metaTitle !== undefined && { metaTitle: validatedData.metaTitle }),
+        ...(validatedData.metaDesc !== undefined && { metaDesc: validatedData.metaDesc }),
+        ...(validatedData.sortOrder !== undefined && { sortOrder: validatedData.sortOrder }),
+        ...(validatedData.showInHeader !== undefined && { showInHeader: validatedData.showInHeader }),
+        ...(validatedData.showInFooter !== undefined && { showInFooter: validatedData.showInFooter })
       },
       include: {
         heroSections: true,
@@ -163,16 +162,21 @@ export async function PUT(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       data: page
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to update page:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to update page' },
-      { status: 500 }
-    );
+    
+    const response: ApiResponse = {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update page'
+    };
+    
+    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
+    return NextResponse.json(response, { status: statusCode });
   }
 }
 
@@ -182,26 +186,30 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
-    if (!id) {
-      return NextResponse.json(
-        { success: false, message: 'Page ID is required' },
-        { status: 400 }
-      );
+    if (!id || isNaN(parseInt(id))) {
+      const response: ApiResponse = {
+        success: false,
+        message: 'Valid page ID is required'
+      };
+      return NextResponse.json(response, { status: 400 });
     }
 
     await prisma.page.delete({
       where: { id: parseInt(id) }
     });
 
-    return NextResponse.json({
+    const response: ApiResponse = {
       success: true,
       message: 'Page deleted successfully'
-    });
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to delete page:', error);
-    return NextResponse.json(
-      { success: false, message: 'Failed to delete page' },
-      { status: 500 }
-    );
+    
+    const response: ApiResponse = {
+      success: false,
+      message: 'Failed to delete page'
+    };
+    return NextResponse.json(response, { status: 500 });
   }
 } 
