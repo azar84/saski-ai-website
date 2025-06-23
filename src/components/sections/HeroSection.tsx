@@ -134,8 +134,20 @@ const HeroSection: React.FC = () => {
       try {
         const response = await fetch('/api/admin/home-hero');
         if (response.ok) {
-          const data = await response.json();
-          setHeroData(data);
+          const result = await response.json();
+          // Handle the new API response format
+          if (result.success && result.data) {
+            // Ensure trustIndicators is always an array and filter visible ones
+            const heroData = {
+              ...result.data,
+              trustIndicators: (result.data.trustIndicators || []).filter((indicator: any) => indicator.isVisible)
+            };
+            setHeroData(heroData);
+          } else {
+            throw new Error(result.message || 'Failed to fetch hero data');
+          }
+        } else {
+          throw new Error('Failed to fetch hero data');
         }
       } catch (error) {
         console.error('Error fetching hero data:', error);
@@ -145,14 +157,16 @@ const HeroSection: React.FC = () => {
           subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
           primaryCtaText: 'Try Live Demo',
           primaryCtaUrl: '#demo',
+          primaryCtaIcon: 'Play',
           primaryCtaEnabled: true,
           secondaryCtaText: 'Join Waitlist',
           secondaryCtaUrl: '#waitlist',
+          secondaryCtaIcon: 'Users',
           secondaryCtaEnabled: true,
           trustIndicators: [
-            { iconName: 'Shield', text: '99.9% Uptime' },
-            { iconName: 'Clock', text: '24/7 Support' },
-            { iconName: 'Code', text: 'No Code Required' }
+            { iconName: 'Shield', text: '99.9% Uptime', isVisible: true },
+            { iconName: 'Clock', text: '24/7 Support', isVisible: true },
+            { iconName: 'Code', text: 'No Code Required', isVisible: true }
           ]
         });
       } finally {
@@ -314,7 +328,18 @@ const HeroSection: React.FC = () => {
                 <Button 
                   size="lg"
                   className="group bg-gradient-to-r from-[#5243E9] to-[#6366F1] hover:from-[#4338CA] hover:to-[#5243E9] text-white px-8 py-4 text-base font-semibold shadow-lg shadow-[#5243E9]/25 hover:shadow-xl hover:shadow-[#5243E9]/35 transition-all duration-300 relative overflow-hidden rounded-xl"
-                  onClick={() => window.location.href = heroData.primaryCtaUrl}
+                  onClick={() => {
+                    if (heroData?.primaryCtaUrl) {
+                      if (heroData.primaryCtaUrl.startsWith('#')) {
+                        // Scroll to element for anchor links
+                        const element = document.querySelector(heroData.primaryCtaUrl);
+                        element?.scrollIntoView({ behavior: 'smooth' });
+                      } else {
+                        // Navigate to external URL
+                        window.open(heroData.primaryCtaUrl, '_blank');
+                      }
+                    }
+                  }}
                 >
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
@@ -337,7 +362,18 @@ const HeroSection: React.FC = () => {
                   size="lg"
                   variant="outline"
                   className="group min-w-[200px] border-2 border-[#5243E9]/30 text-[#0F1A2A] px-8 py-4 text-base font-semibold hover:bg-[#5243E9] hover:text-white hover:border-[#5243E9] backdrop-blur-sm transition-all duration-300 rounded-xl shadow-sm hover:shadow-lg hover:shadow-[#5243E9]/25 relative overflow-hidden"
-                  onClick={() => window.location.href = heroData.secondaryCtaUrl}
+                  onClick={() => {
+                    if (heroData?.secondaryCtaUrl) {
+                      if (heroData.secondaryCtaUrl.startsWith('#')) {
+                        // Scroll to element for anchor links
+                        const element = document.querySelector(heroData.secondaryCtaUrl);
+                        element?.scrollIntoView({ behavior: 'smooth' });
+                      } else {
+                        // Navigate to external URL
+                        window.open(heroData.secondaryCtaUrl, '_blank');
+                      }
+                    }
+                  }}
                 >
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-[#5243E9]/10 to-transparent"
@@ -357,28 +393,30 @@ const HeroSection: React.FC = () => {
             </motion.div>
 
             {/* Responsive Trust Indicators */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1.0 }}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4"
-            >
-              {heroData?.trustIndicators?.map((indicator: any, index: number) => {
-                const IconComponent = getIconComponent(indicator.iconName);
-                return (
-                  <motion.div 
-                    key={index} 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 1.2 + index * 0.1 }}
-                    className="flex items-center gap-2 text-[#27364B] bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/40"
-                  >
-                    <IconComponent className="w-4 h-4 text-[#5243E9]" />
-                    <span className="text-sm font-medium">{indicator.text}</span>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+            {heroData?.trustIndicators && heroData.trustIndicators.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.0 }}
+                className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4"
+              >
+                {heroData.trustIndicators.map((indicator: any, index: number) => {
+                  const IconComponent = getIconComponent(indicator.iconName);
+                  return (
+                    <motion.div 
+                      key={indicator.id || index} 
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 1.2 + index * 0.1 }}
+                      className="flex items-center gap-2 text-[#27364B] bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/40"
+                    >
+                      <IconComponent className="w-4 h-4 text-[#5243E9]" />
+                      <span className="text-sm font-medium">{indicator.text}</span>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            )}
           </motion.div>
 
           {/* Right Side - Enhanced Glassmorphism Chat UI */}
