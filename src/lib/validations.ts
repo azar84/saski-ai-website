@@ -182,3 +182,91 @@ export type ApiResponse<T = any> = {
   message?: string;
   error?: string;
 };
+
+// Page Builder Validation Schemas
+export const SectionTypeEnum = z.enum(['hero', 'features', 'media', 'testimonials', 'pricing', 'faq', 'cta', 'custom']);
+
+export const CreatePageSectionSchema = z.object({
+  pageId: IdSchema,
+  sectionType: SectionTypeEnum,
+  title: z.string().max(200).optional(),
+  subtitle: z.string().max(500).optional(),
+  content: z.string().optional(), // JSON content
+  sortOrder: z.number().int().min(0).default(0),
+  isVisible: z.boolean().default(true),
+});
+
+export const UpdatePageSectionSchema = CreatePageSectionSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
+
+export const ReorderPageSectionsSchema = z.object({
+  pageId: IdSchema,
+  sectionIds: z.array(IdSchema).min(1, 'At least one section ID is required'),
+});
+
+// Testimonials Validation Schemas
+export const CreateTestimonialSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  title: z.string().max(100).optional(),
+  company: z.string().max(100).optional(),
+  content: z.string().min(1, 'Content is required').max(1000),
+  rating: z.number().int().min(1, 'Rating must be between 1 and 5').max(5, 'Rating must be between 1 and 5').optional(),
+  avatarUrl: UrlSchema.optional(),
+  logoUrl: UrlSchema.optional(),
+  isActive: z.boolean().default(true),
+  isFeatured: z.boolean().default(false),
+  sortOrder: z.number().int().min(0).default(0),
+});
+
+export const UpdateTestimonialSchema = CreateTestimonialSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
+
+// FAQ Validation Schemas
+export const CreateFAQSchema = z.object({
+  question: z.string().min(1, 'Question is required').max(300),
+  answer: z.string().min(1, 'Answer is required').max(2000),
+  category: z.string().max(50).optional(),
+  isActive: z.boolean().default(true),
+  sortOrder: z.number().int().min(0).default(0),
+});
+
+export const UpdateFAQSchema = CreateFAQSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
+
+// Pricing Plans Validation Schemas
+export const PricingIntervalEnum = z.enum(['month', 'year', 'one-time']);
+
+export const CreatePricingPlanSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  description: z.string().max(500).optional(),
+  price: z.number().min(0, 'Price must be non-negative'),
+  currency: z.string().length(3, 'Currency must be a 3-letter code').default('USD'),
+  interval: PricingIntervalEnum.default('month'),
+  features: z.string().min(1, 'Features are required'), // JSON array
+  isPopular: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+  ctaText: z.string().max(50).optional(),
+  ctaUrl: z.string().optional(),
+  sortOrder: z.number().int().min(0).default(0),
+});
+
+export const UpdatePricingPlanSchema = CreatePricingPlanSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
+
+// Section Templates Validation Schemas
+export const CreateSectionTemplateSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  sectionType: SectionTypeEnum,
+  description: z.string().max(500).optional(),
+  thumbnail: UrlSchema.optional(),
+  content: z.string().min(1, 'Content is required'), // JSON template
+  isActive: z.boolean().default(true),
+});
+
+export const UpdateSectionTemplateSchema = CreateSectionTemplateSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });

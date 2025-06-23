@@ -33,6 +33,7 @@ model Page {
   mediaSections    MediaSection[]
   headerNavItems   HeaderNavItem[]
   featureGroups    PageFeatureGroup[]   // Feature groups assigned to this page
+  sections         PageSection[]        // Page builder sections
 
   @@map("pages")
 }
@@ -227,4 +228,89 @@ model PageFeatureGroup {
 
   @@unique([pageId, featureGroupId])
   @@map("page_feature_groups")
+}
+
+// Page Builder System
+model PageSection {
+  id          Int       @id @default(autoincrement())
+  pageId      Int
+  sectionType String    // hero, features, media, testimonials, pricing, faq, cta, custom
+  title       String?   // Section title/heading
+  subtitle    String?   // Section subtitle/subheading
+  content     String?   // JSON content for the section
+  sortOrder   Int       @default(0)
+  isVisible   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  page        Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@map("page_sections")
+}
+
+// Pre-built section templates
+model SectionTemplate {
+  id          Int       @id @default(autoincrement())
+  name        String    // Template name (e.g., "Hero with Video", "Features Grid", "Testimonials Carousel")
+  sectionType String    // hero, features, media, testimonials, pricing, faq, cta
+  description String?   // Template description
+  thumbnail   String?   // Template preview image URL
+  content     String    // JSON template structure
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("section_templates")
+}
+
+// Testimonials system
+model Testimonial {
+  id          Int       @id @default(autoincrement())
+  name        String    // Customer name
+  title       String?   // Customer title/position
+  company     String?   // Customer company
+  content     String    // Testimonial content/quote
+  rating      Int?      // Rating out of 5
+  avatarUrl   String?   // Customer avatar image URL
+  logoUrl     String?   // Company logo URL
+  isActive    Boolean   @default(true)
+  isFeatured  Boolean   @default(false)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("testimonials")
+}
+
+// FAQ system
+model FAQ {
+  id          Int       @id @default(autoincrement())
+  question    String    // FAQ question
+  answer      String    // FAQ answer
+  category    String?   // FAQ category (e.g., "General", "Technical", "Billing")
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("faqs")
+}
+
+// Pricing system
+model PricingPlan {
+  id          Int       @id @default(autoincrement())
+  name        String    // Plan name (e.g., "Starter", "Professional", "Enterprise")
+  description String?   // Plan description
+  price       Float     // Plan price
+  currency    String    @default("USD")
+  interval    String    @default("month") // month, year, one-time
+  features    String    // JSON array of features
+  isPopular   Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  ctaText     String?   // Custom CTA text
+  ctaUrl      String?   // Custom CTA URL
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("pricing_plans")
 }

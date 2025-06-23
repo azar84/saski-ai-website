@@ -27,12 +27,14 @@ import PagesManager from './components/PagesManager';
 import HeaderManager from './components/HeaderManager';
 import CTAManager from './components/CTAManager';
 import HomeHeroManager from './components/HomeHeroManager';
+import PageBuilder from './components/PageBuilder';
 
-type Section = 'dashboard' | 'pages' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
   { id: 'pages', name: 'Pages', icon: FileText, color: 'text-green-600' },
+  { id: 'page-builder', name: 'Page Builder', icon: Layers, color: 'text-violet-600' },
   { id: 'header-config', name: 'Header Config', icon: Menu, color: 'text-orange-600' },
   { id: 'cta-manager', name: 'CTA Buttons', icon: MousePointer, color: 'text-teal-600' },
   { id: 'home-hero', name: 'Home Page Hero', icon: Home, color: 'text-rose-600' },
@@ -55,6 +57,8 @@ export default function AdminPanel() {
     switch (activeSection) {
       case 'pages':
         return <PagesManager />;
+      case 'page-builder':
+        return <PageBuilder />;
       case 'header-config':
         return <HeaderManager />;
       case 'cta-manager':
