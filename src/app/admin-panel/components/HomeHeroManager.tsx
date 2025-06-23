@@ -124,8 +124,20 @@ const HomeHeroManager: React.FC = () => {
     try {
       const response = await fetch('/api/admin/home-hero');
       if (response.ok) {
-        const data = await response.json();
-        setHeroData(data);
+        const result = await response.json();
+        // Handle the new API response format
+        if (result.success && result.data) {
+          // Ensure trustIndicators is always an array
+          const heroData = {
+            ...result.data,
+            trustIndicators: result.data.trustIndicators || []
+          };
+          setHeroData(heroData);
+        } else {
+          throw new Error(result.message || 'Failed to fetch hero data');
+        }
+      } else {
+        throw new Error('Failed to fetch hero data');
       }
     } catch (error) {
       console.error('Error fetching hero data:', error);
@@ -145,15 +157,29 @@ const HomeHeroManager: React.FC = () => {
       });
 
       if (response.ok) {
-        const updatedData = await response.json();
-        setHeroData(updatedData);
-        setMessage({ type: 'success', text: 'Hero section updated successfully!' });
+        const result = await response.json();
+        // Handle the new API response format
+        if (result.success && result.data) {
+          // Ensure trustIndicators is always an array
+          const heroData = {
+            ...result.data,
+            trustIndicators: result.data.trustIndicators || []
+          };
+          setHeroData(heroData);
+          setMessage({ type: 'success', text: result.message || 'Hero section updated successfully!' });
+        } else {
+          throw new Error(result.message || 'Failed to save');
+        }
       } else {
-        throw new Error('Failed to save');
+        const errorResult = await response.json();
+        throw new Error(errorResult.message || 'Failed to save');
       }
     } catch (error) {
       console.error('Error saving hero data:', error);
-      setMessage({ type: 'error', text: 'Failed to save hero section' });
+      setMessage({ 
+        type: 'error', 
+        text: error instanceof Error ? error.message : 'Failed to save hero section' 
+      });
     } finally {
       setSaving(false);
     }
@@ -168,26 +194,26 @@ const HomeHeroManager: React.FC = () => {
     const newIndicator: TrustIndicator = {
       iconName: 'Star',
       text: 'New Feature',
-      sortOrder: heroData.trustIndicators.length,
+      sortOrder: (heroData.trustIndicators || []).length,
       isVisible: true
     };
     setHeroData(prev => ({
       ...prev,
-      trustIndicators: [...prev.trustIndicators, newIndicator]
+      trustIndicators: [...(prev.trustIndicators || []), newIndicator]
     }));
   };
 
   const removeTrustIndicator = (index: number) => {
     setHeroData(prev => ({
       ...prev,
-      trustIndicators: prev.trustIndicators.filter((_, i) => i !== index)
+      trustIndicators: (prev.trustIndicators || []).filter((_, i) => i !== index)
     }));
   };
 
   const updateTrustIndicator = (index: number, field: keyof TrustIndicator, value: any) => {
     setHeroData(prev => ({
       ...prev,
-      trustIndicators: prev.trustIndicators.map((indicator, i) => 
+      trustIndicators: (prev.trustIndicators || []).map((indicator, i) => 
         i === index ? { ...indicator, [field]: value } : indicator
       )
     }));
@@ -308,7 +334,7 @@ const HomeHeroManager: React.FC = () => {
               )}
             </div>
             <div className="flex flex-wrap gap-6">
-              {heroData.trustIndicators.filter(indicator => indicator.isVisible).map((indicator, index) => {
+              {(heroData.trustIndicators || []).filter(indicator => indicator.isVisible).map((indicator, index) => {
                 const IconComponent = getIconComponent(indicator.iconName);
                 return (
                   <div key={index} className="flex items-center gap-2 text-gray-600">
@@ -492,7 +518,7 @@ const HomeHeroManager: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                {heroData.trustIndicators.map((indicator, index) => {
+                {(heroData.trustIndicators || []).map((indicator, index) => {
                   const IconComponent = getIconComponent(indicator.iconName);
                   return (
                     <div key={index} className="p-4 bg-gray-50 rounded-lg">
@@ -553,7 +579,7 @@ const HomeHeroManager: React.FC = () => {
                   );
                 })}
 
-                {heroData.trustIndicators.length === 0 && (
+                {(heroData.trustIndicators || []).length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <p>No trust indicators added yet.</p>
                     <p className="text-sm">Click "Add Indicator" to get started.</p>
