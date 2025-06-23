@@ -110,16 +110,18 @@ model HeaderNavItem {
 }
 
 model CTA {
-  id          Int         @id @default(autoincrement())
-  text        String      // Button text
-  url         String      // Button URL/link
-  icon        String?     // Optional Lucide icon name (e.g., "ArrowRight", "ExternalLink")
-  style       String      @default("primary") // primary, secondary, outline, ghost
-  target      String      @default("_self") // _self, _blank
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  headerCTAs  HeaderCTA[]
+  id                    Int                 @id @default(autoincrement())
+  text                  String              // Button text
+  url                   String              // Button URL/link
+  icon                  String?             // Optional Lucide icon name (e.g., "ArrowRight", "ExternalLink")
+  style                 String              @default("primary") // primary, secondary, outline, ghost
+  target                String              @default("_self") // _self, _blank
+  isActive              Boolean             @default(true)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  headerCTAs            HeaderCTA[]
+  homeHeroPrimary       HomePageHero[]      @relation("PrimaryCTA")
+  homeHeroSecondary     HomePageHero[]      @relation("SecondaryCTA")
 
   @@map("cta_buttons")
 }
@@ -142,18 +144,14 @@ model HomePageHero {
   id                    Int                     @id @default(autoincrement())
   heading               String                  @default("Automate Conversations, Capture Leads, Serve Customers — All Without Code")
   subheading            String                  @default("Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.")
-  primaryCtaText        String                  @default("Try Live Demo")
-  primaryCtaUrl         String                  @default("#demo")
-  primaryCtaIcon        String                  @default("Play") // Lucide icon name for primary CTA
-  primaryCtaEnabled     Boolean                 @default(true)
-  secondaryCtaText      String                  @default("Join Waitlist")
-  secondaryCtaUrl       String                  @default("#waitlist")
-  secondaryCtaIcon      String                  @default("Users") // Lucide icon name for secondary CTA
-  secondaryCtaEnabled   Boolean                 @default(true)
+  primaryCtaId          Int?                    // Reference to CTA button
+  secondaryCtaId        Int?                    // Reference to CTA button
   isActive              Boolean                 @default(true)
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   trustIndicators       TrustIndicator[]
+  primaryCta            CTA?                    @relation("PrimaryCTA", fields: [primaryCtaId], references: [id], onDelete: SetNull)
+  secondaryCta          CTA?                    @relation("SecondaryCTA", fields: [secondaryCtaId], references: [id], onDelete: SetNull)
 
   @@map("home_page_hero")
 }
