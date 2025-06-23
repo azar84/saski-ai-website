@@ -19,20 +19,21 @@ model SiteSettings {
 }
 
 model Page {
-  id               Int               @id @default(autoincrement())
-  slug             String            @unique
+  id               Int                  @id @default(autoincrement())
+  slug             String               @unique
   title            String
   metaTitle        String?
   metaDesc         String?
-  sortOrder        Int               @default(0)
-  showInHeader     Boolean           @default(true)
-  showInFooter     Boolean           @default(false)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  sortOrder        Int                  @default(0)
+  showInHeader     Boolean              @default(true)
+  showInFooter     Boolean              @default(false)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
   features         Feature[]
   heroSections     HeroSection[]
   mediaSections    MediaSection[]
   headerNavItems   HeaderNavItem[]
+  featureGroups    PageFeatureGroup[]   // Feature groups assigned to this page
 
   @@map("pages")
 }
@@ -171,15 +172,60 @@ model TrustIndicator {
 }
 
 model GlobalFeature {
-  id          Int      @id @default(autoincrement())
-  title       String   // Feature title (e.g., "Multi-Channel Support")
-  description String   // Feature description
-  iconName    String   // Icon name from Lucide React (e.g., "MessageSquare", "Users")
-  category    String   @default("integration") // Category: integration, ai, automation, analytics, security, support
-  sortOrder   Int      @default(0)
-  isVisible   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          Int                 @id @default(autoincrement())
+  title       String              // Feature title (e.g., "Multi-Channel Support")
+  description String              // Feature description
+  iconName    String              // Icon name from Lucide React (e.g., "MessageSquare", "Users")
+  category    String              @default("integration") // Category: integration, ai, automation, analytics, security, support
+  sortOrder   Int                 @default(0)
+  isVisible   Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  groupItems  FeatureGroupItem[]  // Features can be in multiple groups
 
   @@map("global_features")
+}
+
+model FeatureGroup {
+  id              Int                   @id @default(autoincrement())
+  name            String                // Group name (e.g., "Home Page Features", "About Page Features")
+  heading         String                // Display heading (e.g., "Why Saski AI?")
+  subheading      String?               // Display subheading (e.g., "Simple. Smart. Built for growing businesses")
+  isActive        Boolean               @default(true)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  groupItems      FeatureGroupItem[]    // Features in this group
+  pageAssignments PageFeatureGroup[]    // Pages that use this group
+
+  @@map("feature_groups")
+}
+
+model FeatureGroupItem {
+  id             Int            @id @default(autoincrement())
+  featureGroupId Int
+  featureId      Int
+  sortOrder      Int            @default(0)
+  isVisible      Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  featureGroup   FeatureGroup   @relation(fields: [featureGroupId], references: [id], onDelete: Cascade)
+  feature        GlobalFeature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([featureGroupId, featureId])
+  @@map("feature_group_items")
+}
+
+model PageFeatureGroup {
+  id             Int          @id @default(autoincrement())
+  pageId         Int
+  featureGroupId Int
+  sortOrder      Int          @default(0)
+  isVisible      Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  page           Page         @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  featureGroup   FeatureGroup @relation(fields: [featureGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, featureGroupId])
+  @@map("page_feature_groups")
 }

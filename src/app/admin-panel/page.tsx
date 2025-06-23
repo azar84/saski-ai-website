@@ -21,13 +21,14 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import HeroManager from './components/HeroManager';
 import FeaturesManager from './components/FeaturesManager';
+import FeatureGroupsManager from './components/FeatureGroupsManager';
 import SiteSettingsManager from './components/SiteSettingsManager';
 import PagesManager from './components/PagesManager';
 import HeaderManager from './components/HeaderManager';
 import CTAManager from './components/CTAManager';
 import HomeHeroManager from './components/HomeHeroManager';
 
-type Section = 'dashboard' | 'pages' | 'home-hero' | 'hero-sections' | 'features' | 'media-sections' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager';
+type Section = 'dashboard' | 'pages' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
@@ -37,6 +38,7 @@ const navigation = [
   { id: 'home-hero', name: 'Home Page Hero', icon: Home, color: 'text-rose-600' },
   { id: 'hero-sections', name: 'Hero Sections', icon: Image, color: 'text-purple-600' },
   { id: 'features', name: 'Features', icon: Star, color: 'text-amber-600' },
+  { id: 'feature-groups', name: 'Feature Groups', icon: Layers, color: 'text-emerald-600' },
   { id: 'media-sections', name: 'Media Sections', icon: Play, color: 'text-red-600' },
   { id: 'testimonials', name: 'Testimonials', icon: Users, color: 'text-indigo-600' },
   { id: 'faqs', name: 'FAQs', icon: Layers, color: 'text-cyan-600' },
@@ -63,6 +65,8 @@ export default function AdminPanel() {
         return <HeroManager />;
       case 'features':
         return <FeaturesManager />;
+      case 'feature-groups':
+        return <FeatureGroupsManager />;
       case 'site-settings':
         return <SiteSettingsManager />;
       case 'media-sections':

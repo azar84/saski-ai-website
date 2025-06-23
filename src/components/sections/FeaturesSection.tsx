@@ -44,11 +44,23 @@ interface GlobalFeature {
 
 interface FeaturesSectionProps {
   features?: GlobalFeature[];
+  featureGroupId?: number;
+  pageSlug?: string;
+  heading?: string;
+  subheading?: string;
 }
 
-const FeaturesSection: React.FC<FeaturesSectionProps> = ({ features: propFeatures = [] }) => {
+const FeaturesSection: React.FC<FeaturesSectionProps> = ({ 
+  features: propFeatures = [], 
+  featureGroupId,
+  pageSlug,
+  heading: propHeading,
+  subheading: propSubheading
+}) => {
   const [features, setFeatures] = useState<GlobalFeature[]>(propFeatures);
   const [loading, setLoading] = useState(propFeatures.length === 0);
+  const [groupHeading, setGroupHeading] = useState<string>('');
+  const [groupSubheading, setGroupSubheading] = useState<string>('');
 
   // Default fallback features
   const defaultFeatures: GlobalFeature[] = [
@@ -122,35 +134,103 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ features: propFeature
 
   // Fetch features from API if not provided via props
   useEffect(() => {
-    if (propFeatures.length === 0) {
-      const fetchFeatures = async () => {
-        try {
+    if (propFeatures.length > 0) {
+      setFeatures(propFeatures);
+      setGroupHeading(propHeading || 'Why Saski AI?');
+      setGroupSubheading(propSubheading || 'Simple. Smart. Built for growing businesses');
+      setLoading(false);
+      return;
+    }
+
+    const fetchFeatures = async () => {
+      try {
+        let featuresData: GlobalFeature[] = [];
+        let heading = 'Why Saski AI?';
+        let subheading = 'Simple. Smart. Built for growing businesses';
+
+        // Priority 1: Specific feature group ID
+        if (featureGroupId) {
+          const response = await fetch(`/api/admin/feature-groups`);
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+              const group = result.data.find((g: any) => g.id === featureGroupId && g.isActive);
+              if (group) {
+                featuresData = group.groupItems
+                  .filter((item: any) => item.isVisible)
+                  .map((item: any) => item.feature)
+                  .sort((a: GlobalFeature, b: GlobalFeature) => a.sortOrder - b.sortOrder);
+                heading = group.heading;
+                subheading = group.subheading || '';
+              }
+            }
+          }
+        }
+        
+        // Priority 2: Page-specific feature groups
+        else if (pageSlug) {
+          const pageResponse = await fetch('/api/admin/pages');
+          if (pageResponse.ok) {
+            const pageResult = await pageResponse.json();
+            if (pageResult.success && pageResult.data) {
+              const page = pageResult.data.find((p: any) => p.slug === pageSlug);
+              if (page) {
+                const groupResponse = await fetch(`/api/admin/page-feature-groups?pageId=${page.id}`);
+                if (groupResponse.ok) {
+                  const groupResult = await groupResponse.json();
+                  if (groupResult.success && groupResult.data && groupResult.data.length > 0) {
+                    // Use the first visible feature group for this page
+                    const pageGroup = groupResult.data.find((pg: any) => pg.isVisible && pg.featureGroup.isActive);
+                    if (pageGroup) {
+                      featuresData = pageGroup.featureGroup.groupItems
+                        .filter((item: any) => item.isVisible)
+                        .map((item: any) => item.feature)
+                        .sort((a: GlobalFeature, b: GlobalFeature) => a.sortOrder - b.sortOrder);
+                      heading = pageGroup.featureGroup.heading;
+                      subheading = pageGroup.featureGroup.subheading || '';
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Priority 3: Default fallback - fetch all visible features
+        if (featuresData.length === 0) {
           const response = await fetch('/api/admin/features');
           if (response.ok) {
             const result = await response.json();
             if (result.success && result.data) {
-              // Filter only visible features and sort by sortOrder
-              const visibleFeatures = result.data
+              featuresData = result.data
                 .filter((feature: GlobalFeature) => feature.isVisible)
                 .sort((a: GlobalFeature, b: GlobalFeature) => a.sortOrder - b.sortOrder);
-              setFeatures(visibleFeatures);
             }
           }
-        } catch (error) {
-          console.error('Error fetching features:', error);
-          // Fall back to default features if API fails
-          setFeatures(defaultFeatures);
-        } finally {
-          setLoading(false);
         }
-      };
 
-      fetchFeatures();
-    } else {
-      setFeatures(propFeatures);
-      setLoading(false);
-    }
-  }, [propFeatures, defaultFeatures]);
+        // Final fallback if all API calls fail
+        if (featuresData.length === 0) {
+          featuresData = defaultFeatures;
+        }
+
+        setFeatures(featuresData);
+        setGroupHeading(propHeading || heading);
+        setGroupSubheading(propSubheading || subheading);
+
+      } catch (error) {
+        console.error('Error fetching features:', error);
+        // Fall back to default features if everything fails
+        setFeatures(defaultFeatures);
+        setGroupHeading(propHeading || 'Why Saski AI?');
+        setGroupSubheading(propSubheading || 'Simple. Smart. Built for growing businesses');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeatures();
+  }, [propFeatures, featureGroupId, pageSlug, propHeading, propSubheading, defaultFeatures]);
 
   const getIconComponent = (iconName: string) => {
     const iconProps = { size: 40, strokeWidth: 2.5 };
@@ -224,7 +304,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ features: propFeature
                   transition={{ duration: 0.6 }}
                   className="elementor-heading-title text-3xl sm:text-4xl font-bold text-gray-900"
                 >
-                  Why Saski AI?
+                  {groupHeading || 'Why Saski AI?'}
                 </motion.h2>
               </div>
             </div>
@@ -239,7 +319,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ features: propFeature
                   transition={{ duration: 0.6, delay: 0.1 }}
                   className="text-lg text-gray-600"
                 >
-                  <span>Simple. Smart. Built for growing businesses</span>
+                  <span>{groupSubheading || 'Simple. Smart. Built for growing businesses'}</span>
                 </motion.p>
               </div>
             </div>

@@ -94,6 +94,42 @@ export const UpdateGlobalFeatureSchema = CreateGlobalFeatureSchema.extend({
   id: IdSchema,
 }).partial().required({ id: true });
 
+// Feature Group Schema
+export const CreateFeatureGroupSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100),
+  heading: z.string().min(1, 'Heading is required').max(200),
+  subheading: z.string().max(500).optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const UpdateFeatureGroupSchema = CreateFeatureGroupSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
+
+// Feature Group Item Schema
+export const CreateFeatureGroupItemSchema = z.object({
+  featureGroupId: IdSchema,
+  featureId: IdSchema,
+  sortOrder: z.number().int().min(0).default(0),
+  isVisible: z.boolean().default(true),
+});
+
+export const UpdateFeatureGroupItemSchema = CreateFeatureGroupItemSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
+
+// Page Feature Group Schema
+export const CreatePageFeatureGroupSchema = z.object({
+  pageId: IdSchema,
+  featureGroupId: IdSchema,
+  sortOrder: z.number().int().min(0).default(0),
+  isVisible: z.boolean().default(true),
+});
+
+export const UpdatePageFeatureGroupSchema = CreatePageFeatureGroupSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
+
 // Home Hero Schema  
 export const HomeHeroSchema = z.object({
   heading: z.string().min(1, 'Heading is required').max(200),
