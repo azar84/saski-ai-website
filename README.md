@@ -2,94 +2,98 @@
 
 > **Transform Your Customer Communication with AI**
 
-A stunning, award-winning website for Saski AI that combines cutting-edge design, flawless user experience, and technical excellence. This project represents professional industry standards and could win design competitions.
+A modern Next.js website with a comprehensive admin panel and CMS features for managing content dynamically.
 
-![Saski AI Website](https://via.placeholder.com/1200x630/5243E9/ffffff?text=Saski+AI+Website)
+## Features
 
-## ✨ Features
+- **Next.js 14** with TypeScript
+- **Database Integration** with Prisma ORM
+- **Admin Panel** for content management
+- **Dynamic Page Management** with slug-based routing
+- **Hero Sections Management**
+- **Features Section Management** 
+- **CTA Button Management**
+- **Responsive Design** with Tailwind CSS
+- **SEO Optimized**
 
-### 🎨 **Design Excellence**
-- **Premium Minimalism** meets dynamic interactivity
-- **Dark-mode first** with elegant light mode toggle
-- **Glassmorphism + Gradient mesh** backgrounds
-- **Micro-animations** that feel alive
-- **3D elements** and depth layers
-- **Typography hierarchy** with Manrope font
+## Tech Stack
 
-### 🚀 **Technical Stack**
-- **Next.js 14+** with App Router
-- **TypeScript** for type safety
-- **Tailwind CSS** with custom design system
-- **Framer Motion** for smooth animations
-- **Radix UI** for accessibility
-- **SWR** for data fetching
-- **Live Strapi API** integration
+- **Frontend**: Next.js, React, TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: SQLite (development) / PostgreSQL (production)
+- **ORM**: Prisma
+- **UI Components**: Custom component library
 
-### 🌟 **Key Sections**
-- **Hero Section** - Stop-scroll impact with animated typing
-- **Features Showcase** - Interactive cards with hover effects
-- **Multi-Channel Demo** - Real-time chat simulation
-- **Testimonials** - Social proof with animations
-- **FAQ Section** - Elegant accordion interface
-- **CTA Sections** - Conversion-optimized design
+## Getting Started
 
-### ⚡ **Performance**
-- **90+ Lighthouse** scores across all metrics
-- **Perfect SEO** with meta tags and structured data
-- **WCAG AAA** accessibility compliance
-- **Mobile-first** responsive design
-- **< 2 seconds** initial page load
+### Prerequisites
 
-## 🛠️ Installation
+- Node.js 18+ 
+- npm or yarn
 
+### Installation
+
+1. Clone the repository:
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/saskiai-website.git
-cd saskiai-website
+git clone https://github.com/YOUR_USERNAME/saski-ai-website.git
+cd saski-ai-website
+```
 
-# Install dependencies
+2. Install dependencies:
+```bash
 npm install
+```
 
-# Start development server
+3. Set up the database:
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+4. Run the development server:
+```bash
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
 ```
 
-## 📁 Project Structure
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Admin Panel
+
+Access the admin panel at `/admin-panel` to manage:
+- Site settings
+- Hero sections  
+- Features
+- CTA buttons
+- Pages
+- Header configuration
+
+## Project Structure
 
 ```
-saskiai-website/
-├── 📁 src/
-│   ├── 📁 app/                    # Next.js App Router
-│   │   ├── globals.css           # Design system & themes
-│   │   ├── layout.tsx            # Root layout with SEO
-│   │   └── page.tsx              # Homepage
-│   ├── 📁 components/
-│   │   ├── 📁 ui/                # Design system components
-│   │   │   ├── Button.tsx        # Premium button variants
-│   │   │   ├── Card.tsx          # Glassmorphism cards
-│   │   │   ├── Input.tsx         # Floating label inputs
-│   │   │   └── Badge.tsx         # Status indicators
-│   │   ├── 📁 layout/            # Layout components
-│   │   │   └── Header.tsx        # Animated navigation
-│   │   └── 📁 sections/          # Page sections
-│   │       └── HeroSection.tsx   # Award-winning hero
-│   ├── 📁 lib/
-│   │   ├── api.ts               # Strapi API integration
-│   │   └── utils.ts             # Utility functions
-│   ├── 📁 hooks/
-│   │   └── useApi.ts            # Custom API hooks
-│   └── 📁 types/
-│       └── index.ts             # TypeScript definitions
-├── tailwind.config.js            # Design system configuration
-├── next.config.ts               # Next.js optimization
-└── package.json
+src/
+├── app/
+│   ├── [slug]/          # Dynamic pages
+│   ├── admin-panel/     # Admin interface
+│   └── api/             # API routes
+├── components/
+│   ├── layout/          # Header, Footer components
+│   ├── sections/        # Page sections
+│   └── ui/              # Reusable UI components
+├── lib/                 # Utilities and database
+└── types/               # TypeScript definitions
 ```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is private and proprietary.
 
 ## 🎨 Design System
 
