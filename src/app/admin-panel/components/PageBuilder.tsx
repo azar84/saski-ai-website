@@ -392,18 +392,32 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
   const handleAddSection = async () => {
     if (!currentPageId) return;
 
+    // Validate required fields based on section type
+    if (formData.sectionType === 'hero' && !formData.heroSectionId) {
+      setMessage({ type: 'error', text: 'Please select a hero section' });
+      return;
+    }
+    
+    if (formData.sectionType === 'features' && !formData.featureGroupId) {
+      setMessage({ type: 'error', text: 'Please select a feature group' });
+      return;
+    }
+
     setSaving(true);
     try {
+      const requestData = {
+        pageId: currentPageId,
+        ...formData
+      };
+      
       const response = await fetch('/api/admin/page-sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pageId: currentPageId,
-          ...formData
-        })
+        body: JSON.stringify(requestData)
       });
 
       const result = await response.json();
+      
       if (response.ok && result.success) {
         setMessage({ type: 'success', text: 'Section added successfully!' });
         await fetchSections();
@@ -736,6 +750,9 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Select Hero Section *
+                    {formData.heroSectionId && (
+                      <span className="ml-2 text-sm text-green-600">✓ Selected</span>
+                    )}
                   </label>
                   <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
                     {availableContent.heroSections.map((hero) => (
@@ -745,11 +762,16 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                         onClick={() => setFormData({ ...formData, heroSectionId: hero.id })}
                         className={`p-3 rounded-lg border-2 text-left transition-all duration-200 ${
                           formData.heroSectionId === hero.id
-                            ? 'border-blue-500 bg-blue-50 text-blue-900'
+                            ? 'border-green-500 bg-green-50 text-green-900'
                             : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                         }`}
                       >
-                        <div className="font-medium">{hero.heading || 'Untitled Hero'}</div>
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{hero.heading || 'Untitled Hero'}</div>
+                          {formData.heroSectionId === hero.id && (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          )}
+                        </div>
                         {hero.subheading && (
                           <div className="text-sm text-gray-500 mt-1">{hero.subheading}</div>
                         )}
@@ -771,6 +793,9 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Select Feature Group *
+                    {formData.featureGroupId && (
+                      <span className="ml-2 text-sm text-green-600">✓ Selected</span>
+                    )}
                   </label>
                   <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
                     {availableContent.featureGroups.map((group) => (
@@ -780,11 +805,16 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                         onClick={() => setFormData({ ...formData, featureGroupId: group.id })}
                         className={`p-3 rounded-lg border-2 text-left transition-all duration-200 ${
                           formData.featureGroupId === group.id
-                            ? 'border-blue-500 bg-blue-50 text-blue-900'
+                            ? 'border-green-500 bg-green-50 text-green-900'
                             : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                         }`}
                       >
-                        <div className="font-medium">{group.name}</div>
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{group.name}</div>
+                          {formData.featureGroupId === group.id && (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          )}
+                        </div>
                         <div className="text-sm text-gray-600 mt-1">{group.heading}</div>
                         {group.subheading && (
                           <div className="text-sm text-gray-500 mt-1">{group.subheading}</div>
@@ -864,25 +894,52 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
 
               {/* Actions */}
               <div className="flex space-x-4 pt-4 border-t border-gray-200">
-                <Button
-                  onClick={editingSection ? handleEditSection : handleAddSection}
-                  disabled={saving}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {saving ? (
-                    <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                  ) : (
-                    <Save className="w-4 h-4 mr-2" />
-                  )}
-                  {saving ? 'Saving...' : (editingSection ? 'Update Section' : 'Add Section')}
-                </Button>
-                <Button
-                  onClick={resetForm}
-                  variant="outline"
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
+                {/* Validation Status */}
+                {(formData.sectionType === 'hero' || formData.sectionType === 'features') && (
+                  <div className="flex-1 text-sm">
+                    {formData.sectionType === 'hero' && !formData.heroSectionId && (
+                      <div className="text-amber-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        Please select a hero section
+                      </div>
+                    )}
+                    {formData.sectionType === 'features' && !formData.featureGroupId && (
+                      <div className="text-amber-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        Please select a feature group
+                      </div>
+                    )}
+                    {((formData.sectionType === 'hero' && formData.heroSectionId) || 
+                      (formData.sectionType === 'features' && formData.featureGroupId)) && (
+                      <div className="text-green-600 flex items-center">
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Ready to save
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div className="flex space-x-4">
+                  <Button
+                    onClick={editingSection ? handleEditSection : handleAddSection}
+                    disabled={saving}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {saving ? (
+                      <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
+                    {saving ? 'Saving...' : (editingSection ? 'Update Section' : 'Add Section')}
+                  </Button>
+                  <Button
+                    onClick={resetForm}
+                    variant="outline"
+                    disabled={saving}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
