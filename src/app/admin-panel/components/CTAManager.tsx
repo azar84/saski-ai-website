@@ -51,6 +51,7 @@ export default function CTAManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<CTAFormData>({
     text: '',
     url: '',
@@ -250,6 +251,7 @@ export default function CTAManager() {
       isActive: true
     });
     setEditingId(null);
+    setShowForm(false);
   };
 
   const startEdit = (cta: CTA) => {
@@ -262,6 +264,7 @@ export default function CTAManager() {
       isActive: cta.isActive
     });
     setEditingId(cta.id);
+    setShowForm(true);
   };
 
   const getStyleColor = (style: string) => {
@@ -295,7 +298,18 @@ export default function CTAManager() {
           <p className="text-gray-600 mt-2">Manage call-to-action buttons for your website header</p>
         </div>
         <Button
-          onClick={() => setEditingId(null)}
+          onClick={() => {
+            setEditingId(null);
+            setFormData({
+              text: '',
+              url: '',
+              icon: '',
+              style: 'primary',
+              target: '_self',
+              isActive: true
+            });
+            setShowForm(true);
+          }}
           className="bg-emerald-600 hover:bg-emerald-700 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -304,11 +318,11 @@ export default function CTAManager() {
       </div>
 
       {/* Create/Edit Form */}
-      {editingId && (
+      {showForm && (
         <Card className="p-6 border-2 border-blue-200 bg-blue-50/50">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold text-gray-900">
-              Edit CTA Button
+              {editingId ? 'Edit CTA Button' : 'Create New CTA Button'}
             </h3>
             <Button
               variant="ghost"
@@ -419,7 +433,7 @@ export default function CTAManager() {
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 <Save className="w-4 h-4 mr-2" />
-                Update CTA
+                {editingId ? 'Update CTA' : 'Create CTA'}
               </Button>
               <Button
                 type="button"
