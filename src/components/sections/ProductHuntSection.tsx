@@ -36,9 +36,9 @@ const ProductHuntSection: React.FC<ProductHuntSectionProps> = ({
             {/* Compact Header Section */}
             <div className="text-center mb-6">
               {/* Badge with Rocket Icon */}
-              <div className="inline-flex items-center gap-2 bg-[#5243E9] text-white px-4 py-1.5 rounded-full text-sm font-semibold mb-4 shadow-lg">
-                <Rocket className="w-4 h-4" />
-                <span>LAUNCHING JULY 7TH</span>
+              <div className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-white px-4 py-1.5 rounded-full text-sm font-semibold mb-4 shadow-lg">
+                <Rocket className="inline w-6 h-6 mr-2 text-white" />
+                We're Live on Product Hunt!
               </div>
 
               {/* Compact Main Heading */}
@@ -81,30 +81,26 @@ const ProductHuntSection: React.FC<ProductHuntSectionProps> = ({
             <div className="flex flex-wrap justify-center gap-3 mb-4">
               <div className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-center gap-1.5">
-                  <Star className="w-3 h-3 text-[#5243E9]" />
-                  <span className="text-lg font-bold text-gray-900">4.9★</span>
-                  <span className="text-xs text-gray-600">Rating</span>
+                  <Star className="w-3 h-3 text-[var(--color-primary)]" />
+                  <span className="text-xs font-medium text-gray-700">4.9 Stars</span>
                 </div>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-center gap-1.5">
-                  <Users className="w-3 h-3 text-[#6366F1]" />
-                  <span className="text-lg font-bold text-gray-900">1000+</span>
-                  <span className="text-xs text-gray-600">Users</span>
+                  <Users className="w-3 h-3 text-[var(--color-primary-light)]" />
+                  <span className="text-xs font-medium text-gray-700">500+ Users</span>
                 </div>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-center gap-1.5">
                   <TrendingUp className="w-3 h-3 text-[#8B5CF6]" />
-                  <span className="text-lg font-bold text-gray-900">#2</span>
-                  <span className="text-xs text-gray-600">Trending</span>
+                  <span className="text-xs font-medium text-gray-700">#3 Product</span>
                 </div>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-center gap-1.5">
                   <Heart className="w-3 h-3 text-[#A855F7]" />
-                  <span className="text-lg font-bold text-gray-900">500+</span>
-                  <span className="text-xs text-gray-600">Votes</span>
+                  <span className="text-xs font-medium text-gray-700">200+ Upvotes</span>
                 </div>
               </div>
             </div>
@@ -121,7 +117,7 @@ const ProductHuntSection: React.FC<ProductHuntSectionProps> = ({
                   href={productHuntUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group relative inline-flex items-center gap-2 px-6 py-2.5 bg-[#5243E9] text-white font-semibold rounded-lg transition-all duration-300 hover:bg-[#4338CA] hover:shadow-lg hover:scale-105 shadow-md"
+                  className="group relative inline-flex items-center gap-2 px-6 py-2.5 bg-[var(--color-primary)] text-white font-semibold rounded-lg transition-all duration-300 hover:bg-[var(--color-primary-dark)] hover:shadow-lg hover:scale-105 shadow-md"
                   style={{ fontFamily: 'Manrope, sans-serif' }}
                 >
                   <Rocket className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
@@ -137,7 +133,7 @@ const ProductHuntSection: React.FC<ProductHuntSectionProps> = ({
               {/* Condensed Support Message */}
               <div className="mt-4 text-center">
                 <p className="text-xs text-gray-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                  <span className="font-semibold text-[#5243E9]">Thank you</span> for being part of our journey! 
+                  <span className="font-semibold text-[var(--color-primary)]">Thank you</span> for being part of our journey! 
                   Every vote helps us reach more small businesses who need AI automation.
                 </p>
               </div>

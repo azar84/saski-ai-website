@@ -97,7 +97,7 @@ export default async function Home() {
       </Suspense>
 
       {/* CTA Section */}
-      <section className="py-20 lg:py-24 bg-gradient-to-r from-[#5243E9] to-[#7C3AED] relative overflow-hidden">
+      <section className="py-20 lg:py-24 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h4 className="text-sm font-semibold text-white/80 uppercase tracking-wide mb-4">
@@ -110,10 +110,10 @@ export default async function Home() {
             Join thousands of businesses already using Saski AI to automate their customer interactions and boost conversions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-white text-[#5243E9] rounded-xl font-semibold hover:bg-gray-50 transition-colors duration-300 shadow-lg hover:shadow-xl">
+            <button className="px-8 py-4 bg-white text-[var(--color-primary)] rounded-xl font-semibold hover:bg-gray-50 transition-colors duration-300 shadow-lg hover:shadow-xl">
               Start Free Trial
             </button>
-            <button className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white hover:text-[#5243E9] transition-colors duration-300">
+            <button className="px-8 py-4 border-2 border-white text-white rounded-xl font-semibold hover:bg-white hover:text-[var(--color-primary)] transition-colors duration-300">
               Schedule Demo
             </button>
           </div>

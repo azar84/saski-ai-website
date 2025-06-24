@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Check, Sun, Moon } from 'lucide-react';
+import { Check, Sun, Moon, MessageSquare } from 'lucide-react';
 
 interface SupportSectionProps {
   heading?: string;
@@ -29,17 +29,17 @@ const SupportSection: React.FC<SupportSectionProps> = ({
             {/* Text Content */}
             <div className="flex-1 text-center lg:text-left">
               {/* Section Badge */}
-              <div className="inline-block px-3 py-1 text-xs font-semibold text-[#5243E9] bg-[#E2E8F0] rounded-full mb-6" style={{fontFamily: 'Manrope, sans-serif'}}>
+              <div className="inline-block px-3 py-1 text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-light-200)] rounded-full mb-6" style={{fontFamily: 'Manrope, sans-serif'}}>
                 {heading}
               </div>
               
               {/* Main Heading */}
-              <h2 className="text-4xl md:text-5xl font-bold text-[#0F1A2A] leading-tight tracking-normal mb-6" style={{fontFamily: 'Manrope, sans-serif'}}>
+              <h2 className="text-4xl md:text-5xl font-bold text-[var(--color-dark-900)] leading-tight tracking-normal mb-6" style={{fontFamily: 'Manrope, sans-serif'}}>
                 {title}
               </h2>
               
               {/* Description */}
-              <p className="text-[#475569] leading-relaxed mb-8 lg:max-w-xl" style={{fontFamily: 'Manrope, sans-serif'}}>
+              <p className="text-[var(--color-dark-600)] leading-relaxed mb-8 lg:max-w-xl" style={{fontFamily: 'Manrope, sans-serif'}}>
                 {description}
               </p>
               
@@ -52,10 +52,10 @@ const SupportSection: React.FC<SupportSectionProps> = ({
                   "Zero Queue Wait"
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-[#E2E8F0] text-[#5243E9] flex-shrink-0">
+                    <div className="p-2 rounded-full bg-[var(--color-light-200)] text-[var(--color-primary)] flex-shrink-0">
                       <Check className="w-4 h-4" />
                     </div>
-                    <span className="text-sm text-[#27364B]" style={{fontFamily: 'Manrope, sans-serif'}}>
+                    <span className="text-sm text-[var(--color-dark-700)]" style={{fontFamily: 'Manrope, sans-serif'}}>
                       {feature}
                     </span>
                   </div>
@@ -64,8 +64,8 @@ const SupportSection: React.FC<SupportSectionProps> = ({
               
               {/* Always-On Badge */}
               <div className="flex justify-center lg:justify-start">
-                <span className="text-xs font-semibold text-[#5243E9] bg-[#E2E8F0] px-3 py-1 rounded-full" style={{fontFamily: 'Manrope, sans-serif'}}>
-                  Always-On AI
+                <span className="text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-light-200)] px-3 py-1 rounded-full" style={{fontFamily: 'Manrope, sans-serif'}}>
+                  Online
                 </span>
               </div>
             </div>
@@ -114,15 +114,15 @@ const SupportSection: React.FC<SupportSectionProps> = ({
                     {/* Time Indicators - Floating around image */}
                     <div className="absolute -left-6 top-1/2 transform -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-3 animate-bounce time-indicator">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-[#5243E9] rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium text-[#27364B]" style={{fontFamily: 'Manrope, sans-serif'}}>6:00 AM</span>
+                        <div className="w-3 h-3 bg-[var(--color-primary)] rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium text-[var(--color-dark-700)]" style={{fontFamily: 'Manrope, sans-serif'}}>6:00 AM</span>
                       </div>
                     </div>
                     
                     <div className="absolute -right-6 top-1/2 transform -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-3 animate-pulse time-indicator">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-[#5243E9] rounded-full animate-ping"></div>
-                        <span className="text-sm font-medium text-[#27364B]" style={{fontFamily: 'Manrope, sans-serif'}}>6:00 PM</span>
+                        <div className="w-3 h-3 bg-[var(--color-primary)] rounded-full animate-ping"></div>
+                        <span className="text-sm font-medium text-[var(--color-dark-700)]" style={{fontFamily: 'Manrope, sans-serif'}}>6:00 PM</span>
                       </div>
                     </div>
                   </div>

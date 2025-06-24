@@ -56,16 +56,14 @@ const FAQSection: React.FC<FAQSectionProps> = ({
   className = ""
 }) => {
   // Pre-open the first item by default
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([1]));
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const toggleItem = (id: number) => {
-    const newExpandedItems = new Set(expandedItems);
-    if (newExpandedItems.has(id)) {
-      newExpandedItems.delete(id);
+    if (expandedIndex === id) {
+      setExpandedIndex(null);
     } else {
-      newExpandedItems.add(id);
+      setExpandedIndex(id);
     }
-    setExpandedItems(newExpandedItems);
   };
 
   return (
@@ -75,33 +73,28 @@ const FAQSection: React.FC<FAQSectionProps> = ({
           {/* Left Column - Content (1/3) */}
           <div className="lg:col-span-1 space-y-6">
             <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl font-bold text-[#0F1A2A] leading-tight" style={{fontFamily: 'Manrope, sans-serif'}}>
+              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-dark-900)] leading-tight" style={{fontFamily: 'Manrope, sans-serif'}}>
                 {heading}
               </h2>
               
-              <p className="text-[#475569] leading-snug text-lg" style={{fontFamily: 'Manrope, sans-serif'}}>
+              <p className="text-[var(--color-dark-600)] leading-snug text-lg" style={{fontFamily: 'Manrope, sans-serif'}}>
                 Get instant answers to common questions about Saski AI's features, setup process, and capabilities.
               </p>
             </div>
 
             {/* CTA Box */}
-            <div className="bg-[#F6F8FC] border border-[#E2E8F0] rounded-xl p-6 space-y-3">
-              <div className="flex items-center gap-3">
-                <HelpCircle className="w-5 h-5 text-[#5243E9]" />
-                <p className="text-sm font-medium text-[#475569]" style={{fontFamily: 'Manrope, sans-serif'}}>
-                  {subheading}
-                </p>
-              </div>
-              <Link 
-                href={linkHref}
-                className="inline-flex items-center text-[#5243E9] font-semibold hover:text-[#4338CA] transition-colors duration-200 underline underline-offset-2"
+            <div className="bg-[var(--color-light-100)] border border-[var(--color-light-200)] rounded-xl p-6 space-y-3">
+              <HelpCircle className="w-5 h-5 text-[var(--color-primary)]" />
+              <p className="text-sm font-medium text-[var(--color-dark-600)]" style={{fontFamily: 'Manrope, sans-serif'}}>
+                Still have questions?
+              </p>
+              <a 
+                href="mailto:support@saskiai.com"
+                className="inline-flex items-center text-[var(--color-primary)] font-semibold hover:text-[var(--color-primary-dark)] transition-colors duration-200 underline underline-offset-2"
                 style={{fontFamily: 'Manrope, sans-serif'}}
               >
-                {linkText}
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
+                Contact our support team
+              </a>
             </div>
 
             {/* Decorative gradient bar */}
@@ -113,7 +106,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({
             {faqs.map((faq, index) => (
               <div 
                 key={faq.id}
-                className="border border-[#CBD4E1] shadow-sm rounded-xl bg-white hover:shadow-md hover:border-[#5243E9] transition-all duration-300 overflow-hidden"
+                className="border border-[var(--color-light-300)] shadow-sm rounded-xl bg-white hover:shadow-md hover:border-[var(--color-primary)] transition-all duration-300 overflow-hidden"
                 style={{
                   animationDelay: `${index * 100}ms`,
                   animation: 'fadeInUp 0.6s ease-out forwards'
@@ -122,37 +115,37 @@ const FAQSection: React.FC<FAQSectionProps> = ({
                 <button
                   className="w-full px-6 py-5 text-left hover:bg-[#F8FAFC] transition-colors duration-200 flex items-start justify-between group"
                   onClick={() => toggleItem(faq.id)}
-                  aria-expanded={expandedItems.has(faq.id)}
+                  aria-expanded={expandedIndex === faq.id}
                 >
                   <div className="flex items-start gap-4 flex-1 pr-4">
                     {/* Number pill */}
-                    <div className="text-xs bg-[#E2E8F0] text-[#5243E9] px-2 py-1 rounded-full font-semibold flex-shrink-0 mt-1" style={{fontFamily: 'Manrope, sans-serif'}}>
-                      {faq.id}
+                    <div className="text-xs bg-[var(--color-light-200)] text-[var(--color-primary)] px-2 py-1 rounded-full font-semibold flex-shrink-0 mt-1" style={{fontFamily: 'Manrope, sans-serif'}}>
+                      Q{index + 1}
                     </div>
                     
-                    <h4 className="text-lg font-semibold text-[#0F1A2A] leading-tight group-hover:text-[#5243E9] transition-colors duration-200" style={{fontFamily: 'Manrope, sans-serif'}}>
+                    <h4 className="text-lg font-semibold text-[var(--color-dark-900)] leading-tight group-hover:text-[var(--color-primary)] transition-colors duration-200" style={{fontFamily: 'Manrope, sans-serif'}}>
                       {faq.question}
                     </h4>
                   </div>
                   
                   <div className="flex-shrink-0 mt-1">
                     <ChevronDown 
-                      className={`w-5 h-5 text-[#64748B] group-hover:text-[#5243E9] transition-all duration-300 ${
-                        expandedItems.has(faq.id) ? 'rotate-180' : 'rotate-0'
-                      }`} 
+                      className={`w-5 h-5 text-[var(--color-dark-500)] group-hover:text-[var(--color-primary)] transition-all duration-300 ${
+                        expandedIndex === faq.id ? 'rotate-180' : ''
+                      }`}
                     />
                   </div>
                 </button>
                 
-                {expandedItems.has(faq.id) && (
+                {expandedIndex === faq.id && (
                   <div 
-                    className="px-6 pb-6 pt-4 bg-white border-t border-[#E2E8F0] animate-fadeIn"
+                    className="px-6 pb-6 pt-4 bg-white border-t border-[var(--color-light-200)] animate-fadeIn"
                     style={{
                       animation: 'slideDown 0.3s ease-out forwards'
                     }}
                   >
-                    <div className="text-[#475569] leading-relaxed pl-8" style={{fontFamily: 'Manrope, sans-serif'}}>
-                      <p>{faq.answer}</p>
+                    <div className="text-[var(--color-dark-600)] leading-relaxed pl-8" style={{fontFamily: 'Manrope, sans-serif'}}>
+                      {faq.answer}
                     </div>
                   </div>
                 )}

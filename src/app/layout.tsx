@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { prisma } from "../lib/db";
 import ErrorBoundary from "../components/ui/ErrorBoundary";
+import DesignSystemProvider from "../components/layout/DesignSystemProvider";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -110,14 +111,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${manrope.variable} font-sans antialiased`}>
         <ErrorBoundary>
-          <ThemeProvider
-            attribute="data-theme"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange={false}
-          >
-            {children}
-          </ThemeProvider>
+          <DesignSystemProvider>
+            <ThemeProvider
+              attribute="data-theme"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange={false}
+            >
+              {children}
+            </ThemeProvider>
+          </DesignSystemProvider>
         </ErrorBoundary>
       </body>
     </html>

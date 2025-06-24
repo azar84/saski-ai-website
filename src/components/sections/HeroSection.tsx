@@ -35,8 +35,8 @@ import {
 } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 
-// Refined Saski AI Brand Avatar Component
-const SaskiAIAvatar = ({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg', className?: string }) => {
+// AI Assistant Avatar Component
+const AIAvatar = ({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg', className?: string }) => {
   const sizeClasses = {
     sm: 'w-7 h-7',
     md: 'w-9 h-9',
@@ -44,7 +44,7 @@ const SaskiAIAvatar = ({ size = 'md', className = '' }: { size?: 'sm' | 'md' | '
   };
 
   return (
-    <div className={`${sizeClasses[size]} ${className} flex items-center justify-center bg-gradient-to-br from-[#5243E9] to-[#4338CA] rounded-full shadow-sm ring-2 ring-white/20`}>
+    <div className={`${sizeClasses[size]} ${className} flex items-center justify-center bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] rounded-full shadow-sm ring-2 ring-white/20`}>
       <svg
         viewBox="0 0 190 226"
         fill="none"
@@ -82,7 +82,7 @@ const Particle = ({ delay = 0 }: { delay?: number }) => (
       repeat: Infinity,
       repeatDelay: Math.random() * 6
     }}
-    className="absolute w-1 h-1 bg-gradient-to-r from-[#5243E9]/40 to-[#6366F1]/30 rounded-full blur-[0.5px]"
+                className="absolute w-1 h-1 bg-gradient-to-r from-[var(--color-primary)]/40 to-[var(--color-primary-light)]/30 rounded-full blur-[0.5px]"
     style={{
       left: `${Math.random() * 100}%`,
       bottom: '0%'
@@ -266,7 +266,7 @@ const HeroSection: React.FC = () => {
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
       {/* Enhanced Background with Soft Radial Gradient */}
-      <div className="absolute inset-0 bg-gradient-radial from-[#FBFBFB] via-[#F6F8FC] to-white" />
+      <div className="absolute inset-0 bg-gradient-radial from-[#FBFBFB] via-[var(--color-light-100)] to-white" />
       
       {/* Subtle Particle Background - Reduced */}
       <div className="absolute inset-0 pointer-events-none">
@@ -277,8 +277,8 @@ const HeroSection: React.FC = () => {
 
       {/* Soft Gradient Mesh - More Subtle */}
       <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-[#5243E9]/8 to-[#6366F1]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-[#6366F1]/6 to-[#8B5CF6]/4 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-[var(--color-primary)]/8 to-[var(--color-primary-light)]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-[var(--color-primary-light)]/6 to-[#8B5CF6]/4 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full px-6 lg:px-8 py-8">
@@ -297,7 +297,7 @@ const HeroSection: React.FC = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] text-[#0F1A2A]"
+                className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] text-[var(--color-dark-900)]"
               >
                 {heroData?.heading || 'Automate Conversations, Capture Leads, Serve Customers — All Without Code'}
               </motion.h1>
@@ -308,7 +308,7 @@ const HeroSection: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.6 }}
-              className="text-lg text-[#27364B] leading-relaxed max-w-lg font-medium"
+              className="text-lg text-[var(--color-dark-700)] leading-relaxed max-w-lg font-medium"
             >
               {heroData?.subheading || 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.'}
             </motion.p>
@@ -323,7 +323,7 @@ const HeroSection: React.FC = () => {
               {heroData?.primaryCtaId && heroData?.primaryCta && (
                 <Button 
                   size="lg"
-                  className="group bg-gradient-to-r from-[#5243E9] to-[#6366F1] hover:from-[#4338CA] hover:to-[#5243E9] text-white px-8 py-4 text-base font-semibold shadow-lg shadow-[#5243E9]/25 hover:shadow-xl hover:shadow-[#5243E9]/35 transition-all duration-300 relative overflow-hidden rounded-xl"
+                  className="group bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] text-white px-8 py-4 text-base font-semibold shadow-lg shadow-[var(--color-primary)]/25 hover:shadow-xl hover:shadow-[var(--color-primary)]/35 transition-all duration-300 relative overflow-hidden rounded-xl"
                   onClick={() => {
                     if (heroData?.primaryCta?.url) {
                       if (heroData.primaryCta.url.startsWith('#')) {
@@ -361,7 +361,7 @@ const HeroSection: React.FC = () => {
                 <Button 
                   size="lg"
                   variant="outline"
-                  className="group min-w-[200px] border-2 border-[#5243E9]/30 text-[#0F1A2A] px-8 py-4 text-base font-semibold hover:bg-[#5243E9] hover:text-white hover:border-[#5243E9] backdrop-blur-sm transition-all duration-300 rounded-xl shadow-sm hover:shadow-lg hover:shadow-[#5243E9]/25 relative overflow-hidden"
+                  className="group min-w-[200px] border-2 border-[var(--color-primary)]/30 text-[var(--color-dark-900)] px-8 py-4 text-base font-semibold hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] backdrop-blur-sm transition-all duration-300 rounded-xl shadow-sm hover:shadow-lg hover:shadow-[var(--color-primary)]/25 relative overflow-hidden"
                   onClick={() => {
                     if (heroData?.secondaryCta?.url) {
                       if (heroData.secondaryCta.url.startsWith('#')) {
@@ -380,7 +380,7 @@ const HeroSection: React.FC = () => {
                   }}
                 >
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-[#5243E9]/10 to-transparent"
+                    className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/10 to-transparent"
                     initial={{ x: '-100%' }}
                     whileHover={{ x: '100%' }}
                     transition={{ duration: 0.6 }}
@@ -412,9 +412,9 @@ const HeroSection: React.FC = () => {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5, delay: 1.2 + index * 0.1 }}
-                      className="flex items-center gap-2 text-[#27364B] bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/40"
+                      className="flex items-center gap-2 text-[var(--color-dark-700)] bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/40"
                     >
-                      <IconComponent className="w-4 h-4 text-[#5243E9]" />
+                      <IconComponent className="w-4 h-4 text-[var(--color-primary)]" />
                       <span className="text-sm font-medium">{indicator.text}</span>
                     </motion.div>
                   );
@@ -447,14 +447,14 @@ const HeroSection: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.2 }}
               >
-                <SaskiAIAvatar size="lg" className="shadow-xl shadow-[#5243E9]/25" />
+                <AIAvatar size="lg" className="shadow-xl shadow-[var(--color-primary)]/25" />
                 {/* Verified Badge */}
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 3, repeat: Infinity }}
-                  className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border border-[#CBD4E1]/40"
+                  className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border border-[var(--color-light-300)]/40"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#5243E9]" />
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-[var(--color-primary)]" />
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -463,19 +463,19 @@ const HeroSection: React.FC = () => {
             <div className="relative bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl shadow-[#0F1A2A]/10 overflow-hidden">
               
               {/* Refined Chat Header */}
-              <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#5243E9]/8 to-[#6366F1]/8 border-b border-white/30 backdrop-blur-sm">
-                <div className="flex items-center gap-3">
-                  <SaskiAIAvatar size="sm" />
-                  <div>
-                    <div className="font-semibold text-[#0F1A2A] text-sm">
-                      Saski AI Assistant
-                    </div>
-                    <div className="text-xs text-[#5243E9] flex items-center gap-1.5">
-                      <motion.div 
-                        animate={{ scale: [1, 1.3, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="w-1.5 h-1.5 bg-[#5243E9] rounded-full"
-                      />
+                        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[var(--color-primary)]/8 to-[var(--color-primary-light)]/8 border-b border-white/30 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <AIAvatar size="sm" />
+              <div>
+                <div className="font-semibold text-[var(--color-dark-900)] text-sm">
+                  AI Assistant
+                </div>
+                <div className="text-xs text-[var(--color-primary)] flex items-center gap-1.5">
+                  <motion.div 
+                    animate={{ scale: [1, 1.3, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full"
+                  />
                       Online • Avg response: 0.2s
                     </div>
                   </div>
@@ -500,13 +500,13 @@ const HeroSection: React.FC = () => {
                       className={`flex gap-3 ${message.type === 'ai' ? 'justify-start' : 'justify-end'}`}
                     >
                       {message.type === 'ai' && (
-                        <SaskiAIAvatar size="sm" className="flex-shrink-0 mt-1" />
+                        <AIAvatar size="sm" className="flex-shrink-0 mt-1" />
                       )}
                       
                       <div className={`max-w-xs px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                         message.type === 'ai' 
-                          ? 'bg-gradient-to-r from-[#5243E9] to-[#6366F1] text-white rounded-bl-sm shadow-lg' 
-                          : 'bg-[#F6F8FC] text-[#0F1A2A] rounded-br-sm border border-[#CBD4E1]/40 shadow-sm'
+                          ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-bl-sm shadow-lg' 
+                          : 'bg-[var(--color-light-100)] text-[var(--color-dark-900)] rounded-br-sm border border-[var(--color-light-300)]/40 shadow-sm'
                       }`}>
                         <p>
                           {message.type === 'ai' && index === messages.length - 1 
@@ -540,8 +540,8 @@ const HeroSection: React.FC = () => {
                       exit={{ opacity: 0, y: -10 }}
                       className="flex gap-3 justify-start"
                     >
-                      <SaskiAIAvatar size="sm" className="flex-shrink-0 mt-1" />
-                      <div className="bg-gradient-to-r from-[#5243E9] to-[#6366F1] text-white px-4 py-3 rounded-2xl rounded-bl-sm shadow-lg">
+                      <AIAvatar size="sm" className="flex-shrink-0 mt-1" />
+                      <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white px-4 py-3 rounded-2xl rounded-bl-sm shadow-lg">
                         <div className="flex gap-1">
                           {[0, 1, 2].map((i) => (
                             <motion.div
@@ -565,13 +565,13 @@ const HeroSection: React.FC = () => {
               {/* Chat Input Area */}
               <div className="p-4 border-t border-white/20 bg-white/40 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-white/60 rounded-xl px-4 py-2 text-sm text-[#0F1A2A]/60 border border-white/40">
+                  <div className="flex-1 bg-white/60 rounded-xl px-4 py-2 text-sm text-[var(--color-dark-900)]/60 border border-white/40">
                     Type your message...
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-gradient-to-r from-[#5243E9] to-[#6366F1] p-2 rounded-xl shadow-lg"
+                    className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] p-2 rounded-xl shadow-lg"
                   >
                     <Send className="w-4 h-4 text-white" />
                   </motion.button>

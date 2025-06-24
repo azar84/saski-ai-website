@@ -36,8 +36,22 @@ import {
   Wifi,
   Lock
 } from 'lucide-react';
+import MediaSelector from '@/components/ui/MediaSelector';
 
 // Types
+interface MediaItem {
+  id: number;
+  filename: string;
+  title?: string;
+  description?: string;
+  alt?: string;
+  fileType: 'image' | 'video' | 'audio' | 'document' | 'other';
+  mimeType: string;
+  fileSize: number;
+  publicUrl: string;
+  thumbnailUrl?: string;
+}
+
 interface MediaSectionFeature {
   id?: number;
   mediaSectionId?: number;
@@ -58,6 +72,7 @@ interface MediaSection {
   alignment: 'left' | 'center' | 'right';
   mediaType: 'image' | 'video' | 'animation' | '3d';
   mediaUrl: string;
+  mediaItem?: MediaItem;
   mediaAlt?: string;
   mediaSize: 'sm' | 'md' | 'lg' | 'full';
   mediaPosition: 'left' | 'right';
@@ -99,6 +114,7 @@ const MediaSectionsManager: React.FC = () => {
     alignment: 'left',
     mediaType: 'image',
     mediaUrl: '',
+    mediaItem: undefined,
     mediaAlt: '',
     mediaSize: 'md',
     mediaPosition: 'right',
@@ -274,6 +290,7 @@ const MediaSectionsManager: React.FC = () => {
       alignment: 'left',
       mediaType: 'image',
       mediaUrl: '',
+      mediaItem: undefined,
       mediaAlt: '',
       mediaSize: 'md',
       mediaPosition: 'right',
@@ -631,14 +648,20 @@ const MediaSectionsManager: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Media URL *
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.mediaUrl}
-                    onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  <MediaSelector
+                    label="Media"
+                    value={formData.mediaItem || null}
+                    onChange={(media) => {
+                      const mediaItem = Array.isArray(media) ? media[0] : media;
+                      setFormData({ 
+                        ...formData, 
+                        mediaItem: mediaItem || undefined,
+                        mediaUrl: mediaItem?.publicUrl || ''
+                      });
+                    }}
+                    allowMultiple={false}
+                    acceptedTypes={formData.mediaType === 'image' ? ['image'] : formData.mediaType === 'video' ? ['video'] : ['image', 'video']}
+                    placeholder="Select media from library or upload new"
                     required
                   />
                 </div>

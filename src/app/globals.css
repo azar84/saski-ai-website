@@ -5,10 +5,10 @@
   --font-family-sans: 'Manrope', system-ui, sans-serif;
   --font-family-mono: ui-monospace, 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
   
-  /* Saski AI Brand Colors */
-  --color-saski-purple: #5243E9;
-  --color-saski-purple-light: #6366F1;
-  --color-saski-purple-dark: #4338CA;
+  /* Primary Brand Colors */
+  --color-primary: #5243E9;
+  --color-primary-light: #6366F1;
+  --color-primary-dark: #4338CA;
   
   /* Dark Theme Neutrals */
   --color-dark-900: #0F1A2A;
@@ -31,7 +31,7 @@
 }
 
 :root {
-  --gradient-hero: linear-gradient(135deg, #5243E9 0%, #7C3AED 100%);
+  --gradient-hero: linear-gradient(135deg, var(--color-primary) 0%, #7C3AED 100%);
   --gradient-card: linear-gradient(145deg, rgba(82, 67, 233, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
   --gradient-mesh: radial-gradient(ellipse at top, rgba(82, 67, 233, 0.3), transparent 50%);
   --gradient-radial: radial-gradient(ellipse at center, var(--tw-gradient-stops));
@@ -49,12 +49,12 @@ html {
 }
 
 ::selection {
-  background: #5243E9;
+  background: var(--color-primary);
   color: #FFFFFF;
 }
 
 :focus-visible {
-  outline: 2px solid #5243E9;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -67,12 +67,12 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #5243E9;
-  border-radius: 4px;
+  background: var(--color-primary);
+  border-radius: var(--border-radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4338CA;
+  background: var(--color-primary-dark);
 }
 
 .gradient-text {

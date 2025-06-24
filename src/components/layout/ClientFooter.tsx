@@ -91,23 +91,23 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
   ];
 
   return (
-    <footer className="bg-[#0F1A2A] text-white relative overflow-hidden">
+    <footer className="bg-[var(--color-dark-900)] text-white relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-64 h-64 bg-[#5243E9]/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-64 h-64 bg-[var(--color-primary)]/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-[#7C3AED]/10 rounded-full blur-3xl" />
       </div>
 
       <div className="relative z-10">
         {/* Newsletter Section */}
-        <div className="border-b border-[#27364B] py-12">
+        <div className="border-b border-[var(--color-dark-700)] py-12">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-8 items-center">
               <div>
                 <h3 className="text-2xl sm:text-3xl font-bold mb-4">
                   Stay Updated with <span className="gradient-text">Saski AI</span>
                 </h3>
-                <p className="text-[#94A3B8] text-lg">
+                <p className="text-[var(--color-dark-400)] text-lg">
                   Get the latest updates on new features, integrations, and AI innovations 
                   delivered straight to your inbox.
                 </p>
@@ -118,7 +118,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                   type="email"
                   placeholder="Enter your email"
                   leftIcon={<Mail className="w-4 h-4" />}
-                  className="flex-1 bg-[#1E2A3B] border-[#27364B] text-white"
+                  className="flex-1 bg-[var(--color-dark-800)] border-[var(--color-dark-700)] text-white"
                 />
                 <Button 
                   size="lg"
@@ -144,7 +144,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                   className="mb-6"
                 >
                   <Link href="/" className="flex items-center space-x-2 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-r from-[#5243E9] to-[#7C3AED] rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-r from-[var(--color-primary)] to-[#7C3AED] rounded-lg flex items-center justify-center">
                       <span className="text-white font-bold text-lg">S</span>
                     </div>
                     <span className="text-2xl font-bold text-white">
@@ -152,22 +152,22 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                     </span>
                   </Link>
                   
-                  <p className="text-[#94A3B8] mb-6">
+                  <p className="text-[var(--color-dark-400)] mb-6">
                     Transform your customer communication with AI-powered automation 
                     across multiple channels.
                   </p>
                   
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-[#94A3B8]">
-                      <Mail className="w-4 h-4 text-[#5243E9]" />
+                    <div className="flex items-center gap-3 text-[var(--color-dark-400)]">
+                      <Mail className="w-4 h-4 text-[var(--color-primary)]" />
                       <span className="text-sm">hello@saskiai.com</span>
                     </div>
-                    <div className="flex items-center gap-3 text-[#94A3B8]">
-                      <Phone className="w-4 h-4 text-[#5243E9]" />
+                    <div className="flex items-center gap-3 text-[var(--color-dark-400)]">
+                      <Phone className="w-4 h-4 text-[var(--color-primary)]" />
                       <span className="text-sm">+1 (555) 123-4567</span>
                     </div>
-                    <div className="flex items-center gap-3 text-[#94A3B8]">
-                      <MapPin className="w-4 h-4 text-[#5243E9]" />
+                    <div className="flex items-center gap-3 text-[var(--color-dark-400)]">
+                      <MapPin className="w-4 h-4 text-[var(--color-primary)]" />
                       <span className="text-sm">San Francisco, CA</span>
                     </div>
                   </div>
@@ -191,7 +191,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                       <li key={link.name}>
                         <Link
                           href={link.href}
-                          className="text-[#94A3B8] hover:text-white transition-colors duration-200 text-sm"
+                          className="text-[var(--color-dark-400)] hover:text-white transition-colors duration-200 text-sm"
                         >
                           {link.name}
                         </Link>
@@ -205,10 +205,10 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-[#27364B] py-8">
+        <div className="border-t border-[var(--color-dark-700)] py-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-              <div className="flex items-center gap-2 text-[#94A3B8] text-sm">
+              <div className="flex items-center gap-2 text-[var(--color-dark-400)] text-sm">
                 <span>© 2024 Saski AI. Made with</span>
                 <Heart className="w-4 h-4 text-red-500 fill-current" />
                 <span>in San Francisco.</span>
@@ -223,7 +223,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.1, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 bg-[#1E2A3B] hover:bg-[#5243E9] rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-white transition-all duration-200"
+                    className="w-10 h-10 bg-[var(--color-dark-800)] hover:bg-[var(--color-primary)] rounded-lg flex items-center justify-center text-[var(--color-dark-400)] hover:text-white transition-all duration-200"
                     aria-label={social.name}
                   >
                     {social.icon}

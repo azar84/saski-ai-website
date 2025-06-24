@@ -4,10 +4,26 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, Eye, EyeOff, Save, X, 
   Image, Video, Palette, Settings, Zap, 
-  ChevronDown, ChevronUp, ExternalLink, Loader2, Upload
+  ChevronDown, ChevronUp, ExternalLink, Loader2, Upload,
+  Copy,
+  Check
 } from 'lucide-react';
+import MediaSelector from '@/components/ui/MediaSelector';
 
 // Types
+interface MediaItem {
+  id: number;
+  filename: string;
+  title?: string;
+  description?: string;
+  alt?: string;
+  fileType: 'image' | 'video' | 'audio' | 'document' | 'other';
+  mimeType: string;
+  fileSize: number;
+  publicUrl: string;
+  thumbnailUrl?: string;
+}
+
 interface CTA {
   id: number;
   text: string;
@@ -34,12 +50,14 @@ interface HeroSection {
   ctaPrimaryId?: number;
   ctaSecondaryId?: number;
   mediaUrl?: string;
+  mediaItem?: MediaItem;
   mediaType: 'image' | 'video' | 'animation' | '3d';
   mediaAlt?: string;
   mediaHeight: string; // New field for media height (e.g., "80vh", "500px", "auto")
   mediaPosition: 'left' | 'right';
   backgroundType: 'color' | 'gradient' | 'image' | 'video';
   backgroundValue: string;
+  backgroundMediaItem?: MediaItem;
   // Text Colors
   taglineColor: string;
   headlineColor: string;
@@ -223,154 +241,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, allow
   );
 };
 
-// File Upload Component
-interface FileUploadProps {
-  label: string;
-  value: string;
-  onChange: (url: string) => void;
-  accept: string;
-  placeholder: string;
-}
-
-const FileUpload: React.FC<FileUploadProps> = ({ label, value, onChange, accept, placeholder }) => {
-  const [isUploading, setIsUploading] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-
-  const handleFileUpload = async (file: File) => {
-    setIsUploading(true);
-    try {
-      // For now, we'll create a URL for the file
-      // In production, you'd upload to your storage service
-      const url = URL.createObjectURL(file);
-      onChange(url);
-    } catch (error) {
-      console.error('Failed to upload file:', error);
-      alert('Failed to upload file. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileUpload(e.target.files[0]);
-    }
-  };
-
-  return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label}
-      </label>
-      
-      <div className="space-y-2">
-        {/* URL Input */}
-        <input
-          type="url"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder={placeholder}
-        />
-
-        {/* File Upload Area */}
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
-            dragActive
-              ? 'border-blue-400 bg-blue-50'
-              : 'border-gray-300 hover:border-gray-400'
-          }`}
-        >
-          <input
-            type="file"
-            accept={accept}
-            onChange={handleFileSelect}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            disabled={isUploading}
-          />
-          
-          {isUploading ? (
-            <div className="flex items-center justify-center">
-              <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              <span className="text-sm text-gray-600">Uploading...</span>
-            </div>
-          ) : (
-            <div>
-              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-blue-600 hover:text-blue-500">
-                  Click to upload
-                </span>{' '}
-                or drag and drop
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {accept.split(',').join(', ')}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Preview */}
-        {value && (
-          <div className="mt-2">
-            <div className="text-xs text-gray-500 mb-1">Preview:</div>
-            {value.includes('youtube.com') || value.includes('youtu.be') ? (
-              <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded">
-                YouTube Video: {value}
-              </div>
-            ) : value.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-              <img 
-                src={value} 
-                alt="Preview" 
-                className="max-w-32 max-h-32 object-cover rounded border"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            ) : value.match(/\.(mp4|webm|ogg)$/i) ? (
-              <video 
-                src={value} 
-                className="max-w-32 max-h-32 object-cover rounded border"
-                controls
-                muted
-              />
-            ) : (
-              <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                File: {value.split('/').pop()}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 const HeroSectionsManager: React.FC = () => {
   const [heroSections, setHeroSections] = useState<HeroSection[]>([]);
   const [availablePages, setAvailablePages] = useState<Page[]>([]);
@@ -392,12 +262,14 @@ const HeroSectionsManager: React.FC = () => {
     ctaPrimaryId: undefined,
     ctaSecondaryId: undefined,
     mediaUrl: '',
+    mediaItem: undefined,
     mediaType: 'image',
     mediaAlt: '',
     mediaHeight: '80vh',
     mediaPosition: 'right',
     backgroundType: 'color',
     backgroundValue: '#FFFFFF',
+    backgroundMediaItem: undefined,
     taglineColor: '#000000',
     headlineColor: '#000000',
     subheadingColor: '#000000',
@@ -541,12 +413,14 @@ const HeroSectionsManager: React.FC = () => {
       ctaPrimaryId: undefined,
       ctaSecondaryId: undefined,
       mediaUrl: '',
+      mediaItem: undefined,
       mediaType: 'image',
       mediaAlt: '',
       mediaHeight: '80vh',
       mediaPosition: 'right',
       backgroundType: 'color',
       backgroundValue: '#FFFFFF',
+      backgroundMediaItem: undefined,
       taglineColor: '#000000',
       headlineColor: '#000000',
       subheadingColor: '#000000',
@@ -576,12 +450,14 @@ const HeroSectionsManager: React.FC = () => {
       ctaPrimaryId: hero.ctaPrimaryId,
       ctaSecondaryId: hero.ctaSecondaryId,
       mediaUrl: hero.mediaUrl || '',
+      mediaItem: hero.mediaItem,
       mediaType: hero.mediaType,
       mediaAlt: hero.mediaAlt || '',
       mediaHeight: hero.mediaHeight || '80vh',
       mediaPosition: hero.mediaPosition,
       backgroundType: hero.backgroundType,
       backgroundValue: hero.backgroundValue,
+      backgroundMediaItem: hero.backgroundMediaItem,
       taglineColor: hero.taglineColor,
       headlineColor: hero.headlineColor,
       subheadingColor: hero.subheadingColor,
@@ -935,15 +811,20 @@ const HeroSectionsManager: React.FC = () => {
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Media URL or Upload
-                      </label>
-                      <FileUpload
-                        label="Media URL"
-                        value={formData.mediaUrl || ''}
-                        onChange={(url) => setFormData({ ...formData, mediaUrl: url })}
-                        accept="image/*,video/*"
-                        placeholder="https://example.com/image.jpg or /uploads/video.mp4"
+                      <MediaSelector
+                        label="Media"
+                        value={formData.mediaItem || null}
+                        onChange={(media) => {
+                          const mediaItem = Array.isArray(media) ? media[0] : media;
+                          setFormData({ 
+                            ...formData, 
+                            mediaItem: mediaItem || undefined,
+                            mediaUrl: mediaItem?.publicUrl || ''
+                          });
+                        }}
+                        allowMultiple={false}
+                        acceptedTypes={['image', 'video']}
+                        placeholder="Select media from library or upload new"
                       />
                     </div>
 
@@ -1046,12 +927,20 @@ const HeroSectionsManager: React.FC = () => {
                           </p>
                         </div>
                       ) : (
-                        <FileUpload
+                        <MediaSelector
                           label={`${formData.backgroundType === 'image' ? 'Background Image' : 'Background Video'}`}
-                          value={formData.backgroundValue}
-                          onChange={(url) => setFormData({ ...formData, backgroundValue: url })}
-                          accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
-                          placeholder={`Upload ${formData.backgroundType} or enter URL`}
+                          value={formData.backgroundMediaItem || null}
+                          onChange={(media) => {
+                            const mediaItem = Array.isArray(media) ? media[0] : media;
+                            setFormData({ 
+                              ...formData, 
+                              backgroundMediaItem: mediaItem || undefined,
+                              backgroundValue: mediaItem?.publicUrl || ''
+                            });
+                          }}
+                          allowMultiple={false}
+                          acceptedTypes={formData.backgroundType === 'image' ? ['image'] : ['video']}
+                          placeholder={`Select ${formData.backgroundType} from library or upload new`}
                         />
                       )}
                     </div>

@@ -273,7 +273,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
       <section className="py-20 bg-gradient-to-br from-gray-50 via-slate-100 to-gray-100">
         <div className="elementor-container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5243E9] mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)] mx-auto"></div>
           </div>
         </div>
       </section>
@@ -302,7 +302,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6 }}
-                  className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-4"
+                  className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-wide mb-4"
                 >
                   Core Features
                 </motion.h4>
@@ -352,7 +352,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                             <div className="elementor-icon-box-icon mb-3 flex justify-start">
                               <span className="elementor-icon">
                                 <div className="w-12 h-12 flex items-center justify-center">
-                                  <div style={{ color: '#5243E9' }}>
+                                  <div style={{ color: 'var(--color-primary)' }}>
                                     {getIconComponent(feature.iconName)}
                                   </div>
                                 </div>
@@ -361,7 +361,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                             
                             {/* Content */}
                             <div className="elementor-icon-box-content">
-                              <h3 className="elementor-icon-box-title text-xl font-bold text-gray-900 mb-3 group-hover:text-[#5243E9] transition-colors duration-300">
+                              <h3 className="elementor-icon-box-title text-xl font-bold text-gray-900 mb-3 group-hover:text-[var(--color-primary)] transition-colors duration-300">
                                 <span>
                                   {feature.title}
                                 </span>
@@ -400,7 +400,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                               <div className="elementor-icon-box-icon mb-3 flex justify-start">
                                 <span className="elementor-icon">
                                   <div className="w-12 h-12 flex items-center justify-center">
-                                    <div style={{ color: '#5243E9' }}>
+                                    <div style={{ color: 'var(--color-primary)' }}>
                                       {getIconComponent(feature.iconName)}
                                     </div>
                                   </div>
@@ -409,7 +409,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                               
                               {/* Content */}
                               <div className="elementor-icon-box-content">
-                                <h3 className="elementor-icon-box-title text-xl font-bold text-gray-900 mb-3 group-hover:text-[#5243E9] transition-colors duration-300">
+                                <h3 className="elementor-icon-box-title text-xl font-bold text-gray-900 mb-3 group-hover:text-[var(--color-primary)] transition-colors duration-300">
                                   <span>
                                     {feature.title}
                                   </span>

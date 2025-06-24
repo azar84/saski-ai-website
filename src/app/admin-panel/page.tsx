@@ -15,7 +15,8 @@ import {
   Layers,
   Play,
   MousePointer,
-  Home
+  Home,
+  FolderOpen
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -31,8 +32,9 @@ import HomeHeroManager from './components/HomeHeroManager';
 import PageBuilder from './components/PageBuilder';
 import MediaSectionsManager from './components/MediaSectionsManager';
 import DesignSystemManager from './components/DesignSystemManager';
+import MediaLibraryManager from './components/MediaLibraryManager';
 
-type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'media-library' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
@@ -45,6 +47,7 @@ const navigation = [
   { id: 'features', name: 'Features', icon: Star, color: 'text-amber-600' },
   { id: 'feature-groups', name: 'Feature Groups', icon: Layers, color: 'text-emerald-600' },
   { id: 'media-sections', name: 'Media Sections', icon: Play, color: 'text-red-600' },
+  { id: 'media-library', name: 'Media Library', icon: FolderOpen, color: 'text-blue-600' },
   { id: 'testimonials', name: 'Testimonials', icon: Users, color: 'text-indigo-600' },
   { id: 'faqs', name: 'FAQs', icon: Layers, color: 'text-cyan-600' },
   { id: 'users', name: 'Users', icon: Users, color: 'text-pink-600' },
@@ -81,6 +84,12 @@ export default function AdminPanel() {
         return <DesignSystemManager />;
       case 'media-sections':
         return <MediaSectionsManager />;
+      case 'media-library':
+        return (
+          <div className="h-full">
+            <MediaLibraryManager onClose={() => setActiveSection('dashboard')} />
+          </div>
+        );
       case 'testimonials':
         return (
           <div className="p-8">
@@ -181,15 +190,15 @@ export default function AdminPanel() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Media Sections</p>
-                    <p className="text-2xl font-bold text-gray-900">18</p>
+                    <p className="text-sm font-medium text-gray-600">Media Library</p>
+                    <p className="text-2xl font-bold text-gray-900">156</p>
                   </div>
-                  <div className="p-3 bg-red-100 rounded-lg">
-                    <Play className="w-6 h-6 text-red-600" />
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <FolderOpen className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
                 <div className="mt-4 flex items-center">
-                  <span className="text-sm text-red-600 font-medium">+6% from last month</span>
+                  <span className="text-sm text-blue-600 font-medium">+18% from last month</span>
                 </div>
               </Card>
             </div>
@@ -213,11 +222,11 @@ export default function AdminPanel() {
                   <span>Edit Heroes</span>
                 </Button>
                 <Button
-                  onClick={() => setActiveSection('features')}
-                  className="bg-amber-600 hover:bg-amber-700 text-white h-12 flex items-center justify-center space-x-2"
+                  onClick={() => setActiveSection('media-library')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white h-12 flex items-center justify-center space-x-2"
                 >
-                  <Star className="w-4 h-4" />
-                  <span>Add Features</span>
+                  <FolderOpen className="w-4 h-4" />
+                  <span>Media Library</span>
                 </Button>
                 <Button
                   onClick={() => setActiveSection('site-settings')}
@@ -233,23 +242,42 @@ export default function AdminPanel() {
             <Card className="p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
               <div className="space-y-4">
-                {[
-                  { action: 'Created new page', item: 'About Us', time: '2 hours ago', icon: FileText, color: 'text-green-600' },
-                  { action: 'Updated hero section', item: 'Homepage Hero', time: '4 hours ago', icon: Image, color: 'text-purple-600' },
-                  { action: 'Added feature', item: 'AI Integration', time: '6 hours ago', icon: Star, color: 'text-amber-600' },
-                  { action: 'Modified settings', item: 'Site Logo', time: '1 day ago', icon: Settings, color: 'text-gray-600' },
-                ].map((activity, index) => (
-                  <div key={index} className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg">
-                    <div className={`p-2 rounded-lg bg-gray-100`}>
-                      <activity.icon className={`w-4 h-4 ${activity.color}`} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                      <p className="text-sm text-gray-600">{activity.item}</p>
-                    </div>
-                    <span className="text-xs text-gray-500">{activity.time}</span>
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <FileText className="w-4 h-4 text-green-600" />
                   </div>
-                ))}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">New page "About Us" created</p>
+                    <p className="text-xs text-gray-500">2 hours ago</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <FolderOpen className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">5 new images uploaded to media library</p>
+                    <p className="text-xs text-gray-500">4 hours ago</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Image className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">Hero section updated on homepage</p>
+                    <p className="text-xs text-gray-500">6 hours ago</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-amber-100 rounded-lg">
+                    <Star className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900">New feature "AI Integration" added</p>
+                    <p className="text-xs text-gray-500">1 day ago</p>
+                  </div>
+                </div>
               </div>
             </Card>
           </div>
@@ -263,21 +291,19 @@ export default function AdminPanel() {
       <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-[#5243E9] to-[#7C3AED] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-[#5243E9] to-[#7C3AED] rounded-lg flex items-center justify-center">
+              <Globe className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">Admin</span>
+            <span className="text-xl font-bold text-gray-900">Saski AI</span>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden"
+            className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
           >
-            <X className="w-4 h-4" />
-          </Button>
+            <X className="w-5 h-5" />
+          </button>
         </div>
-
+        
         <nav className="mt-6 px-3">
           <div className="space-y-1">
             {navigation.map((item) => {
@@ -289,13 +315,13 @@ export default function AdminPanel() {
                     setActiveSection(item.id as Section);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     activeSection === item.id
-                      ? 'bg-[#5243E9]/10 text-[#5243E9] border-r-2 border-[#5243E9]'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-[#5243E9] text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon className={`mr-3 h-5 w-5 ${activeSection === item.id ? 'text-[#5243E9]' : item.color}`} />
+                  <Icon className={`mr-3 w-5 h-5 ${activeSection === item.id ? 'text-white' : item.color}`} />
                   {item.name}
                 </button>
               );
@@ -306,43 +332,31 @@ export default function AdminPanel() {
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-0">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
-          <div className="flex items-center justify-between h-16 px-6">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden"
-              >
-                <Menu className="w-4 h-4" />
-              </Button>
-              <h1 className="text-xl font-semibold text-gray-900 capitalize">
-                {navigation.find(item => item.id === activeSection)?.name || 'Dashboard'}
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open('/', '_blank')}
-                className="flex items-center space-x-2"
-              >
-                <Globe className="w-4 h-4" />
-                <span>View Site</span>
-              </Button>
+        {/* Top Bar */}
+        <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 lg:hidden">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-md text-gray-400 hover:text-gray-600"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-gradient-to-br from-[#5243E9] to-[#7C3AED] rounded-md flex items-center justify-center">
+                <Globe className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-lg font-bold text-gray-900">Saski AI</span>
             </div>
           </div>
-        </header>
+        </div>
 
-        {/* Content */}
-        <main className="flex-1">
+        {/* Page Content */}
+        <main className="flex-1 h-screen overflow-auto">
           {renderContent()}
         </main>
       </div>
 
-      {/* Overlay for mobile */}
+      {/* Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"

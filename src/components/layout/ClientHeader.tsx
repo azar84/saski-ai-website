@@ -4,10 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Menu, X, ArrowRight, Play, CheckCircle, Sparkles, MessageSquare, Zap, Mail, Star, Users, Globe, Shield, TrendingUp, 
-  Layers, Award, Clock, Send, User, Code, Timer, CheckCircle2, Heart, Download, ExternalLink, Phone, Video, Calendar, BookOpen, Gift, Rocket
-} from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+// Import the icon library for getIconComponent
+import * as LucideIcons from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavigationItem {
@@ -46,15 +45,11 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
     console.log('ClientHeader - CTA buttons received:', ctaButtons);
   }
 
-  // Available icons for CTA buttons
-  const availableIcons = {
-    ArrowRight, Play, CheckCircle, Sparkles, MessageSquare, Zap, Mail, Star, Users, Globe, Shield, TrendingUp, 
-    Layers, Award, Clock, Send, User, Code, Timer, CheckCircle2, Heart, Download, ExternalLink, Phone, Video, Calendar, BookOpen, Gift, Rocket
-  };
-
-  // Function to get icon component by name
-  const getIconComponent = (iconName: string) => {
-    return availableIcons[iconName as keyof typeof availableIcons] || null;
+  // Function to get icon component from icon name
+  const getIconComponent = (iconName: string | undefined) => {
+    if (!iconName) return null;
+    const IconComponent = (LucideIcons as any)[iconName];
+    return IconComponent || null;
   };
 
   // Handle scroll effect
@@ -183,18 +178,18 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
                       href={item.href}
                       className={cn(
                         'relative px-5 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl overflow-hidden',
-                        'text-gray-700 hover:text-[#5243E9] hover:scale-105',
-                        item.isActive && 'text-[#5243E9]'
+                        'text-gray-700 hover:text-[var(--color-primary)] hover:scale-105',
+                        item.isActive && 'text-[var(--color-primary)]'
                       )}
                     >
                       {/* Hover background effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#5243E9]/0 via-[#5243E9]/5 to-[#7C3AED]/0 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/0 via-[var(--color-primary)]/5 to-[#7C3AED]/0 opacity-0 group-hover:opacity-100 transition-all duration-300" />
                       
                       {/* Active state background */}
                       {item.isActive && (
                         <motion.div
                           layoutId="activeNavTab"
-                          className="absolute inset-0 bg-gradient-to-r from-[#5243E9]/10 via-[#7C3AED]/10 to-[#5243E9]/10 rounded-xl"
+                          className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/10 via-[#7C3AED]/10 to-[var(--color-primary)]/10 rounded-xl"
                           initial={false}
                           transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                         />
@@ -202,7 +197,7 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
                       
                       {/* Hover underline effect */}
                       <motion.div
-                        className="absolute bottom-0 left-1/2 h-0.5 bg-gradient-to-r from-[#5243E9] to-[#7C3AED] rounded-full"
+                        className="absolute bottom-0 left-1/2 h-0.5 bg-gradient-to-r from-[var(--color-primary)] to-[#7C3AED] rounded-full"
                         initial={{ width: 0, x: '-50%' }}
                         whileHover={{ width: '80%' }}
                         transition={{ duration: 0.3 }}
@@ -237,14 +232,14 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
                     className={cn(
                       'relative px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 overflow-hidden group inline-flex items-center justify-center',
                       cta.style === 'primary' 
-                        ? 'bg-gradient-to-r from-[#5243E9] to-[#7C3AED] text-white shadow-lg hover:shadow-xl hover:shadow-[#5243E9]/25'
+                        ? 'bg-gradient-to-r from-[var(--color-primary)] to-[#7C3AED] text-white shadow-lg hover:shadow-xl hover:shadow-[var(--color-primary)]/25'
                         : cta.style === 'secondary'
                         ? 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-900 hover:from-gray-200 hover:to-gray-300 shadow-md hover:shadow-lg'
                         : cta.style === 'outline'
-                        ? 'border-2 border-[#5243E9] text-[#5243E9] hover:text-white shadow-md hover:shadow-lg hover:shadow-[#5243E9]/20'
+                        ? 'border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:text-white shadow-md hover:shadow-lg hover:shadow-[var(--color-primary)]/20'
                         : cta.style === 'ghost'
-                        ? 'text-gray-700 hover:text-[#5243E9] hover:bg-gray-50 border border-gray-200 hover:border-[#5243E9]/30'
-                        : 'text-gray-700 hover:text-[#5243E9] hover:bg-gray-50'
+                        ? 'text-gray-700 hover:text-[var(--color-primary)] hover:bg-gray-50 border border-gray-200 hover:border-[var(--color-primary)]/30'
+                        : 'text-gray-700 hover:text-[var(--color-primary)] hover:bg-gray-50'
                     )}
                   >
                     {/* Primary button special effects */}
@@ -254,13 +249,13 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                         
                         {/* Glow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#5243E9] to-[#7C3AED] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] to-[#7C3AED] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300" />
                       </>
                     )}
                     
                     {/* Outline button fill effect */}
                     {cta.style === 'outline' && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#5243E9] to-[#7C3AED] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] to-[#7C3AED] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                     )}
                     
                     <span className="relative z-10 flex items-center space-x-1.5">
@@ -298,7 +293,7 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
 
             {/* Mobile Menu Toggle */}
             <motion.button
-              className="lg:hidden relative p-3 rounded-xl hover:bg-gradient-to-r hover:from-[#5243E9]/5 hover:to-[#7C3AED]/5 transition-all duration-300 group"
+              className="lg:hidden relative p-3 rounded-xl hover:bg-gradient-to-r hover:from-[var(--color-primary)]/5 hover:to-[#7C3AED]/5 transition-all duration-300 group"
               type="button"
               onClick={toggleMenu}
               aria-controls="navbarSupportedContent"
@@ -308,7 +303,7 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
               whileTap={{ scale: 0.95 }}
             >
               {/* Background glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#5243E9]/10 to-[#7C3AED]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/10 to-[#7C3AED]/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               
               <motion.div
                 animate={{ rotate: isMenuOpen ? 180 : 0 }}
@@ -321,7 +316,7 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
                     animate={{ rotate: 0, opacity: 1 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <X className="w-6 h-6 text-[#5243E9] group-hover:text-[#7C3AED] transition-colors duration-300" />
+                    <X className="w-6 h-6 text-[var(--color-primary)] group-hover:text-[#7C3AED] transition-colors duration-300" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -329,7 +324,7 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
                     animate={{ rotate: 0, opacity: 1 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Menu className="w-6 h-6 text-gray-700 group-hover:text-[#5243E9] transition-colors duration-300" />
+                    <Menu className="w-6 h-6 text-gray-700 group-hover:text-[var(--color-primary)] transition-colors duration-300" />
                   </motion.div>
                 )}
               </motion.div>
@@ -350,7 +345,7 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
             id="navbarSupportedContent"
           >
             {/* Decorative gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#5243E9]/5 via-transparent to-[#7C3AED]/5 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/5 via-transparent to-[#7C3AED]/5 pointer-events-none" />
             <div className="max-w-7xl mx-auto px-6 py-8 relative z-10">
               <nav className="space-y-2">
                 {navigationItems.map((item, index) => (
@@ -370,21 +365,21 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
                       onClick={() => setIsMenuOpen(false)}
                       className={cn(
                         'relative block px-6 py-4 text-lg font-semibold rounded-2xl transition-all duration-300 overflow-hidden',
-                        'text-gray-700 hover:text-[#5243E9] hover:scale-[1.02] hover:shadow-lg',
-                        item.isActive && 'text-[#5243E9] shadow-md'
+                        'text-gray-700 hover:text-[var(--color-primary)] hover:scale-[1.02] hover:shadow-lg',
+                        item.isActive && 'text-[var(--color-primary)] shadow-md'
                       )}
                     >
                       {/* Background gradient effect */}
                       <div className={cn(
                         'absolute inset-0 transition-all duration-300',
                         item.isActive 
-                          ? 'bg-gradient-to-r from-[#5243E9]/10 via-[#7C3AED]/10 to-[#5243E9]/10'
-                          : 'bg-gradient-to-r from-[#5243E9]/0 via-[#5243E9]/5 to-[#7C3AED]/0 opacity-0 group-hover:opacity-100'
+                          ? 'bg-gradient-to-r from-[var(--color-primary)]/10 via-[#7C3AED]/10 to-[var(--color-primary)]/10'
+                          : 'bg-gradient-to-r from-[var(--color-primary)]/0 via-[var(--color-primary)]/5 to-[#7C3AED]/0 opacity-0 group-hover:opacity-100'
                       )} />
                       
                       {/* Animated underline */}
                       <motion.div
-                        className="absolute bottom-0 left-6 right-6 h-0.5 bg-gradient-to-r from-[#5243E9] to-[#7C3AED] rounded-full"
+                        className="absolute bottom-0 left-6 right-6 h-0.5 bg-gradient-to-r from-[var(--color-primary)] to-[#7C3AED] rounded-full"
                         initial={{ scaleX: item.isActive ? 1 : 0 }}
                         whileHover={{ scaleX: 1 }}
                         transition={{ duration: 0.3 }}
@@ -430,14 +425,10 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
                           target={cta.target}
                           onClick={() => setIsMenuOpen(false)}
                           className={cn(
-                            'relative block px-6 py-4 text-lg font-semibold text-center rounded-2xl transition-all duration-300 overflow-hidden group',
+                            'relative flex items-center justify-center px-6 py-3 text-base font-semibold rounded-xl transition-all duration-300 overflow-hidden group shadow-lg hover:shadow-xl',
                             cta.style === 'primary' 
-                              ? 'bg-gradient-to-r from-[#5243E9] to-[#7C3AED] text-white shadow-lg hover:shadow-xl hover:shadow-[#5243E9]/25'
-                              : cta.style === 'secondary'
-                              ? 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-900 hover:from-gray-200 hover:to-gray-300 shadow-md hover:shadow-lg'
-                              : cta.style === 'outline'
-                              ? 'border-2 border-[#5243E9] text-[#5243E9] hover:text-white shadow-md hover:shadow-lg hover:shadow-[#5243E9]/20'
-                              : 'text-gray-700 hover:text-[#5243E9] hover:bg-gray-50 shadow-sm'
+                              ? 'border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:text-white shadow-md hover:shadow-lg hover:shadow-[var(--color-primary)]/20'
+                              : 'text-gray-700 hover:text-[var(--color-primary)] hover:bg-gray-50 shadow-sm'
                           )}
                         >
                           {/* Primary button effects */}
@@ -450,7 +441,7 @@ export default function ClientHeader({ navigationItems, ctaButtons = [], siteSet
                           
                           {/* Outline button fill effect */}
                           {cta.style === 'outline' && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-[#5243E9] to-[#7C3AED] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] to-[#7C3AED] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                           )}
                           
                           <span className="relative z-10 flex items-center justify-center space-x-2">

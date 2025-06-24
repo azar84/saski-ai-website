@@ -212,4 +212,13 @@ export function generateMetaTags({
       creator: '@saskiai',
     },
   };
-} 
+}
+
+export const siteConfig = {
+  siteName: 'AI Assistant',
+  description: 'Transform your customer communication with AI-powered automation',
+  url: 'https://example.com',
+  ogImage: 'https://example.com/og.jpg',
+  creator: '@ai_assistant',
+  keywords: ['AI', 'customer support', 'automation', 'chatbot', 'communication']
+} as const; 

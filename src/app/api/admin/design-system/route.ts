@@ -4,81 +4,81 @@ import { z } from 'zod';
 
 // Validation schema for design system
 const DesignSystemSchema = z.object({
-  // Brand Colors
-  primaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  primaryColorLight: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  primaryColorDark: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  secondaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  accentColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
+  // Brand Colors - Allow 3 or 6 character hex colors (e.g., #fff or #ffffff) with automatic trimming
+  primaryColor: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  primaryColorLight: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  primaryColorDark: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  secondaryColor: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  accentColor: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
   
   // Semantic Colors
-  successColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  warningColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  errorColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  infoColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
+  successColor: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  warningColor: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  errorColor: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  infoColor: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
   
   // Neutral Colors
-  grayLight: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  grayMedium: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  grayDark: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
+  grayLight: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  grayMedium: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  grayDark: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
   
   // Background Colors
-  backgroundPrimary: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  backgroundSecondary: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  backgroundDark: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
+  backgroundPrimary: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  backgroundSecondary: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  backgroundDark: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
   
   // Text Colors
-  textPrimary: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  textSecondary: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  textMuted: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
+  textPrimary: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  textSecondary: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
+  textMuted: z.string().trim().regex(/^#([0-9A-F]{3}|[0-9A-F]{6})$/i, 'Invalid hex color'),
   
   // Typography
-  fontFamily: z.string().min(1, 'Font family is required'),
-  fontFamilyMono: z.string().min(1, 'Mono font family is required'),
-  fontSizeBase: z.string().regex(/^\d+px$/, 'Font size must be in px'),
-  lineHeightBase: z.string().regex(/^\d+(\.\d+)?$/, 'Line height must be a number'),
-  fontWeightNormal: z.string().regex(/^\d{3}$/, 'Font weight must be 3 digits'),
-  fontWeightMedium: z.string().regex(/^\d{3}$/, 'Font weight must be 3 digits'),
-  fontWeightBold: z.string().regex(/^\d{3}$/, 'Font weight must be 3 digits'),
+  fontFamily: z.string().trim().min(1, 'Font family is required'),
+  fontFamilyMono: z.string().trim().min(1, 'Mono font family is required'),
+  fontSizeBase: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Font size must be in px, rem, or em'),
+  lineHeightBase: z.string().trim().regex(/^\d+(\.\d+)?$/, 'Line height must be a number'),
+  fontWeightNormal: z.string().trim().regex(/^\d{3}$/, 'Font weight must be 3 digits'),
+  fontWeightMedium: z.string().trim().regex(/^\d{3}$/, 'Font weight must be 3 digits'),
+  fontWeightBold: z.string().trim().regex(/^\d{3}$/, 'Font weight must be 3 digits'),
   
-  // Spacing Scale
-  spacingXs: z.string().regex(/^\d+px$/, 'Spacing must be in px'),
-  spacingSm: z.string().regex(/^\d+px$/, 'Spacing must be in px'),
-  spacingMd: z.string().regex(/^\d+px$/, 'Spacing must be in px'),
-  spacingLg: z.string().regex(/^\d+px$/, 'Spacing must be in px'),
-  spacingXl: z.string().regex(/^\d+px$/, 'Spacing must be in px'),
-  spacing2xl: z.string().regex(/^\d+px$/, 'Spacing must be in px'),
+  // Spacing Scale - Allow px, rem, em units
+  spacingXs: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Spacing must be in px, rem, or em'),
+  spacingSm: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Spacing must be in px, rem, or em'),
+  spacingMd: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Spacing must be in px, rem, or em'),
+  spacingLg: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Spacing must be in px, rem, or em'),
+  spacingXl: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Spacing must be in px, rem, or em'),
+  spacing2xl: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Spacing must be in px, rem, or em'),
   
-  // Border Radius
-  borderRadiusSm: z.string().regex(/^\d+px$/, 'Border radius must be in px'),
-  borderRadiusMd: z.string().regex(/^\d+px$/, 'Border radius must be in px'),
-  borderRadiusLg: z.string().regex(/^\d+px$/, 'Border radius must be in px'),
-  borderRadiusXl: z.string().regex(/^\d+px$/, 'Border radius must be in px'),
-  borderRadiusFull: z.string().regex(/^\d+px$|^9999px$/, 'Border radius must be in px or 9999px'),
+  // Border Radius - Allow px, rem, em, % and special values
+  borderRadiusSm: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em|%)$/, 'Border radius must be in px, rem, em, or %'),
+  borderRadiusMd: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em|%)$/, 'Border radius must be in px, rem, em, or %'),
+  borderRadiusLg: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em|%)$/, 'Border radius must be in px, rem, em, or %'),
+  borderRadiusXl: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em|%)$/, 'Border radius must be in px, rem, em, or %'),
+  borderRadiusFull: z.string().trim().regex(/^(\d+(\.\d+)?(px|rem|em|%)|9999px|50%)$/, 'Border radius must be in px, rem, em, %, or special values like 9999px, 50%'),
   
-  // Shadows
-  shadowSm: z.string().min(1, 'Shadow is required'),
-  shadowMd: z.string().min(1, 'Shadow is required'),
-  shadowLg: z.string().min(1, 'Shadow is required'),
-  shadowXl: z.string().min(1, 'Shadow is required'),
+  // Shadows - More flexible shadow validation
+  shadowSm: z.string().trim().min(1, 'Shadow is required'),
+  shadowMd: z.string().trim().min(1, 'Shadow is required'),
+  shadowLg: z.string().trim().min(1, 'Shadow is required'),
+  shadowXl: z.string().trim().min(1, 'Shadow is required'),
   
-  // Animation Durations
-  animationFast: z.string().regex(/^\d+ms$/, 'Animation duration must be in ms'),
-  animationNormal: z.string().regex(/^\d+ms$/, 'Animation duration must be in ms'),
-  animationSlow: z.string().regex(/^\d+ms$/, 'Animation duration must be in ms'),
+  // Animation Durations - Allow ms and s units
+  animationFast: z.string().trim().regex(/^\d+(\.\d+)?(ms|s)$/, 'Animation duration must be in ms or s'),
+  animationNormal: z.string().trim().regex(/^\d+(\.\d+)?(ms|s)$/, 'Animation duration must be in ms or s'),
+  animationSlow: z.string().trim().regex(/^\d+(\.\d+)?(ms|s)$/, 'Animation duration must be in ms or s'),
   
-  // Breakpoints
-  breakpointSm: z.string().regex(/^\d+px$/, 'Breakpoint must be in px'),
-  breakpointMd: z.string().regex(/^\d+px$/, 'Breakpoint must be in px'),
-  breakpointLg: z.string().regex(/^\d+px$/, 'Breakpoint must be in px'),
-  breakpointXl: z.string().regex(/^\d+px$/, 'Breakpoint must be in px'),
-  breakpoint2xl: z.string().regex(/^\d+px$/, 'Breakpoint must be in px'),
+  // Breakpoints - Allow px, rem, em units
+  breakpointSm: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Breakpoint must be in px, rem, or em'),
+  breakpointMd: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Breakpoint must be in px, rem, or em'),
+  breakpointLg: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Breakpoint must be in px, rem, or em'),
+  breakpointXl: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Breakpoint must be in px, rem, or em'),
+  breakpoint2xl: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Breakpoint must be in px, rem, or em'),
   
   // Theme Mode
   themeMode: z.enum(['light', 'dark', 'auto']),
   
   // Custom Variables (optional JSON string)
-  customVariables: z.string().optional(),
+  customVariables: z.string().nullable().optional(),
   
   // Meta
   isActive: z.boolean().optional()
@@ -147,11 +147,18 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Design System Validation Errors:', error.errors);
+      const detailedErrors = error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message,
+        code: err.code
+      }));
       return NextResponse.json(
         { 
           success: false, 
           message: 'Validation failed',
-          errors: error.errors 
+          errors: error.errors,
+          detailedErrors
         },
         { status: 400 }
       );
@@ -173,6 +180,8 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
+    
+    console.log('PUT request received with data:', updateData);
 
     if (!id) {
       return NextResponse.json(
@@ -181,6 +190,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    console.log('Validating design system data...');
     const validatedData = DesignSystemSchema.partial().parse(updateData);
 
     const designSystem = await prisma.designSystem.update({
@@ -196,11 +206,18 @@ export async function PUT(request: NextRequest) {
 
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Design System Update Validation Errors:', error.errors);
+      const detailedErrors = error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message,
+        code: err.code
+      }));
       return NextResponse.json(
         { 
           success: false, 
           message: 'Validation failed',
-          errors: error.errors 
+          errors: error.errors,
+          detailedErrors
         },
         { status: 400 }
       );

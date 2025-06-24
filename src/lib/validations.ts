@@ -280,6 +280,111 @@ export type ApiResponse<T = any> = {
   error?: string;
 };
 
+// Media Library Validation Schemas
+export const CreateMediaLibrarySchema = z.object({
+  filename: z.string().min(1, 'Filename is required'),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  alt: z.string().optional(),
+  fileType: z.enum(['image', 'video', 'audio', 'document', 'other']),
+  mimeType: z.string().min(1, 'MIME type is required'),
+  fileSize: z.number().int().positive(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  duration: z.number().positive().optional(),
+  originalUrl: z.string().min(1), // Allow any string, not just URLs for file uploads
+  localPath: z.string().optional(),
+  publicUrl: z.string().min(1), // Allow any string, not just URLs for relative paths
+  thumbnailUrl: z.string().optional(),
+  folderId: z.number().int().positive().nullable().optional(),
+  tags: z.string().nullable().optional(), // Allow null values
+  uploadSource: z.enum(['upload', 'url_import', 'drag_drop']).default('upload'),
+  uploadedBy: z.string().optional(),
+  isActive: z.boolean().default(true),
+  isPublic: z.boolean().default(true)
+});
+
+export const UpdateMediaLibrarySchema = z.object({
+  id: IdSchema,
+  filename: z.string().min(1, 'Filename is required').optional(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  alt: z.string().optional(),
+  fileType: z.enum(['image', 'video', 'audio', 'document', 'other']).optional(),
+  mimeType: z.string().min(1, 'MIME type is required').optional(),
+  fileSize: z.number().int().positive().optional(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  duration: z.number().positive().optional(),
+  originalUrl: z.string().url().optional(),
+  localPath: z.string().optional(),
+  publicUrl: z.string().url().optional(),
+  thumbnailUrl: z.string().url().optional(),
+  folderId: z.number().int().positive().nullable().optional(),
+  tags: z.string().optional(),
+  uploadSource: z.enum(['upload', 'url_import', 'drag_drop']).optional(),
+  uploadedBy: z.string().optional(),
+  isActive: z.boolean().optional(),
+  isPublic: z.boolean().optional()
+});
+
+export const CreateMediaFolderSchema = z.object({
+  name: z.string().min(1, 'Folder name is required').max(100),
+  description: z.string().optional(),
+  parentId: z.number().int().positive().nullable().optional(),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format').default('#5243E9'),
+  sortOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true)
+});
+
+export const UpdateMediaFolderSchema = z.object({
+  id: IdSchema,
+  name: z.string().min(1, 'Folder name is required').max(100).optional(),
+  description: z.string().optional(),
+  parentId: z.number().int().positive().nullable().optional(),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format').optional(),
+  sortOrder: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional()
+});
+
+export const CreateMediaUsageSchema = z.object({
+  mediaId: IdSchema,
+  entityType: z.string().min(1, 'Entity type is required'),
+  entityId: IdSchema,
+  fieldName: z.string().min(1, 'Field name is required')
+});
+
+export const MediaUploadSchema = z.object({
+  file: z.any(), // File object validation
+  folderId: z.number().int().positive().nullable().optional(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  alt: z.string().optional(),
+  tags: z.array(z.string()).optional()
+});
+
+export const MediaUrlImportSchema = z.object({
+  url: z.string().url('Invalid URL format'),
+  folderId: z.number().int().positive().nullable().optional(),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  alt: z.string().optional(),
+  tags: z.array(z.string()).optional()
+});
+
+export const MediaSearchSchema = z.object({
+  query: z.string().optional(),
+  fileType: z.enum(['image', 'video', 'audio', 'document', 'other']).optional(),
+  folderId: z.number().int().positive().nullable().optional(),
+  tags: z.array(z.string()).optional(),
+  isActive: z.boolean().optional(),
+  isPublic: z.boolean().optional(),
+  page: z.number().int().positive().default(1),
+  limit: z.number().int().positive().max(100).default(20),
+  sortBy: z.enum(['createdAt', 'updatedAt', 'filename', 'fileSize']).default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc')
+});
+
 // Page Builder Validation Schemas
 export const SectionTypeEnum = z.enum(['hero', 'features', 'media', 'testimonials', 'pricing', 'faq', 'cta', 'custom']);
 

@@ -34,29 +34,27 @@ const VideoSection: React.FC<VideoSectionProps> = ({
           {/* Left Column - Content */}
           <div className="flex-1 space-y-6">
             {/* Badge Label */}
-            <div className="inline-block px-3 py-1 text-xs font-semibold text-[#5243E9] bg-[#E2E8F0] rounded-full" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              {heading}
+            <div className="inline-block px-3 py-1 text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-light-200)] rounded-full" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              ✨ Live Demo
             </div>
             
             {/* Main Heading */}
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              {title}
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-6" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              {heading}
             </h2>
             
             {/* Description */}
-            <p className="text-lg text-[#475569] leading-relaxed max-w-lg" style={{ fontFamily: 'Manrope, sans-serif' }}>
+            <p className="text-lg text-[var(--color-dark-600)] leading-relaxed max-w-lg" style={{ fontFamily: 'Manrope, sans-serif' }}>
               {description}
             </p>
 
             {/* Watch Full Demo Link */}
             <a 
-              href={videoUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm text-[#5243E9] font-medium hover:underline mt-4 inline-block transition-colors duration-200" 
+              href="#demo"
+              className="text-sm text-[var(--color-primary)] font-medium hover:underline mt-4 inline-block transition-colors duration-200"
               style={{ fontFamily: 'Manrope, sans-serif' }}
             >
-              ▶ Watch Full Demo
+              Watch Full Demo →
             </a>
           </div>
 
@@ -80,14 +78,14 @@ const VideoSection: React.FC<VideoSectionProps> = ({
               </div>
 
               {/* Video Caption */}
-              <p className="text-sm text-[#64748B] text-center mt-4 leading-relaxed" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                In under 3 minutes, learn how Saski AI connects to your tools, answers questions, and deploys across channels.
+              <p className="text-sm text-[var(--color-dark-500)] text-center mt-4 leading-relaxed" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                Real customer conversation • Automated response • Lead captured in under 30 seconds
               </p>
             </div>
 
             {/* Decorative elements - subtle */}
-            <div className="absolute -top-4 -right-4 w-20 h-20 bg-[#5243E9]/10 rounded-full opacity-30 blur-xl" />
-            <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-[#6366F1]/10 rounded-full opacity-30 blur-xl" />
+            <div className="absolute -top-4 -right-4 w-20 h-20 bg-[var(--color-primary)]/10 rounded-full opacity-30 blur-xl" />
+            <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-[var(--color-primary-light)]/10 rounded-full opacity-30 blur-xl" />
           </div>
         </div>
       </div>

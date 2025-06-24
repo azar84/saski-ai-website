@@ -464,20 +464,95 @@ model FAQ {
 
 // Pricing system
 model PricingPlan {
-  id          Int       @id @default(autoincrement())
-  name        String    // Plan name (e.g., "Starter", "Professional", "Enterprise")
-  description String?   // Plan description
-  price       Float     // Plan price
-  currency    String    @default("USD")
-  interval    String    @default("month") // month, year, one-time
-  features    String    // JSON array of features
-  isPopular   Boolean   @default(false)
-  isActive    Boolean   @default(true)
-  ctaText     String?   // Custom CTA text
-  ctaUrl      String?   // Custom CTA URL
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String
+  description   String
+  price         Float
+  currency      String   @default("USD")
+  billingPeriod String   @default("monthly") // monthly, yearly
+  features      String   // JSON array of features
+  isPopular     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@map("pricing_plans")
+}
+
+// Media Library System
+model MediaLibrary {
+  id            Int      @id @default(autoincrement())
+  filename      String   // Original filename
+  title         String?  // User-defined title
+  description   String?  // User-defined description
+  alt           String?  // Alt text for accessibility
+  fileType      String   // image, video, audio, document, etc.
+  mimeType      String   // image/jpeg, video/mp4, etc.
+  fileSize      Int      // File size in bytes
+  width         Int?     // For images/videos
+  height        Int?     // For images/videos
+  duration      Float?   // For videos/audio in seconds
+  
+  // Storage information
+  originalUrl   String   // Original source URL (if imported from URL)
+  localPath     String?  // Local file path
+  publicUrl     String   // Public accessible URL
+  thumbnailUrl  String?  // Thumbnail/preview URL
+  
+  // Organization
+  folderId      Int?     // Optional folder organization
+  tags          String?  // JSON array of tags for searching
+  
+  // Upload metadata
+  uploadSource  String   @default("upload") // upload, url_import, drag_drop
+  uploadedBy    String?  // User identifier (future use)
+  
+  // Status and visibility
+  isActive      Boolean  @default(true)
+  isPublic      Boolean  @default(true)
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  folder        MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  usages        MediaUsage[]
+
+  @@map("media_library")
+}
+
+model MediaFolder {
+  id          Int           @id @default(autoincrement())
+  name        String
+  description String?
+  parentId    Int?          // For nested folders
+  color       String        @default("#5243E9") // Folder color for UI
+  sortOrder   Int           @default(0)
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  parent      MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    MediaFolder[] @relation("FolderHierarchy")
+  media       MediaLibrary[]
+
+  @@map("media_folders")
+}
+
+model MediaUsage {
+  id          Int          @id @default(autoincrement())
+  mediaId     Int
+  entityType  String       // hero_section, media_section, page, cta, etc.
+  entityId    Int
+  fieldName   String       // mediaUrl, backgroundImage, logoUrl, etc.
+  createdAt   DateTime     @default(now())
+  
+  // Relations
+  media       MediaLibrary @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  
+  @@unique([mediaId, entityType, entityId, fieldName])
+  @@map("media_usage")
 }

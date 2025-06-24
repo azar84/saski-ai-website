@@ -189,6 +189,8 @@ const DesignSystemManager: React.FC = () => {
       setSaving(true);
       setMessage(null);
 
+      console.log('Saving design system data:', designSystem);
+
       const response = await fetch('/api/admin/design-system', {
         method: designSystem.id ? 'PUT' : 'POST',
         headers: {
@@ -206,7 +208,15 @@ const DesignSystemManager: React.FC = () => {
         // Apply design system to document root for preview
         applyDesignSystemToRoot(result.data);
       } else {
-        setMessage({ type: 'error', text: result.message || 'Failed to save design system' });
+        console.error('Design system save failed:', result);
+        if (result.detailedErrors) {
+          console.error('Detailed validation errors:', result.detailedErrors);
+        }
+        let errorMessage = result.message || 'Failed to save design system';
+        if (result.detailedErrors && result.detailedErrors.length > 0) {
+          errorMessage += '. Check console for details.';
+        }
+        setMessage({ type: 'error', text: errorMessage });
       }
     } catch (error) {
       console.error('Failed to save design system:', error);

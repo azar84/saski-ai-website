@@ -36,7 +36,7 @@ const ConversationSection: React.FC<ConversationSectionProps> = ({
           {/* Left Column - Enhanced 3D Device */}
           <div className="relative order-2 lg:order-1">
             {/* Immersive Glow Effect */}
-            <div className="absolute inset-0 bg-[#5243E9] opacity-20 blur-[80px] rounded-full scale-110" />
+            <div className="absolute inset-0 bg-[var(--color-primary)] opacity-20 blur-[80px] rounded-full scale-110" />
             
             {/* Glass Base */}
             <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-80 h-8 bg-gradient-to-r from-transparent via-[#5243E9] to-transparent opacity-10 backdrop-blur-md rounded-full" />
@@ -68,19 +68,19 @@ const ConversationSection: React.FC<ConversationSectionProps> = ({
                     <div className="flex items-center gap-2">
                       <div className="flex gap-1">
                         <motion.div
-                          className="w-2 h-2 bg-[#5243E9] rounded-full"
+                          className="w-2 h-2 bg-[var(--color-primary)] rounded-full"
                           animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+                          transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
                         />
                         <motion.div
-                          className="w-2 h-2 bg-[#5243E9] rounded-full"
+                          className="w-2 h-2 bg-[var(--color-primary)] rounded-full"
                           animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                          transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
                         />
                         <motion.div
-                          className="w-2 h-2 bg-[#5243E9] rounded-full"
+                          className="w-2 h-2 bg-[var(--color-primary)] rounded-full"
                           animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                          transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
                         />
                       </div>
                       <span className="text-xs text-gray-600">AI is typing...</span>
@@ -107,7 +107,7 @@ const ConversationSection: React.FC<ConversationSectionProps> = ({
               </motion.div>
 
               <motion.div
-                className="absolute bottom-1/4 -right-6 w-11 h-11 bg-[#5243E9] rounded-full flex items-center justify-center shadow-lg"
+                className="absolute bottom-1/4 -right-6 w-11 h-11 bg-[var(--color-primary)] rounded-full flex items-center justify-center shadow-lg"
                 animate={{ rotate: [0, 360] }}
                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               >
@@ -127,7 +127,7 @@ const ConversationSection: React.FC<ConversationSectionProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="text-sm font-semibold text-[#5243E9] uppercase tracking-wide"
+                className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-wide"
                 style={{ fontFamily: 'Manrope, sans-serif' }}
               >
                 {heading}
@@ -168,7 +168,7 @@ const ConversationSection: React.FC<ConversationSectionProps> = ({
                     viewport={{ once: true }}
                     transition={{ delay: 0.3 + index * 0.1 }}
                     whileHover={{ scale: 1.05 }}
-                    className="group bg-[#F6F8FC] hover:bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 hover:border-[#5243E9]/20"
+                    className="group bg-[var(--color-light-100)] hover:bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 hover:border-[var(--color-primary)]/20"
                   >
                     <div className="flex items-center space-x-3">
                       <div 
@@ -181,7 +181,7 @@ const ConversationSection: React.FC<ConversationSectionProps> = ({
                         />
                       </div>
                       <span 
-                        className="text-sm font-medium text-gray-700 group-hover:text-[#5243E9] transition-colors duration-300"
+                        className="text-sm font-medium text-gray-700 group-hover:text-[var(--color-primary)] transition-colors duration-300"
                         style={{ fontFamily: 'Manrope, sans-serif' }}
                       >
                         {channel.name}
@@ -211,7 +211,7 @@ const ConversationSection: React.FC<ConversationSectionProps> = ({
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <MessageCircle className="w-3 h-3 text-[#5243E9]" />
+                <MessageCircle className="w-3 h-3 text-[var(--color-primary)]" />
               </motion.div>
             </motion.div>
           </div>

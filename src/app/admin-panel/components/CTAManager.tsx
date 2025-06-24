@@ -5,11 +5,15 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { IconPicker } from '@/components/ui';
 import { 
   Plus, Edit2, Trash2, Save, X, ExternalLink, Eye, EyeOff,
   ArrowRight, Play, CheckCircle, Sparkles, MessageSquare, Zap, Mail, Star, Users, Globe, Shield, TrendingUp, 
   Layers, Award, Clock, Send, User, Code, Timer, CheckCircle2, Heart, Download, Phone, Video, Calendar, BookOpen, Gift, Rocket
 } from 'lucide-react';
+
+// Import the icon library for getIconComponent
+import * as LucideIcons from 'lucide-react';
 
 interface CTA {
   id: number;
@@ -32,20 +36,22 @@ interface HeaderCTA {
   cta: CTA;
 }
 
-export default function CTAManager() {
-  const [ctas, setCtas] = useState<CTA[]>([]);
-  const [headerCtas, setHeaderCtas] = useState<HeaderCTA[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editingCta, setEditingCta] = useState<CTA | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [formData, setFormData] = useState<{
+interface CTAFormData {
     text: string;
     url: string;
     icon: string;
     style: 'primary' | 'secondary' | 'outline' | 'ghost';
     target: '_self' | '_blank';
     isActive: boolean;
-  }>({
+}
+
+export default function CTAManager() {
+  const [ctas, setCtas] = useState<CTA[]>([]);
+  const [headerCtas, setHeaderCtas] = useState<HeaderCTA[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [formData, setFormData] = useState<CTAFormData>({
     text: '',
     url: '',
     icon: '',
@@ -54,40 +60,11 @@ export default function CTAManager() {
     isActive: true
   });
 
-  const availableIcons = [
-    { name: '', label: 'No Icon', component: null },
-    { name: 'ArrowRight', label: 'Arrow Right', component: ArrowRight },
-    { name: 'Play', label: 'Play', component: Play },
-    { name: 'ExternalLink', label: 'External Link', component: ExternalLink },
-    { name: 'Download', label: 'Download', component: Download },
-    { name: 'Mail', label: 'Mail', component: Mail },
-    { name: 'Phone', label: 'Phone', component: Phone },
-    { name: 'MessageSquare', label: 'Message', component: MessageSquare },
-    { name: 'Video', label: 'Video', component: Video },
-    { name: 'Calendar', label: 'Calendar', component: Calendar },
-    { name: 'BookOpen', label: 'Book', component: BookOpen },
-    { name: 'Gift', label: 'Gift', component: Gift },
-    { name: 'Rocket', label: 'Rocket', component: Rocket },
-    { name: 'Shield', label: 'Shield', component: Shield },
-    { name: 'Award', label: 'Award', component: Award },
-    { name: 'Star', label: 'Star', component: Star },
-    { name: 'Clock', label: 'Clock', component: Clock },
-    { name: 'Code', label: 'Code', component: Code },
-    { name: 'Zap', label: 'Zap', component: Zap },
-    { name: 'Sparkles', label: 'Sparkles', component: Sparkles },
-    { name: 'TrendingUp', label: 'Trending Up', component: TrendingUp },
-    { name: 'Users', label: 'Users', component: Users },
-    { name: 'Heart', label: 'Heart', component: Heart },
-    { name: 'Globe', label: 'Globe', component: Globe },
-    { name: 'Send', label: 'Send', component: Send },
-    { name: 'User', label: 'User', component: User },
-    { name: 'CheckCircle', label: 'Check Circle', component: CheckCircle },
-    { name: 'CheckCircle2', label: 'Check Circle 2', component: CheckCircle2 }
-  ];
-
-  const getIconComponent = (iconName: string) => {
-    const iconData = availableIcons.find(icon => icon.name === iconName);
-    return iconData?.component || null;
+  // Function to get icon component from icon name
+  const getIconComponent = (iconName: string | undefined) => {
+    if (!iconName) return null;
+    const IconComponent = (LucideIcons as any)[iconName];
+    return IconComponent || null;
   };
 
   const fetchCtas = async () => {
@@ -133,9 +110,9 @@ export default function CTAManager() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      setIsLoading(true);
       await Promise.all([fetchCtas(), fetchHeaderConfig()]);
-      setLoading(false);
+      setIsLoading(false);
     };
     fetchData();
   }, []);
@@ -145,9 +122,9 @@ export default function CTAManager() {
     
     try {
       const url = '/api/admin/cta-buttons';
-      const method = editingCta ? 'PUT' : 'POST';
-      const body = editingCta 
-        ? { ...formData, id: editingCta.id }
+      const method = editingId ? 'PUT' : 'POST';
+      const body = editingId 
+        ? { ...formData, id: editingId }
         : formData;
 
       // Debug info only in development
@@ -272,8 +249,7 @@ export default function CTAManager() {
       target: '_self',
       isActive: true
     });
-    setEditingCta(null);
-    setShowCreateForm(false);
+    setEditingId(null);
   };
 
   const startEdit = (cta: CTA) => {
@@ -285,8 +261,7 @@ export default function CTAManager() {
       target: cta.target,
       isActive: cta.isActive
     });
-    setEditingCta(cta);
-    setShowCreateForm(true);
+    setEditingId(cta.id);
   };
 
   const getStyleColor = (style: string) => {
@@ -303,7 +278,7 @@ export default function CTAManager() {
     return headerCtas.some(hc => hc.ctaId === ctaId);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -320,7 +295,7 @@ export default function CTAManager() {
           <p className="text-gray-600 mt-2">Manage call-to-action buttons for your website header</p>
         </div>
         <Button
-          onClick={() => setShowCreateForm(true)}
+          onClick={() => setEditingId(null)}
           className="bg-emerald-600 hover:bg-emerald-700 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -329,11 +304,11 @@ export default function CTAManager() {
       </div>
 
       {/* Create/Edit Form */}
-      {showCreateForm && (
+      {editingId && (
         <Card className="p-6 border-2 border-blue-200 bg-blue-50/50">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold text-gray-900">
-              {editingCta ? 'Edit CTA Button' : 'Create New CTA Button'}
+              Edit CTA Button
             </h3>
             <Button
               variant="ghost"
@@ -415,17 +390,13 @@ export default function CTAManager() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Icon
                 </label>
-                <select
+                <IconPicker
                   value={formData.icon}
-                  onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {availableIcons.map((icon) => (
-                    <option key={icon.name} value={icon.name}>
-                      {icon.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setFormData({ ...formData, icon: value })}
+                  placeholder="Select an icon"
+                  label=""
+                  showLabel={false}
+                />
               </div>
             </div>
 
@@ -448,7 +419,7 @@ export default function CTAManager() {
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 <Save className="w-4 h-4 mr-2" />
-                {editingCta ? 'Update CTA' : 'Create CTA'}
+                Update CTA
               </Button>
               <Button
                 type="button"
