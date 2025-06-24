@@ -17,38 +17,160 @@ model SiteSettings {
   @@map("site_settings")
 }
 
+model DesignSystem {
+  id                    Int      @id @default(autoincrement())
+  
+  // Brand Colors
+  primaryColor          String   @default("#5243E9")     // Main brand color
+  primaryColorLight     String   @default("#6366F1")     // Lighter variant
+  primaryColorDark      String   @default("#4338CA")     // Darker variant
+  secondaryColor        String   @default("#7C3AED")     // Secondary brand color
+  accentColor           String   @default("#06B6D4")     // Accent/highlight color
+  
+  // Semantic Colors
+  successColor          String   @default("#10B981")     // Success states
+  warningColor          String   @default("#F59E0B")     // Warning states
+  errorColor            String   @default("#EF4444")     // Error states
+  infoColor             String   @default("#3B82F6")     // Info states
+  
+  // Neutral Colors
+  grayLight             String   @default("#F9FAFB")     // Light gray
+  grayMedium            String   @default("#6B7280")     // Medium gray
+  grayDark              String   @default("#374151")     // Dark gray
+  
+  // Background Colors
+  backgroundPrimary     String   @default("#FFFFFF")     // Main background
+  backgroundSecondary   String   @default("#F6F8FC")     // Secondary background
+  backgroundDark        String   @default("#0F1A2A")     // Dark theme background
+  
+  // Text Colors
+  textPrimary           String   @default("#1F2937")     // Primary text
+  textSecondary         String   @default("#6B7280")     // Secondary text
+  textMuted             String   @default("#9CA3AF")     // Muted text
+  
+  // Typography
+  fontFamily            String   @default("Manrope")     // Primary font family
+  fontFamilyMono        String   @default("ui-monospace") // Monospace font
+  fontSizeBase          String   @default("16px")        // Base font size
+  lineHeightBase        String   @default("1.5")         // Base line height
+  fontWeightNormal      String   @default("400")         // Normal weight
+  fontWeightMedium      String   @default("500")         // Medium weight
+  fontWeightBold        String   @default("700")         // Bold weight
+  
+  // Spacing Scale
+  spacingXs             String   @default("4px")         // Extra small
+  spacingSm             String   @default("8px")         // Small
+  spacingMd             String   @default("16px")        // Medium
+  spacingLg             String   @default("24px")        // Large
+  spacingXl             String   @default("32px")        // Extra large
+  spacing2xl            String   @default("48px")        // 2X large
+  
+  // Border Radius
+  borderRadiusSm        String   @default("4px")         // Small radius
+  borderRadiusMd        String   @default("8px")         // Medium radius
+  borderRadiusLg        String   @default("12px")        // Large radius
+  borderRadiusXl        String   @default("16px")        // Extra large radius
+  borderRadiusFull      String   @default("9999px")      // Full radius (pills)
+  
+  // Shadows
+  shadowSm              String   @default("0 1px 2px 0 rgb(0 0 0 / 0.05)")
+  shadowMd              String   @default("0 4px 6px -1px rgb(0 0 0 / 0.1)")
+  shadowLg              String   @default("0 10px 15px -3px rgb(0 0 0 / 0.1)")
+  shadowXl              String   @default("0 20px 25px -5px rgb(0 0 0 / 0.1)")
+  
+  // Animation Durations
+  animationFast         String   @default("150ms")       // Fast animations
+  animationNormal       String   @default("300ms")       // Normal animations
+  animationSlow         String   @default("500ms")       // Slow animations
+  
+  // Breakpoints
+  breakpointSm          String   @default("640px")       // Small devices
+  breakpointMd          String   @default("768px")       // Medium devices
+  breakpointLg          String   @default("1024px")      // Large devices
+  breakpointXl          String   @default("1280px")      // Extra large devices
+  breakpoint2xl         String   @default("1536px")      // 2X large devices
+  
+  // Theme Mode
+  themeMode             String   @default("light")       // light, dark, auto
+  
+  // Custom CSS Variables (JSON string for additional variables)
+  customVariables       String?                          // JSON string of custom CSS variables
+  
+  // Meta
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("design_system")
+}
+
 model Page {
-  id               Int                  @id @default(autoincrement())
-  slug             String               @unique
+  id               Int                @id @default(autoincrement())
+  slug             String             @unique
   title            String
   metaTitle        String?
   metaDesc         String?
-  sortOrder        Int                  @default(0)
-  showInHeader     Boolean              @default(true)
-  showInFooter     Boolean              @default(false)
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
+  sortOrder        Int                @default(0)
+  showInHeader     Boolean            @default(false)
+  showInFooter     Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
   features         Feature[]
-  heroSections     HeroSection[]
-  mediaSections    MediaSection[]
   headerNavItems   HeaderNavItem[]
-  featureGroups    PageFeatureGroup[]   // Feature groups assigned to this page
-  sections         PageSection[]        // Page builder sections
+  featureGroups    PageFeatureGroup[]
+  pageSections     PageSection[]
 
   @@map("pages")
 }
 
 model HeroSection {
-  id           Int           @id @default(autoincrement())
-  pageId       Int
-  heading      String?
-  subheading   String?
-  imageUrl     String?
-  visible      Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  page         Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  pageSections PageSection[] // Page builder references
+  id                          Int           @id @default(autoincrement())
+  layoutType                  String        @default("split") // split, centered, overlay
+  tagline                     String?       // Optional badge or label
+  headline                    String        // Main title
+  subheading                  String?       // Supporting text
+  textAlignment               String        @default("left") // left, center, right
+  
+  // CTA References
+  ctaPrimaryId                Int?          // FK to ctas(id)
+  ctaSecondaryId              Int?          // FK to ctas(id)
+  
+  // Media + Background
+  mediaUrl                    String?       // Path or embed
+  mediaType                   String        @default("image") // image, video, animation, 3d
+  mediaAlt                    String?       // Alt text
+  mediaHeight                 String        @default("80vh") // Media height (e.g., "80vh", "500px", "auto")
+  mediaPosition               String        @default("right") // left, right
+  backgroundType              String        @default("color") // color, gradient, image, video
+  backgroundValue             String        @default("#FFFFFF") // HEX, gradient, or asset path
+  
+  // Text Colors
+  taglineColor                String        @default("#5243E9") // Tagline text color
+  headlineColor               String        @default("#1F2937") // Headline text color
+  subheadingColor             String        @default("#6B7280") // Subheading text color
+  
+  // CTA Styling
+  ctaPrimaryBgColor           String        @default("#5243E9") // Primary CTA background color
+  ctaPrimaryTextColor         String        @default("#FFFFFF") // Primary CTA text color
+  ctaSecondaryBgColor         String        @default("transparent") // Secondary CTA background color
+  ctaSecondaryTextColor       String        @default("#5243E9") // Secondary CTA text color
+  
+  // Advanced
+  showTypingEffect            Boolean       @default(false) // Animate headline
+  enableBackgroundAnimation   Boolean       @default(false) // Sun/Moon, sparkles, etc.
+  customClasses               String?       // Tailwind or utility class overrides
+  paddingTop                  Int           @default(80) // In px
+  paddingBottom               Int           @default(80) // In px
+  containerMaxWidth           String        @default("2xl") // xl, 2xl, full
+  
+  visible                     Boolean       @default(true)
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  
+  // Relations
+  ctaPrimary                  CTA?          @relation("HeroPrimaryCTA", fields: [ctaPrimaryId], references: [id], onDelete: SetNull)
+  ctaSecondary                CTA?          @relation("HeroSecondaryCTA", fields: [ctaSecondaryId], references: [id], onDelete: SetNull)
+  pageSections                PageSection[] // Page builder references
 
   @@map("hero_sections")
 }
@@ -69,20 +191,53 @@ model Feature {
 }
 
 model MediaSection {
-  id           Int           @id @default(autoincrement())
-  pageId       Int
-  heading      String?
-  subheading   String?
-  imageUrl     String?
-  videoUrl     String?
-  position     Int           @default(0)
-  visible      Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  page         Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  pageSections PageSection[] // Page builder references
+  id                       Int                     @id @default(autoincrement())
+  position                 Int                     @default(0) // Determines order on the page
+  layoutType               String                  @default("media_right") // media_left, media_right, stacked
+  badgeText                String?                 // Text above headline
+  badgeColor               String                  @default("#5243E9") // HEX color
+  headline                 String                  // Section title
+  subheading               String?                 // Supporting paragraph
+  alignment                String                  @default("left") // left, center, right
+  mediaType                String                  @default("image") // image, video, animation, 3d
+  mediaUrl                 String                  // Path or embed URL
+  mediaAlt                 String?                 // Alt text for accessibility
+  mediaSize                String                  @default("md") // sm, md, lg, full
+  mediaPosition            String                  @default("right") // left, right
+  showBadge                Boolean                 @default(true) // Show/hide badge
+  showCtaButton            Boolean                 @default(false) // Show/hide CTA button
+  ctaText                  String?                 // CTA button text
+  ctaUrl                   String?                 // Link target
+  ctaStyle                 String                  @default("primary") // primary, secondary, link
+  enableScrollAnimations   Boolean                 @default(false) // Trigger scroll-based animations
+  animationType            String                  @default("none") // fade, slide, zoom, none
+  backgroundStyle          String                  @default("solid") // solid, gradient, radial, none
+  backgroundColor          String                  @default("#F6F8FC") // HEX color
+  textColor                String                  @default("#0F1A2A") // HEX color
+  paddingTop               Int                     @default(80) // Top padding in px
+  paddingBottom            Int                     @default(80) // Bottom padding in px
+  containerMaxWidth        String                  @default("2xl") // xl, 2xl, full
+  isActive                 Boolean                 @default(true)
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+  features                 MediaSectionFeature[]   // One-to-many relationship
+  pageSections             PageSection[]           // Page builder references
 
   @@map("media_sections")
+}
+
+model MediaSectionFeature {
+  id              Int          @id @default(autoincrement())
+  mediaSectionId  Int
+  icon            String       // Icon name from icon library
+  label           String       // Feature text
+  color           String       @default("#5243E9") // HEX color
+  sortOrder       Int          @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  mediaSection    MediaSection @relation(fields: [mediaSectionId], references: [id], onDelete: Cascade)
+
+  @@map("media_section_features")
 }
 
 model HeaderConfig {
@@ -125,6 +280,8 @@ model CTA {
   headerCTAs            HeaderCTA[]
   homeHeroPrimary       HomePageHero[]      @relation("PrimaryCTA")
   homeHeroSecondary     HomePageHero[]      @relation("SecondaryCTA")
+  heroPrimary           HeroSection[]       @relation("HeroPrimaryCTA")
+  heroSecondary         HeroSection[]       @relation("HeroSecondaryCTA")
 
   @@map("cta_buttons")
 }

@@ -20,6 +20,7 @@ import {
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import HeroManager from './components/HeroManager';
+import HeroSectionsManager from './components/HeroSectionsManager';
 import FeaturesManager from './components/FeaturesManager';
 import FeatureGroupsManager from './components/FeatureGroupsManager';
 import SiteSettingsManager from './components/SiteSettingsManager';
@@ -28,8 +29,10 @@ import HeaderManager from './components/HeaderManager';
 import CTAManager from './components/CTAManager';
 import HomeHeroManager from './components/HomeHeroManager';
 import PageBuilder from './components/PageBuilder';
+import MediaSectionsManager from './components/MediaSectionsManager';
+import DesignSystemManager from './components/DesignSystemManager';
 
-type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
@@ -46,6 +49,7 @@ const navigation = [
   { id: 'faqs', name: 'FAQs', icon: Layers, color: 'text-cyan-600' },
   { id: 'users', name: 'Users', icon: Users, color: 'text-pink-600' },
   { id: 'analytics', name: 'Analytics', icon: BarChart3, color: 'text-emerald-600' },
+  { id: 'design-system', name: 'Design System', icon: Layers, color: 'text-blue-600' },
   { id: 'site-settings', name: 'Site Settings', icon: Settings, color: 'text-gray-600' },
 ];
 
@@ -66,23 +70,17 @@ export default function AdminPanel() {
       case 'home-hero':
         return <HomeHeroManager />;
       case 'hero-sections':
-        return <HeroManager />;
+        return <HeroSectionsManager />;
       case 'features':
         return <FeaturesManager />;
       case 'feature-groups':
         return <FeatureGroupsManager />;
       case 'site-settings':
         return <SiteSettingsManager />;
+      case 'design-system':
+        return <DesignSystemManager />;
       case 'media-sections':
-        return (
-          <div className="p-8">
-            <div className="text-center py-12">
-              <Play className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Media Sections</h2>
-              <p className="text-gray-600">Media sections management coming soon...</p>
-            </div>
-          </div>
-        );
+        return <MediaSectionsManager />;
       case 'testimonials':
         return (
           <div className="p-8">

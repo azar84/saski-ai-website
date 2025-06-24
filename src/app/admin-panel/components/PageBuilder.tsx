@@ -184,7 +184,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
                  )}
                  {(section as any).heroSection && (
                    <p className="text-xs text-purple-600 mt-1">
-                     Linked to: Hero from {(section as any).heroSection.page?.title || 'Unknown Page'}
+                     Linked to: Hero Section "{(section as any).heroSection.headline || 'Untitled'}"
                    </p>
                  )}
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
@@ -400,6 +400,11 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
     
     if (formData.sectionType === 'features' && !formData.featureGroupId) {
       setMessage({ type: 'error', text: 'Please select a feature group' });
+      return;
+    }
+
+    if (formData.sectionType === 'media' && !formData.mediaSectionId) {
+      setMessage({ type: 'error', text: 'Please select a media section' });
       return;
     }
 
@@ -776,7 +781,7 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                           <div className="text-sm text-gray-500 mt-1">{hero.subheading}</div>
                         )}
                         <div className="text-xs text-gray-400 mt-1">
-                          From: {hero.page.title} (/{hero.page.slug})
+                          Standalone Hero Section
                         </div>
                       </button>
                     ))}
@@ -827,6 +832,60 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                     {availableContent.featureGroups.length === 0 && (
                       <p className="text-gray-500 text-center py-4">
                         No feature groups available. Create one first in Feature Groups manager.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {formData.sectionType === 'media' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Select Media Section *
+                    {formData.mediaSectionId && (
+                      <span className="ml-2 text-sm text-green-600">✓ Selected</span>
+                    )}
+                  </label>
+                  <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
+                    {availableContent.mediaSections.map((media) => (
+                      <button
+                        key={media.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, mediaSectionId: media.id })}
+                        className={`p-3 rounded-lg border-2 text-left transition-all duration-200 ${
+                          formData.mediaSectionId === media.id
+                            ? 'border-green-500 bg-green-50 text-green-900'
+                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{media.headline}</div>
+                          {formData.mediaSectionId === media.id && (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          )}
+                        </div>
+                        {media.subheading && (
+                          <div className="text-sm text-gray-500 mt-1">{media.subheading}</div>
+                        )}
+                        <div className="text-xs text-gray-400 mt-1 flex items-center space-x-3">
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-medium">
+                            {media.mediaType}
+                          </span>
+                          <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-md font-medium">
+                            {media.layoutType.replace('_', ' ')}
+                          </span>
+                          <span>{media._count.features} features</span>
+                        </div>
+                        {media.badgeText && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Badge: {media.badgeText}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                    {availableContent.mediaSections.length === 0 && (
+                      <p className="text-gray-500 text-center py-4">
+                        No media sections available. Create one first in Media Sections manager.
                       </p>
                     )}
                   </div>
@@ -895,7 +954,7 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
               {/* Actions */}
               <div className="flex space-x-4 pt-4 border-t border-gray-200">
                 {/* Validation Status */}
-                {(formData.sectionType === 'hero' || formData.sectionType === 'features') && (
+                {(formData.sectionType === 'hero' || formData.sectionType === 'features' || formData.sectionType === 'media') && (
                   <div className="flex-1 text-sm">
                     {formData.sectionType === 'hero' && !formData.heroSectionId && (
                       <div className="text-amber-600 flex items-center">
@@ -909,8 +968,15 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                         Please select a feature group
                       </div>
                     )}
+                    {formData.sectionType === 'media' && !formData.mediaSectionId && (
+                      <div className="text-amber-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        Please select a media section
+                      </div>
+                    )}
                     {((formData.sectionType === 'hero' && formData.heroSectionId) || 
-                      (formData.sectionType === 'features' && formData.featureGroupId)) && (
+                      (formData.sectionType === 'features' && formData.featureGroupId) ||
+                      (formData.sectionType === 'media' && formData.mediaSectionId)) && (
                       <div className="text-green-600 flex items-center">
                         <CheckCircle className="w-4 h-4 mr-1" />
                         Ready to save

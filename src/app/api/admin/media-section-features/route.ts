@@ -1,95 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
 import { 
-  CreateMediaSectionSchema, 
-  UpdateMediaSectionSchema, 
+  CreateMediaSectionFeatureSchema, 
+  UpdateMediaSectionFeatureSchema, 
   validateAndTransform, 
   type ApiResponse 
 } from '../../../../lib/validations';
 
-// GET - Fetch all media sections
+// GET - Fetch media section features (optionally filtered by mediaSectionId)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const activeOnly = searchParams.get('activeOnly') === 'true';
+    const mediaSectionId = searchParams.get('mediaSectionId');
 
-    const mediaSections = await prisma.mediaSection.findMany({
-      where: activeOnly ? { isActive: true } : undefined,
+    const features = await prisma.mediaSectionFeature.findMany({
+      where: mediaSectionId ? { mediaSectionId: parseInt(mediaSectionId) } : undefined,
       include: {
-        features: {
-          orderBy: { sortOrder: 'asc' }
+        mediaSection: {
+          select: {
+            id: true,
+            headline: true,
+            isActive: true
+          }
         }
       },
       orderBy: [
-        { position: 'asc' },
+        { mediaSectionId: 'asc' },
+        { sortOrder: 'asc' },
         { createdAt: 'desc' }
       ]
     });
 
     const response: ApiResponse = {
       success: true,
-      data: mediaSections
+      data: features
     };
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Failed to fetch media sections:', error);
+    console.error('Failed to fetch media section features:', error);
     const response: ApiResponse = {
       success: false,
-      message: 'Failed to fetch media sections'
+      message: 'Failed to fetch media section features'
     };
     return NextResponse.json(response, { status: 500 });
   }
 }
 
-// POST - Create a new media section
+// POST - Create a new media section feature
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
     // Validate input using Zod schema
-    const validatedData = validateAndTransform(CreateMediaSectionSchema, body);
-
-    const mediaSection = await prisma.mediaSection.create({
-      data: validatedData,
-      include: {
-        features: {
-          orderBy: { sortOrder: 'asc' }
-        }
-      }
-    });
-
-    const response: ApiResponse = {
-      success: true,
-      data: mediaSection
-    };
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error('Failed to create media section:', error);
-    
-    const response: ApiResponse = {
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to create media section'
-    };
-    
-    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
-    return NextResponse.json(response, { status: statusCode });
-  }
-}
-
-// PUT - Update a media section
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    
-    // Validate input using Zod schema
-    const validatedData = validateAndTransform(UpdateMediaSectionSchema, body);
+    const validatedData = validateAndTransform(CreateMediaSectionFeatureSchema, body);
 
     // Check if media section exists
-    const existingSection = await prisma.mediaSection.findUnique({
-      where: { id: validatedData.id }
+    const mediaSection = await prisma.mediaSection.findUnique({
+      where: { id: validatedData.mediaSectionId }
     });
 
-    if (!existingSection) {
+    if (!mediaSection) {
       const response: ApiResponse = {
         success: false,
         message: 'Media section not found'
@@ -97,29 +67,30 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(response, { status: 404 });
     }
 
-    const { id, ...updateData } = validatedData;
-
-    const mediaSection = await prisma.mediaSection.update({
-      where: { id },
-      data: updateData,
+    const feature = await prisma.mediaSectionFeature.create({
+      data: validatedData,
       include: {
-        features: {
-          orderBy: { sortOrder: 'asc' }
+        mediaSection: {
+          select: {
+            id: true,
+            headline: true,
+            isActive: true
+          }
         }
       }
     });
 
     const response: ApiResponse = {
       success: true,
-      data: mediaSection
+      data: feature
     };
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Failed to update media section:', error);
+    console.error('Failed to create media section feature:', error);
     
     const response: ApiResponse = {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to update media section'
+      message: error instanceof Error ? error.message : 'Failed to create media section feature'
     };
     
     const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
@@ -127,7 +98,62 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE - Delete a media section
+// PUT - Update a media section feature
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    // Validate input using Zod schema
+    const validatedData = validateAndTransform(UpdateMediaSectionFeatureSchema, body);
+
+    // Check if feature exists
+    const existingFeature = await prisma.mediaSectionFeature.findUnique({
+      where: { id: validatedData.id }
+    });
+
+    if (!existingFeature) {
+      const response: ApiResponse = {
+        success: false,
+        message: 'Media section feature not found'
+      };
+      return NextResponse.json(response, { status: 404 });
+    }
+
+    const { id, ...updateData } = validatedData;
+
+    const feature = await prisma.mediaSectionFeature.update({
+      where: { id },
+      data: updateData,
+      include: {
+        mediaSection: {
+          select: {
+            id: true,
+            headline: true,
+            isActive: true
+          }
+        }
+      }
+    });
+
+    const response: ApiResponse = {
+      success: true,
+      data: feature
+    };
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Failed to update media section feature:', error);
+    
+    const response: ApiResponse = {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update media section feature'
+    };
+    
+    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
+    return NextResponse.json(response, { status: statusCode });
+  }
+}
+
+// DELETE - Delete a media section feature
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -136,40 +162,39 @@ export async function DELETE(request: NextRequest) {
     if (!id || isNaN(parseInt(id))) {
       const response: ApiResponse = {
         success: false,
-        message: 'Valid media section ID is required'
+        message: 'Valid feature ID is required'
       };
       return NextResponse.json(response, { status: 400 });
     }
 
-    // Check if media section exists
-    const existingSection = await prisma.mediaSection.findUnique({
+    // Check if feature exists
+    const existingFeature = await prisma.mediaSectionFeature.findUnique({
       where: { id: parseInt(id) }
     });
 
-    if (!existingSection) {
+    if (!existingFeature) {
       const response: ApiResponse = {
         success: false,
-        message: 'Media section not found'
+        message: 'Media section feature not found'
       };
       return NextResponse.json(response, { status: 404 });
     }
 
-    // Delete the media section (features will be cascade deleted)
-    await prisma.mediaSection.delete({
+    await prisma.mediaSectionFeature.delete({
       where: { id: parseInt(id) }
     });
 
     const response: ApiResponse = {
       success: true,
-      message: 'Media section deleted successfully'
+      message: 'Media section feature deleted successfully'
     };
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Failed to delete media section:', error);
+    console.error('Failed to delete media section feature:', error);
     
     const response: ApiResponse = {
       success: false,
-      message: 'Failed to delete media section'
+      message: 'Failed to delete media section feature'
     };
     return NextResponse.json(response, { status: 500 });
   }

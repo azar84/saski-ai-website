@@ -14,17 +14,10 @@ export async function GET(request: NextRequest) {
         where: { visible: true },
         select: {
           id: true,
-          heading: true,
+          headline: true,
           subheading: true,
-          imageUrl: true,
-          visible: true,
-          page: {
-            select: {
-              id: true,
-              title: true,
-              slug: true
-            }
-          }
+          mediaUrl: true,
+          visible: true
         },
         orderBy: { createdAt: 'desc' }
       });
@@ -65,23 +58,27 @@ export async function GET(request: NextRequest) {
     if (contentType === 'media-sections') {
       // Fetch all media sections
       const mediaSections = await prisma.mediaSection.findMany({
-        where: { visible: true },
+        where: { isActive: true },
         select: {
           id: true,
-          heading: true,
+          headline: true,
           subheading: true,
-          imageUrl: true,
-          videoUrl: true,
-          visible: true,
-          page: {
+          mediaUrl: true,
+          mediaType: true,
+          layoutType: true,
+          badgeText: true,
+          isActive: true,
+          position: true,
+          _count: {
             select: {
-              id: true,
-              title: true,
-              slug: true
+              features: true
             }
           }
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: [
+          { position: 'asc' },
+          { createdAt: 'desc' }
+        ]
       });
 
       const response: ApiResponse = {
@@ -97,17 +94,10 @@ export async function GET(request: NextRequest) {
         where: { visible: true },
         select: {
           id: true,
-          heading: true,
+          headline: true,
           subheading: true,
-          imageUrl: true,
-          visible: true,
-          page: {
-            select: {
-              id: true,
-              title: true,
-              slug: true
-            }
-          }
+          mediaUrl: true,
+          visible: true
         },
         orderBy: { createdAt: 'desc' }
       }),
@@ -128,23 +118,27 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' }
       }),
       prisma.mediaSection.findMany({
-        where: { visible: true },
+        where: { isActive: true },
         select: {
           id: true,
-          heading: true,
+          headline: true,
           subheading: true,
-          imageUrl: true,
-          videoUrl: true,
-          visible: true,
-          page: {
+          mediaUrl: true,
+          mediaType: true,
+          layoutType: true,
+          badgeText: true,
+          isActive: true,
+          position: true,
+          _count: {
             select: {
-              id: true,
-              title: true,
-              slug: true
+              features: true
             }
           }
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: [
+          { position: 'asc' },
+          { createdAt: 'desc' }
+        ]
       })
     ]);
 

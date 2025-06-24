@@ -3,23 +3,53 @@ import { prisma } from '../../../../lib/db';
 import { CreatePageSchema, UpdatePageSchema, validateAndTransform, type ApiResponse } from '../../../../lib/validations';
 
 // GET - Fetch all pages
+// Function to ensure home page exists
+async function ensureHomePage() {
+  try {
+    const existingHomePage = await prisma.page.findFirst({
+      where: { slug: 'home' }
+    });
+
+    if (!existingHomePage) {
+      console.log('Creating missing home page...');
+      const homePage = await prisma.page.create({
+        data: {
+          slug: 'home',
+          title: 'Home',
+          metaTitle: 'Saski AI - AI Customer Service Automation',
+          metaDesc: 'Transform your customer communication with AI-powered automation. Book appointments, answer questions, and provide support 24/7.',
+          sortOrder: 0,
+          showInHeader: false, // Home page doesn't need to show in header navigation
+          showInFooter: false
+        }
+      });
+      console.log('✅ Created home page with ID:', homePage.id);
+      return homePage;
+    }
+    
+    return existingHomePage;
+  } catch (error) {
+    console.error('Failed to ensure home page exists:', error);
+    return null;
+  }
+}
+
 export async function GET() {
   try {
+    // Ensure home page exists
+    await ensureHomePage();
+
     const pages = await prisma.page.findMany({
-      orderBy: {
-        sortOrder: 'asc'
-      },
       include: {
-        heroSections: true,
-        features: true,
-        mediaSections: true,
         _count: {
           select: {
-            heroSections: true,
             features: true,
-            mediaSections: true
+            featureGroups: true
           }
         }
+      },
+      orderBy: {
+        sortOrder: 'asc'
       }
     });
 
@@ -78,18 +108,6 @@ export async function POST(request: NextRequest) {
         sortOrder: finalSortOrder,
         showInHeader: validatedData.showInHeader,
         showInFooter: validatedData.showInFooter
-      },
-      include: {
-        heroSections: true,
-        features: true,
-        mediaSections: true,
-        _count: {
-          select: {
-            heroSections: true,
-            features: true,
-            mediaSections: true
-          }
-        }
       }
     });
 
@@ -169,18 +187,6 @@ export async function PUT(request: NextRequest) {
         ...(validatedData.sortOrder !== undefined && { sortOrder: validatedData.sortOrder }),
         ...(validatedData.showInHeader !== undefined && { showInHeader: validatedData.showInHeader }),
         ...(validatedData.showInFooter !== undefined && { showInFooter: validatedData.showInFooter })
-      },
-      include: {
-        heroSections: true,
-        features: true,
-        mediaSections: true,
-        _count: {
-          select: {
-            heroSections: true,
-            features: true,
-            mediaSections: true
-          }
-        }
       }
     });
 

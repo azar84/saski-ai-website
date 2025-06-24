@@ -389,11 +389,9 @@ export interface Page {
 }
 
 export interface PageWithContent extends Page {
-  heroSections: HeroSectionDB[];
   features: FeatureDB[];
   mediaSections: MediaSectionDB[];
   _count: {
-    heroSections: number;
     features: number;
     mediaSections: number;
   };
@@ -402,14 +400,29 @@ export interface PageWithContent extends Page {
 // Hero Section Database Types
 export interface HeroSectionDB {
   id: number;
-  pageId: number;
-  heading: string | null;
-  subheading: string | null;
-  imageUrl: string | null;
+  position: number;
+  layoutType: string;
+  tagline?: string;
+  headline: string;
+  subheading?: string;
+  textAlignment: string;
+  ctaPrimaryId?: number;
+  ctaSecondaryId?: number;
+  mediaUrl?: string;
+  mediaType: string;
+  mediaAlt?: string;
+  mediaPosition: string;
+  backgroundType: string;
+  backgroundValue: string;
+  showTypingEffect: boolean;
+  enableBackgroundAnimation: boolean;
+  customClasses?: string;
+  paddingTop: number;
+  paddingBottom: number;
+  containerMaxWidth: string;
   visible: boolean;
   createdAt: Date;
   updatedAt: Date;
-  page: Page;
 }
 
 // Feature Database Types

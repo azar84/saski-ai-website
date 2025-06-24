@@ -11,7 +11,11 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json(ctaButtons);
+    const response: ApiResponse = {
+      success: true,
+      data: ctaButtons
+    };
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to fetch CTA buttons:', error);
     const response: ApiResponse = {

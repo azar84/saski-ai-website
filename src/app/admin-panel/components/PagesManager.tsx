@@ -31,10 +31,9 @@ interface Page {
   showInFooter: boolean;
   createdAt: string;
   updatedAt: string;
-  _count: {
-    heroSections: number;
-    features: number;
-    mediaSections: number;
+  _count?: {
+    features?: number;
+    featureGroups?: number;
   };
 }
 
@@ -321,15 +320,11 @@ export default function PagesManager() {
                   <div className="flex items-center gap-6 text-sm text-gray-500">
                     <div className="flex items-center gap-1">
                       <Hash className="w-4 h-4" />
-                      <span>{page._count.heroSections} Hero Sections</span>
+                      <span>{page._count?.features || 0} Features</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Hash className="w-4 h-4" />
-                      <span>{page._count.features} Features</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Hash className="w-4 h-4" />
-                      <span>{page._count.mediaSections} Media Sections</span>
+                      <span>{page._count?.featureGroups || 0} Feature Groups</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />

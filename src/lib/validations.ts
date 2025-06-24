@@ -44,11 +44,52 @@ export const UpdateCTASchema = CreateCTASchema.extend({
 }).partial().required({ id: true });
 
 // Hero Section Schema
+export const HeroLayoutTypeEnum = z.enum(['split', 'centered', 'overlay']);
+export const HeroTextAlignmentEnum = z.enum(['left', 'center', 'right']);
+export const HeroMediaTypeEnum = z.enum(['image', 'video', 'animation', '3d']);
+export const HeroMediaPositionEnum = z.enum(['left', 'right']);
+export const HeroBackgroundTypeEnum = z.enum(['color', 'gradient', 'image', 'video']);
+export const HeroContainerMaxWidthEnum = z.enum(['xl', '2xl', 'full']);
+
 export const CreateHeroSectionSchema = z.object({
-  pageId: IdSchema,
-  heading: z.string().max(200).optional(),
+  layoutType: HeroLayoutTypeEnum.default('split'),
+  tagline: z.string().max(100).optional(),
+  headline: z.string().min(1, 'Headline is required').max(200),
   subheading: z.string().max(500).optional(),
-  imageUrl: UrlSchema.optional(),
+  textAlignment: HeroTextAlignmentEnum.default('left'),
+  
+  // CTA References
+  ctaPrimaryId: z.number().int().positive().nullable().optional(),
+  ctaSecondaryId: z.number().int().positive().nullable().optional(),
+  
+  // Media + Background
+  mediaUrl: z.string().max(500).optional(),
+  mediaType: HeroMediaTypeEnum.default('image'),
+  mediaAlt: z.string().max(200).optional(),
+  mediaHeight: z.string().max(50).default('80vh'), // CSS height value (e.g., "80vh", "500px", "auto")
+  mediaPosition: HeroMediaPositionEnum.default('right'),
+  backgroundType: HeroBackgroundTypeEnum.default('color'),
+  backgroundValue: z.string().max(500).default('#FFFFFF'),
+  
+  // Text Colors
+  taglineColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#5243E9'),
+  headlineColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#1F2937'),
+  subheadingColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#6B7280'),
+  
+  // CTA Styling
+  ctaPrimaryBgColor: z.string().regex(/^(#[0-9A-Fa-f]{6}|transparent)$/, 'Invalid hex color or transparent').default('#5243E9'),
+  ctaPrimaryTextColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#FFFFFF'),
+  ctaSecondaryBgColor: z.string().regex(/^(#[0-9A-Fa-f]{6}|transparent)$/, 'Invalid hex color or transparent').default('transparent'),
+  ctaSecondaryTextColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#5243E9'),
+  
+  // Advanced
+  showTypingEffect: z.boolean().default(false),
+  enableBackgroundAnimation: z.boolean().default(false),
+  customClasses: z.string().max(500).optional(),
+  paddingTop: z.number().int().min(0).max(300).default(80),
+  paddingBottom: z.number().int().min(0).max(300).default(80),
+  containerMaxWidth: HeroContainerMaxWidthEnum.default('2xl'),
+  
   visible: z.boolean().default(true),
 });
 
@@ -155,6 +196,62 @@ export const HeaderConfigSchema = z.object({
   isActive: z.boolean().default(true),
   navItems: z.array(HeaderNavItemSchema).optional(),
 });
+
+// Media Section Validation Schemas
+export const LayoutTypeEnum = z.enum(['media_left', 'media_right', 'stacked']);
+export const AlignmentEnum = z.enum(['left', 'center', 'right']);
+export const MediaTypeEnum = z.enum(['image', 'video', 'animation', '3d']);
+export const MediaSizeEnum = z.enum(['sm', 'md', 'lg', 'full']);
+export const MediaPositionEnum = z.enum(['left', 'right']);
+export const CtaStyleEnum = z.enum(['primary', 'secondary', 'link']);
+export const AnimationTypeEnum = z.enum(['fade', 'slide', 'zoom', 'none']);
+export const BackgroundStyleEnum = z.enum(['solid', 'gradient', 'radial', 'none']);
+export const ContainerMaxWidthEnum = z.enum(['xl', '2xl', 'full']);
+
+export const CreateMediaSectionSchema = z.object({
+  position: z.number().int().min(0).default(0),
+  layoutType: LayoutTypeEnum.default('media_right'),
+  badgeText: z.string().max(100).optional(),
+  badgeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#5243E9'),
+  headline: z.string().min(1, 'Headline is required').max(200),
+  subheading: z.string().max(500).optional(),
+  alignment: AlignmentEnum.default('left'),
+  mediaType: MediaTypeEnum.default('image'),
+  mediaUrl: z.string().min(1, 'Media URL is required').max(500),
+  mediaAlt: z.string().max(200).optional(),
+  mediaSize: MediaSizeEnum.default('md'),
+  mediaPosition: MediaPositionEnum.default('right'),
+  showBadge: z.boolean().default(true),
+  showCtaButton: z.boolean().default(false),
+  ctaText: z.string().max(50).optional(),
+  ctaUrl: z.string().max(500).optional(),
+  ctaStyle: CtaStyleEnum.default('primary'),
+  enableScrollAnimations: z.boolean().default(false),
+  animationType: AnimationTypeEnum.default('none'),
+  backgroundStyle: BackgroundStyleEnum.default('solid'),
+  backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#F6F8FC'),
+  textColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#0F1A2A'),
+  paddingTop: z.number().int().min(0).max(200).default(80),
+  paddingBottom: z.number().int().min(0).max(200).default(80),
+  containerMaxWidth: ContainerMaxWidthEnum.default('2xl'),
+  isActive: z.boolean().default(true),
+});
+
+export const UpdateMediaSectionSchema = CreateMediaSectionSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
+
+export const CreateMediaSectionFeatureSchema = z.object({
+  mediaSectionId: IdSchema,
+  icon: z.string().min(1, 'Icon is required').max(50),
+  label: z.string().min(1, 'Label is required').max(100),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#5243E9'),
+  sortOrder: z.number().int().min(0).default(0),
+});
+
+export const UpdateMediaSectionFeatureSchema = CreateMediaSectionFeatureSchema.extend({
+  id: IdSchema,
+}).partial().required({ id: true });
 
 // Utility function to validate and transform request data
 export function validateAndTransform<T>(schema: z.ZodSchema<T>, data: unknown): T {

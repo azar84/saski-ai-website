@@ -13,9 +13,32 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const pageId = searchParams.get('pageId');
+    const pageSlug = searchParams.get('pageSlug');
+
+    let whereClause = {};
+    
+    if (pageId) {
+      whereClause = { pageId: parseInt(pageId) };
+    } else if (pageSlug) {
+      // First find the page by slug
+      const page = await prisma.page.findUnique({
+        where: { slug: pageSlug },
+        select: { id: true }
+      });
+      
+      if (!page) {
+        const response: ApiResponse = {
+          success: false,
+          message: 'Page not found'
+        };
+        return NextResponse.json(response, { status: 404 });
+      }
+      
+      whereClause = { pageId: page.id };
+    }
 
     const pageSections = await prisma.pageSection.findMany({
-      where: pageId ? { pageId: parseInt(pageId) } : undefined,
+      where: whereClause,
       include: {
         page: {
           select: {
@@ -27,10 +50,49 @@ export async function GET(request: NextRequest) {
         heroSection: {
           select: {
             id: true,
-            heading: true,
+            layoutType: true,
+            tagline: true,
+            headline: true,
             subheading: true,
-            imageUrl: true,
-            visible: true
+            textAlignment: true,
+            ctaPrimaryId: true,
+            ctaSecondaryId: true,
+            mediaUrl: true,
+            mediaType: true,
+            mediaAlt: true,
+            mediaHeight: true,
+            mediaPosition: true,
+            backgroundType: true,
+            backgroundValue: true,
+            showTypingEffect: true,
+            enableBackgroundAnimation: true,
+            customClasses: true,
+            paddingTop: true,
+            paddingBottom: true,
+            containerMaxWidth: true,
+            visible: true,
+            ctaPrimary: {
+              select: {
+                id: true,
+                text: true,
+                url: true,
+                icon: true,
+                style: true,
+                target: true,
+                isActive: true
+              }
+            },
+            ctaSecondary: {
+              select: {
+                id: true,
+                text: true,
+                url: true,
+                icon: true,
+                style: true,
+                target: true,
+                isActive: true
+              }
+            }
           }
         },
         featureGroup: {
@@ -40,6 +102,13 @@ export async function GET(request: NextRequest) {
             heading: true,
             subheading: true,
             isActive: true,
+            groupItems: {
+              where: { isVisible: true },
+              include: {
+                feature: true
+              },
+              orderBy: { sortOrder: 'asc' }
+            },
             _count: {
               select: {
                 groupItems: true
@@ -50,11 +119,33 @@ export async function GET(request: NextRequest) {
         mediaSection: {
           select: {
             id: true,
-            heading: true,
+            headline: true,
             subheading: true,
-            imageUrl: true,
-            videoUrl: true,
-            visible: true
+            mediaUrl: true,
+            mediaType: true,
+            layoutType: true,
+            badgeText: true,
+            isActive: true,
+            position: true,
+            alignment: true,
+            mediaSize: true,
+            mediaPosition: true,
+            showBadge: true,
+            showCtaButton: true,
+            ctaText: true,
+            ctaUrl: true,
+            ctaStyle: true,
+            enableScrollAnimations: true,
+            animationType: true,
+            backgroundStyle: true,
+            backgroundColor: true,
+            textColor: true,
+            paddingTop: true,
+            paddingBottom: true,
+            containerMaxWidth: true,
+            features: {
+              orderBy: { sortOrder: 'asc' }
+            }
           }
         }
       },
@@ -122,10 +213,49 @@ export async function POST(request: NextRequest) {
         heroSection: {
           select: {
             id: true,
-            heading: true,
+            layoutType: true,
+            tagline: true,
+            headline: true,
             subheading: true,
-            imageUrl: true,
-            visible: true
+            textAlignment: true,
+            ctaPrimaryId: true,
+            ctaSecondaryId: true,
+            mediaUrl: true,
+            mediaType: true,
+            mediaAlt: true,
+            mediaHeight: true,
+            mediaPosition: true,
+            backgroundType: true,
+            backgroundValue: true,
+            showTypingEffect: true,
+            enableBackgroundAnimation: true,
+            customClasses: true,
+            paddingTop: true,
+            paddingBottom: true,
+            containerMaxWidth: true,
+            visible: true,
+            ctaPrimary: {
+              select: {
+                id: true,
+                text: true,
+                url: true,
+                icon: true,
+                style: true,
+                target: true,
+                isActive: true
+              }
+            },
+            ctaSecondary: {
+              select: {
+                id: true,
+                text: true,
+                url: true,
+                icon: true,
+                style: true,
+                target: true,
+                isActive: true
+              }
+            }
           }
         },
         featureGroup: {
@@ -140,11 +270,14 @@ export async function POST(request: NextRequest) {
         mediaSection: {
           select: {
             id: true,
-            heading: true,
+            headline: true,
             subheading: true,
-            imageUrl: true,
-            videoUrl: true,
-            visible: true
+            mediaUrl: true,
+            mediaType: true,
+            layoutType: true,
+            badgeText: true,
+            isActive: true,
+            position: true
           }
         }
       }
@@ -185,6 +318,9 @@ export async function PUT(request: NextRequest) {
         ...(validatedData.content !== undefined && { content: validatedData.content }),
         ...(validatedData.sortOrder !== undefined && { sortOrder: validatedData.sortOrder }),
         ...(validatedData.isVisible !== undefined && { isVisible: validatedData.isVisible }),
+        ...(validatedData.heroSectionId !== undefined && { heroSectionId: validatedData.heroSectionId }),
+        ...(validatedData.featureGroupId !== undefined && { featureGroupId: validatedData.featureGroupId }),
+        ...(validatedData.mediaSectionId !== undefined && { mediaSectionId: validatedData.mediaSectionId }),
         updatedAt: new Date()
       },
       include: {
@@ -193,6 +329,129 @@ export async function PUT(request: NextRequest) {
             id: true,
             slug: true,
             title: true
+          }
+        },
+        heroSection: {
+          select: {
+            id: true,
+            layoutType: true,
+            tagline: true,
+            headline: true,
+            subheading: true,
+            textAlignment: true,
+            ctaPrimaryId: true,
+            ctaSecondaryId: true,
+            mediaUrl: true,
+            mediaType: true,
+            mediaAlt: true,
+            mediaHeight: true,
+            mediaPosition: true,
+            backgroundType: true,
+            backgroundValue: true,
+            taglineColor: true,
+            headlineColor: true,
+            subheadingColor: true,
+            ctaPrimaryBgColor: true,
+            ctaPrimaryTextColor: true,
+            ctaSecondaryBgColor: true,
+            ctaSecondaryTextColor: true,
+            showTypingEffect: true,
+            enableBackgroundAnimation: true,
+            customClasses: true,
+            paddingTop: true,
+            paddingBottom: true,
+            containerMaxWidth: true,
+            visible: true,
+            ctaPrimary: {
+              select: {
+                id: true,
+                text: true,
+                url: true,
+                icon: true,
+                style: true,
+                target: true,
+                isActive: true
+              }
+            },
+            ctaSecondary: {
+              select: {
+                id: true,
+                text: true,
+                url: true,
+                icon: true,
+                style: true,
+                target: true,
+                isActive: true
+              }
+            }
+          }
+        },
+        featureGroup: {
+          select: {
+            id: true,
+            name: true,
+            heading: true,
+            subheading: true,
+            isActive: true,
+            groupItems: {
+              select: {
+                id: true,
+                sortOrder: true,
+                isVisible: true,
+                feature: {
+                  select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    iconName: true,
+                    category: true,
+                    sortOrder: true,
+                    isVisible: true
+                  }
+                }
+              },
+              orderBy: { sortOrder: 'asc' }
+            }
+          }
+        },
+        mediaSection: {
+          select: {
+            id: true,
+            headline: true,
+            subheading: true,
+            mediaUrl: true,
+            mediaType: true,
+            layoutType: true,
+            badgeText: true,
+            badgeColor: true,
+            isActive: true,
+            position: true,
+            alignment: true,
+            mediaSize: true,
+            mediaPosition: true,
+            showBadge: true,
+            showCtaButton: true,
+            ctaText: true,
+            ctaUrl: true,
+            ctaStyle: true,
+            enableScrollAnimations: true,
+            animationType: true,
+            backgroundStyle: true,
+            backgroundColor: true,
+            textColor: true,
+            paddingTop: true,
+            paddingBottom: true,
+            containerMaxWidth: true,
+            features: {
+              select: {
+                id: true,
+                icon: true,
+                label: true,
+                color: true,
+                sortOrder: true
+              },
+              orderBy: { sortOrder: 'asc' }
+            }
           }
         }
       }

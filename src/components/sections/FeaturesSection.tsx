@@ -270,7 +270,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
   // Show loading state
   if (loading) {
     return (
-      <section className="py-20 bg-gradient-to-br from-[#5243E9]/8 via-[#6366F1]/6 to-[#8B5CF6]/8">
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-slate-100 to-gray-100">
         <div className="elementor-container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5243E9] mx-auto"></div>
@@ -288,7 +288,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
   const displayFeatures = features.slice(0, 6); // Show max 6 features
 
   return (
-    <section className="py-20 bg-gradient-to-br from-[#5243E9]/8 via-[#6366F1]/6 to-[#8B5CF6]/8">
+    <section className="py-20 bg-gradient-to-br from-gray-50 via-slate-100 to-gray-100">
       {/* Elementor Container */}
       <div className="elementor-container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         <div className="elementor-column elementor-col-100">
@@ -297,12 +297,21 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
             {/* Header Section */}
             <div className="elementor-widget elementor-widget-heading text-center mb-4">
               <div className="elementor-widget-container">
-                <motion.h2 
+                <motion.h4 
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6 }}
-                  className="elementor-heading-title text-3xl sm:text-4xl font-bold text-gray-900"
+                  className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-4"
+                >
+                  Core Features
+                </motion.h4>
+                <motion.h2 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  className="elementor-heading-title text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight"
                 >
                   {groupHeading || 'Why Saski AI?'}
                 </motion.h2>
@@ -317,7 +326,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className="text-lg text-gray-600"
+                  className="text-lg text-gray-600 leading-relaxed"
                 >
                   <span>{groupSubheading || 'Simple. Smart. Built for growing businesses'}</span>
                 </motion.p>

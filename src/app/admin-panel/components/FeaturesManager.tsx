@@ -329,14 +329,14 @@ const FeaturesManager: React.FC = () => {
                     const value = e.target.value as 'integration' | 'ai' | 'automation' | 'analytics' | 'security' | 'support';
                     setFormData({ ...formData, category: value });
                   }}
-                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                 >
-                  <option value="integration">Integration</option>
-                  <option value="ai">AI</option>
-                  <option value="automation">Automation</option>
-                  <option value="analytics">Analytics</option>
-                  <option value="security">Security</option>
-                  <option value="support">Support</option>
+                  <option value="integration" className="bg-white text-gray-900">Integration</option>
+                  <option value="ai" className="bg-white text-gray-900">AI</option>
+                  <option value="automation" className="bg-white text-gray-900">Automation</option>
+                  <option value="analytics" className="bg-white text-gray-900">Analytics</option>
+                  <option value="security" className="bg-white text-gray-900">Security</option>
+                  <option value="support" className="bg-white text-gray-900">Support</option>
                 </select>
               </div>
 
@@ -349,7 +349,7 @@ const FeaturesManager: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe the feature and its benefits..."
                   required
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white text-gray-900 placeholder-gray-500"
                   rows={3}
                 />
               </div>
@@ -361,10 +361,10 @@ const FeaturesManager: React.FC = () => {
                 <select
                   value={formData.iconName}
                   onChange={(e) => setFormData({ ...formData, iconName: e.target.value })}
-                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                 >
                   {availableIcons.map((icon) => (
-                    <option key={icon.name} value={icon.name}>
+                    <option key={icon.name} value={icon.name} className="bg-white text-gray-900">
                       {icon.label}
                     </option>
                   ))}

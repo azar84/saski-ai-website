@@ -94,11 +94,20 @@ export default function CTAManager() {
     try {
       const response = await fetch('/api/admin/cta-buttons');
       if (response.ok) {
-        const data = await response.json();
-        setCtas(data);
+        const result = await response.json();
+        if (result.success && Array.isArray(result.data)) {
+          setCtas(result.data);
+        } else {
+          console.error('Invalid CTA data structure:', result);
+          setCtas([]);
+        }
+      } else {
+        console.error('Failed to fetch CTAs:', response.status);
+        setCtas([]);
       }
     } catch (error) {
       console.error('Error fetching CTAs:', error);
+      setCtas([]);
     }
   };
 
@@ -107,12 +116,18 @@ export default function CTAManager() {
       const response = await fetch('/api/admin/header-config');
       if (response.ok) {
         const data = await response.json();
-        if (data.length > 0) {
-          setHeaderCtas(data[0].headerCtas || []);
+        if (Array.isArray(data) && data.length > 0) {
+          setHeaderCtas(data[0].ctaButtons || []);
+        } else {
+          setHeaderCtas([]);
         }
+      } else {
+        console.error('Failed to fetch header config:', response.status);
+        setHeaderCtas([]);
       }
     } catch (error) {
       console.error('Error fetching header config:', error);
+      setHeaderCtas([]);
     }
   };
 
@@ -454,7 +469,7 @@ export default function CTAManager() {
           CTAs Currently in Header
         </h3>
         
-        {headerCtas.length === 0 ? (
+        {!Array.isArray(headerCtas) || headerCtas.length === 0 ? (
           <p className="text-gray-500 text-center py-8">No CTA buttons in header yet</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -511,7 +526,7 @@ export default function CTAManager() {
       <Card className="p-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-4">All CTA Buttons</h3>
         
-        {ctas.length === 0 ? (
+        {!Array.isArray(ctas) || ctas.length === 0 ? (
           <p className="text-gray-500 text-center py-8">No CTA buttons created yet</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
