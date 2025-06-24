@@ -50,6 +50,76 @@ interface FeaturesSectionProps {
   subheading?: string;
 }
 
+// Default fallback features - moved outside component to prevent recreation
+const defaultFeatures: GlobalFeature[] = [
+  {
+    id: 1,
+    title: 'Easy to Use',
+    description: 'Get started in minutes with a setup anyone can follow, no tech skills needed.',
+    iconName: 'Smile',
+    category: 'integration',
+    sortOrder: 1,
+    isVisible: true,
+    createdAt: '',
+    updatedAt: ''
+  },
+  {
+    id: 2,
+    title: 'Automated Support',
+    description: 'Answer questions, schedule meetings, and create tickets automatically.',
+    iconName: 'Users',
+    category: 'automation',
+    sortOrder: 2,
+    isVisible: true,
+    createdAt: '',
+    updatedAt: ''
+  },
+  {
+    id: 3,
+    title: 'Multi-Channel Messaging',
+    description: 'Talk to customers on WhatsApp, SMS, voice, web, and Facebook seamlessly.',
+    iconName: 'MessageSquare',
+    category: 'integration',
+    sortOrder: 3,
+    isVisible: true,
+    createdAt: '',
+    updatedAt: ''
+  },
+  {
+    id: 4,
+    title: 'Tool Integrations',
+    description: 'Connect with your CRM, calendar, or helpdesk in just a few clicks.',
+    iconName: 'Settings',
+    category: 'integration',
+    sortOrder: 4,
+    isVisible: true,
+    createdAt: '',
+    updatedAt: ''
+  },
+  {
+    id: 5,
+    title: 'Multilingual by Default',
+    description: 'Support customers in 12+ languages, out of the box.',
+    iconName: 'Languages',
+    category: 'support',
+    sortOrder: 5,
+    isVisible: true,
+    createdAt: '',
+    updatedAt: ''
+  },
+  {
+    id: 6,
+    title: 'Smart Knowledge Base',
+    description: 'Use your website, files, or copied text to teach your assistant instantly.',
+    iconName: 'BookOpen',
+    category: 'ai',
+    sortOrder: 6,
+    isVisible: true,
+    createdAt: '',
+    updatedAt: ''
+  }
+];
+
 const FeaturesSection: React.FC<FeaturesSectionProps> = ({ 
   features: propFeatures = [], 
   featureGroupId,
@@ -61,76 +131,6 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
   const [loading, setLoading] = useState(propFeatures.length === 0);
   const [groupHeading, setGroupHeading] = useState<string>('');
   const [groupSubheading, setGroupSubheading] = useState<string>('');
-
-  // Default fallback features
-  const defaultFeatures: GlobalFeature[] = [
-    {
-      id: 1,
-      title: 'Easy to Use',
-      description: 'Get started in minutes with a setup anyone can follow, no tech skills needed.',
-      iconName: 'Smile',
-      category: 'integration',
-      sortOrder: 1,
-      isVisible: true,
-      createdAt: '',
-      updatedAt: ''
-    },
-    {
-      id: 2,
-      title: 'Automated Support',
-      description: 'Answer questions, schedule meetings, and create tickets automatically.',
-      iconName: 'Users',
-      category: 'automation',
-      sortOrder: 2,
-      isVisible: true,
-      createdAt: '',
-      updatedAt: ''
-    },
-    {
-      id: 3,
-      title: 'Multi-Channel Messaging',
-      description: 'Talk to customers on WhatsApp, SMS, voice, web, and Facebook seamlessly.',
-      iconName: 'MessageSquare',
-      category: 'integration',
-      sortOrder: 3,
-      isVisible: true,
-      createdAt: '',
-      updatedAt: ''
-    },
-    {
-      id: 4,
-      title: 'Tool Integrations',
-      description: 'Connect with your CRM, calendar, or helpdesk in just a few clicks.',
-      iconName: 'Settings',
-      category: 'integration',
-      sortOrder: 4,
-      isVisible: true,
-      createdAt: '',
-      updatedAt: ''
-    },
-    {
-      id: 5,
-      title: 'Multilingual by Default',
-      description: 'Support customers in 12+ languages, out of the box.',
-      iconName: 'Languages',
-      category: 'support',
-      sortOrder: 5,
-      isVisible: true,
-      createdAt: '',
-      updatedAt: ''
-    },
-    {
-      id: 6,
-      title: 'Smart Knowledge Base',
-      description: 'Use your website, files, or copied text to teach your assistant instantly.',
-      iconName: 'BookOpen',
-      category: 'ai',
-      sortOrder: 6,
-      isVisible: true,
-      createdAt: '',
-      updatedAt: ''
-    }
-  ];
 
   // Fetch features from API if not provided via props
   useEffect(() => {
@@ -230,7 +230,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
     };
 
     fetchFeatures();
-  }, [propFeatures, featureGroupId, pageSlug, propHeading, propSubheading, defaultFeatures]);
+  }, [propFeatures, featureGroupId, pageSlug, propHeading, propSubheading]);
 
   const getIconComponent = (iconName: string) => {
     const iconProps = { size: 40, strokeWidth: 2.5 };
