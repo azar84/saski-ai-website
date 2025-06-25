@@ -17,7 +17,9 @@ interface PageSection {
   isVisible: boolean;
   heroSection?: {
     id: number;
+    name?: string;
     layoutType: string;
+    sectionHeight?: string;
     tagline?: string;
     headline: string;
     subheading?: string;
@@ -62,6 +64,7 @@ interface PageSection {
     name: string;
     heading: string;
     subheading?: string;
+    layoutType?: 'grid' | 'list';
     isActive: boolean;
     groupItems: Array<{
       id: number;
@@ -139,11 +142,24 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         
         const result = await response.json();
         
+        console.log('🔍 DynamicPageRenderer - Raw API Response:', result);
+        
         if (result.success && result.data) {
           // Filter visible sections and sort by sortOrder
           const visibleSections = result.data
             .filter((section: PageSection) => section.isVisible)
             .sort((a: PageSection, b: PageSection) => a.sortOrder - b.sortOrder);
+          
+          console.log('🔍 DynamicPageRenderer - Filtered Sections:', visibleSections.map((s: PageSection) => ({
+            id: s.id,
+            sectionType: s.sectionType,
+            title: s.title,
+            featureGroup: s.featureGroup ? {
+              id: s.featureGroup.id,
+              name: s.featureGroup.name,
+              layoutType: s.featureGroup.layoutType
+            } : null
+          })));
           
           setSections(visibleSections);
         } else {
@@ -187,12 +203,25 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             .map(item => item.feature)
             .sort((a, b) => a.sortOrder - b.sortOrder);
 
+          console.log('🎨 DynamicPageRenderer - Feature Group:', {
+            name: section.featureGroup.name,
+            layoutType: section.featureGroup.layoutType,
+            featuresCount: features.length
+          });
+
+          const propsToPass = {
+            features: features as any,
+            heading: section.title || section.featureGroup.heading,
+            subheading: section.subtitle || section.featureGroup.subheading,
+            layoutType: section.featureGroup.layoutType || 'grid'
+          };
+
+          console.log('🚀 DynamicPageRenderer - Passing props to FeaturesSection:', propsToPass);
+
           return (
             <FeaturesSection
               key={sectionKey}
-              features={features as any}
-              heading={section.title || section.featureGroup.heading}
-              subheading={section.subtitle || section.featureGroup.subheading}
+              {...propsToPass}
             />
           );
         }

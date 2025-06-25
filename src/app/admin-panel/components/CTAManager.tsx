@@ -355,13 +355,16 @@ export default function CTAManager() {
                   URL *
                 </label>
                 <Input
-                  type="url"
+                  type="text"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  placeholder="https://example.com or #section"
+                  placeholder="https://example.com, /page, or #section"
                   required
                   className="h-12"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter a full URL, relative path, or anchor link (e.g., #pricing, #contact)
+                </p>
               </div>
 
               <div>

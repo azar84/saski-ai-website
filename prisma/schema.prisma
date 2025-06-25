@@ -125,7 +125,9 @@ model Page {
 
 model HeroSection {
   id                          Int           @id @default(autoincrement())
+  name                        String        @default("Untitled Hero Section") // Name to identify the section
   layoutType                  String        @default("split") // split, centered, overlay
+  sectionHeight               String        @default("100vh") // Section height (e.g., "100vh", "80vh", "600px")
   tagline                     String?       // Optional badge or label
   headline                    String        // Main title
   subheading                  String?       // Supporting text
@@ -350,6 +352,7 @@ model FeatureGroup {
   name            String                // Group name (e.g., "Home Page Features", "About Page Features")
   heading         String                // Display heading (e.g., "Why Saski AI?")
   subheading      String?               // Display subheading (e.g., "Simple. Smart. Built for growing businesses")
+  layoutType      String                @default("grid") // Layout type: "grid" (classic cards) or "list" (horizontal list)
   isActive        Boolean               @default(true)
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt

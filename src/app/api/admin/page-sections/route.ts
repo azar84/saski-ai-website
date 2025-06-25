@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       whereClause = { pageId: page.id };
     }
 
-    const pageSections = await prisma.pageSection.findMany({
+    const pageSections = await (prisma.pageSection as any).findMany({
       where: whereClause,
       include: {
         page: {
@@ -50,7 +50,9 @@ export async function GET(request: NextRequest) {
         heroSection: {
           select: {
             id: true,
+            name: true,
             layoutType: true,
+            sectionHeight: true,
             tagline: true,
             headline: true,
             subheading: true,
@@ -64,6 +66,15 @@ export async function GET(request: NextRequest) {
             mediaPosition: true,
             backgroundType: true,
             backgroundValue: true,
+            // Text Colors
+            taglineColor: true,
+            headlineColor: true,
+            subheadingColor: true,
+            // CTA Styling
+            ctaPrimaryBgColor: true,
+            ctaPrimaryTextColor: true,
+            ctaSecondaryBgColor: true,
+            ctaSecondaryTextColor: true,
             showTypingEffect: true,
             enableBackgroundAnimation: true,
             customClasses: true,
@@ -101,6 +112,7 @@ export async function GET(request: NextRequest) {
             name: true,
             heading: true,
             subheading: true,
+            layoutType: true,
             isActive: true,
             groupItems: {
               where: { isVisible: true },
@@ -189,7 +201,7 @@ export async function POST(request: NextRequest) {
       finalSortOrder = (maxSortOrder?.sortOrder || 0) + 1;
     }
 
-    const pageSection = await prisma.pageSection.create({
+    const pageSection = await (prisma.pageSection as any).create({
       data: {
         pageId: validatedData.pageId,
         sectionType: validatedData.sectionType,
@@ -213,7 +225,9 @@ export async function POST(request: NextRequest) {
         heroSection: {
           select: {
             id: true,
+            name: true,
             layoutType: true,
+            sectionHeight: true,
             tagline: true,
             headline: true,
             subheading: true,
@@ -227,6 +241,15 @@ export async function POST(request: NextRequest) {
             mediaPosition: true,
             backgroundType: true,
             backgroundValue: true,
+            // Text Colors
+            taglineColor: true,
+            headlineColor: true,
+            subheadingColor: true,
+            // CTA Styling
+            ctaPrimaryBgColor: true,
+            ctaPrimaryTextColor: true,
+            ctaSecondaryBgColor: true,
+            ctaSecondaryTextColor: true,
             showTypingEffect: true,
             enableBackgroundAnimation: true,
             customClasses: true,
@@ -309,7 +332,7 @@ export async function PUT(request: NextRequest) {
     // Validate input using Zod schema
     const validatedData = validateAndTransform(UpdatePageSectionSchema, body);
 
-    const pageSection = await prisma.pageSection.update({
+    const pageSection = await (prisma.pageSection as any).update({
       where: { id: validatedData.id },
       data: {
         ...(validatedData.sectionType && { sectionType: validatedData.sectionType }),
@@ -334,7 +357,9 @@ export async function PUT(request: NextRequest) {
         heroSection: {
           select: {
             id: true,
+            name: true,
             layoutType: true,
+            sectionHeight: true,
             tagline: true,
             headline: true,
             subheading: true,

@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Input } from './Input';
 import { Button } from './Button';
 import { Card } from './Card';
-import { getIconComponent } from '@/lib/iconUtils';
 import { 
   Search, X, Check, ChevronDown, ChevronUp,
   ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Plus, Minus,
@@ -27,12 +26,6 @@ import {
   Pizza, Apple, Cherry, Grape, Dice1, Dice2, Dice3,
   GitBranch, GitCommit, GitMerge, Terminal, Bug, Component, Box
 } from 'lucide-react';
-
-// Get custom icon components from the centralized utility
-const PhoneCustom = getIconComponent('PhoneCustom');
-const ChatCustom = getIconComponent('ChatCustom');
-const NetworkCustom = getIconComponent('NetworkCustom');
-const ServerCustom = getIconComponent('ServerCustom');
 
 export interface IconData {
   name: string;
@@ -72,10 +65,6 @@ const iconLibrary: IconData[] = [
   { name: 'Video', component: Video, category: 'communication', keywords: ['video call', 'camera', 'meeting'] },
   { name: 'Send', component: Send, category: 'communication', keywords: ['send', 'submit', 'share'] },
   
-  // Custom Communication Icons
-  { name: 'PhoneCustom', component: PhoneCustom, category: 'communication', keywords: ['phone', 'mobile', 'call', 'contact', 'custom'] },
-  { name: 'ChatCustom', component: ChatCustom, category: 'communication', keywords: ['chat', 'message', 'conversation', 'talk', 'custom'] },
-  
   // Navigation & Interface
   { name: 'Home', component: Home, category: 'navigation', keywords: ['home', 'house', 'main'] },
   { name: 'Menu', component: Menu, category: 'navigation', keywords: ['menu', 'hamburger', 'navigation'] },
@@ -105,10 +94,6 @@ const iconLibrary: IconData[] = [
   { name: 'Bug', component: Bug, category: 'technology', keywords: ['bug', 'error', 'debug'] },
   { name: 'Component', component: Component, category: 'technology', keywords: ['component', 'module', 'part'] },
   { name: 'Box', component: Box, category: 'technology', keywords: ['box', 'package', 'container'] },
-  
-  // Custom Technology Icons
-  { name: 'NetworkCustom', component: NetworkCustom, category: 'technology', keywords: ['network', 'connection', 'nodes', 'infrastructure', 'custom'] },
-  { name: 'ServerCustom', component: ServerCustom, category: 'technology', keywords: ['server', 'database', 'hosting', 'infrastructure', 'custom'] },
   
   // Social & Community
   { name: 'Users', component: Users, category: 'social', keywords: ['users', 'people', 'team', 'community'] },

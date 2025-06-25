@@ -81,9 +81,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const heroSection = await prisma.heroSection.create({
-      data: {
+    const createData: any = {
+      name: validatedData.name || 'Untitled Hero Section',
         layoutType: validatedData.layoutType || 'split',
+      sectionHeight: validatedData.sectionHeight || '100vh',
         tagline: validatedData.tagline || null,
         headline: validatedData.headline,
         subheading: validatedData.subheading || null,
@@ -113,7 +114,10 @@ export async function POST(request: NextRequest) {
         paddingBottom: validatedData.paddingBottom || 80,
         containerMaxWidth: validatedData.containerMaxWidth || '2xl',
         visible: validatedData.visible !== false
-      },
+    };
+
+    const heroSection = await prisma.heroSection.create({
+      data: createData,
       include: {
         ctaPrimary: {
           select: {
@@ -216,7 +220,9 @@ export async function PUT(request: NextRequest) {
     // Build update data object, only including provided fields
     const updateData: any = {};
     
+    if (validatedData.name !== undefined) updateData.name = validatedData.name;
     if (validatedData.layoutType !== undefined) updateData.layoutType = validatedData.layoutType;
+    if (validatedData.sectionHeight !== undefined) updateData.sectionHeight = validatedData.sectionHeight;
     if (validatedData.tagline !== undefined) updateData.tagline = validatedData.tagline;
     if (validatedData.headline !== undefined) updateData.headline = validatedData.headline;
     if (validatedData.subheading !== undefined) updateData.subheading = validatedData.subheading;

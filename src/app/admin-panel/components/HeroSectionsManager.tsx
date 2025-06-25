@@ -9,6 +9,7 @@ import {
   Check
 } from 'lucide-react';
 import MediaSelector from '@/components/ui/MediaSelector';
+import { useDesignSystem, getThemeDefaults } from '@/hooks/useDesignSystem';
 
 // Types
 interface MediaItem {
@@ -42,7 +43,9 @@ interface Page {
 
 interface HeroSection {
   id?: number;
+  name?: string;
   layoutType: 'split' | 'centered' | 'overlay';
+  sectionHeight?: string; // New field for section height (e.g., "100vh", "80vh", "600px")
   tagline?: string;
   headline: string;
   subheading?: string;
@@ -53,7 +56,7 @@ interface HeroSection {
   mediaItem?: MediaItem;
   mediaType: 'image' | 'video' | 'animation' | '3d';
   mediaAlt?: string;
-  mediaHeight: string; // New field for media height (e.g., "80vh", "500px", "auto")
+  mediaHeight: string; // Media height (e.g., "80vh", "500px", "auto")
   mediaPosition: 'left' | 'right';
   backgroundType: 'color' | 'gradient' | 'image' | 'video';
   backgroundValue: string;
@@ -242,6 +245,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, allow
 };
 
 const HeroSectionsManager: React.FC = () => {
+  const { designSystem } = useDesignSystem();
   const [heroSections, setHeroSections] = useState<HeroSection[]>([]);
   const [availablePages, setAvailablePages] = useState<Page[]>([]);
   const [availableCTAs, setAvailableCTAs] = useState<CTA[]>([]);
@@ -252,9 +256,14 @@ const HeroSectionsManager: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Form state
-  const [formData, setFormData] = useState<HeroSection>({
+  // Get theme defaults with fallbacks to ensure values are always defined
+  const themeDefaults = getThemeDefaults(designSystem);
+
+  // Form state with guaranteed defined values
+  const [formData, setFormData] = useState<HeroSection>(() => ({
+    name: 'Untitled Hero Section',
     layoutType: 'split',
+    sectionHeight: '100vh',
     tagline: '',
     headline: '',
     subheading: '',
@@ -268,15 +277,15 @@ const HeroSectionsManager: React.FC = () => {
     mediaHeight: '80vh',
     mediaPosition: 'right',
     backgroundType: 'color',
-    backgroundValue: '#FFFFFF',
+    backgroundValue: themeDefaults.backgroundPrimary,
     backgroundMediaItem: undefined,
-    taglineColor: '#000000',
-    headlineColor: '#000000',
-    subheadingColor: '#000000',
-    ctaPrimaryBgColor: '#FFFFFF',
-    ctaPrimaryTextColor: '#000000',
-    ctaSecondaryBgColor: '#FFFFFF',
-    ctaSecondaryTextColor: '#000000',
+    taglineColor: themeDefaults.primaryColor,
+    headlineColor: themeDefaults.textPrimary,
+    subheadingColor: themeDefaults.textSecondary,
+    ctaPrimaryBgColor: themeDefaults.primaryColor,
+    ctaPrimaryTextColor: '#FFFFFF',
+    ctaSecondaryBgColor: 'transparent',
+    ctaSecondaryTextColor: themeDefaults.primaryColor,
     showTypingEffect: false,
     enableBackgroundAnimation: false,
     customClasses: '',
@@ -284,7 +293,23 @@ const HeroSectionsManager: React.FC = () => {
     paddingBottom: 80,
     containerMaxWidth: '2xl',
     visible: true
-  });
+  }));
+
+  // Update form defaults when design system loads
+  useEffect(() => {
+    if (designSystem && !editingHero) {
+      const newThemeDefaults = getThemeDefaults(designSystem);
+      setFormData(prev => ({
+        ...prev,
+        backgroundValue: newThemeDefaults.backgroundPrimary,
+        taglineColor: newThemeDefaults.primaryColor,
+        headlineColor: newThemeDefaults.textPrimary,
+        subheadingColor: newThemeDefaults.textSecondary,
+        ctaPrimaryBgColor: newThemeDefaults.primaryColor,
+        ctaSecondaryTextColor: newThemeDefaults.primaryColor,
+      }));
+    }
+  }, [designSystem, editingHero]);
 
   // Fetch data
   const fetchHeroSections = async () => {
@@ -404,8 +429,11 @@ const HeroSectionsManager: React.FC = () => {
 
   // Form helpers
   const resetForm = () => {
+    const currentThemeDefaults = getThemeDefaults(designSystem);
     setFormData({
+      name: 'Untitled Hero Section',
       layoutType: 'split',
+      sectionHeight: '100vh',
       tagline: '',
       headline: '',
       subheading: '',
@@ -419,15 +447,15 @@ const HeroSectionsManager: React.FC = () => {
       mediaHeight: '80vh',
       mediaPosition: 'right',
       backgroundType: 'color',
-      backgroundValue: '#FFFFFF',
+      backgroundValue: currentThemeDefaults.backgroundPrimary,
       backgroundMediaItem: undefined,
-      taglineColor: '#000000',
-      headlineColor: '#000000',
-      subheadingColor: '#000000',
-      ctaPrimaryBgColor: '#FFFFFF',
-      ctaPrimaryTextColor: '#000000',
-      ctaSecondaryBgColor: '#FFFFFF',
-      ctaSecondaryTextColor: '#000000',
+      taglineColor: currentThemeDefaults.primaryColor,
+      headlineColor: currentThemeDefaults.textPrimary,
+      subheadingColor: currentThemeDefaults.textSecondary,
+      ctaPrimaryBgColor: currentThemeDefaults.primaryColor,
+      ctaPrimaryTextColor: '#FFFFFF',
+      ctaSecondaryBgColor: 'transparent',
+      ctaSecondaryTextColor: currentThemeDefaults.primaryColor,
       showTypingEffect: false,
       enableBackgroundAnimation: false,
       customClasses: '',
@@ -442,7 +470,9 @@ const HeroSectionsManager: React.FC = () => {
 
   const startEdit = (hero: HeroSection) => {
     setFormData({
+      name: hero.name || 'Untitled Hero Section',
       layoutType: hero.layoutType,
+      sectionHeight: hero.sectionHeight || '100vh',
       tagline: hero.tagline || '',
       headline: hero.headline,
       subheading: hero.subheading || '',
@@ -561,9 +591,10 @@ const HeroSectionsManager: React.FC = () => {
                       {hero.id && expandedSections.has(hero.id) ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                     </button>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{hero.headline}</h3>
+                      <h3 className="font-semibold text-gray-900">{hero.name || hero.headline}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{hero.headline}</p>
                       <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
-                        <span>Standalone Hero Section</span>
+                        <span>Height: {hero.sectionHeight || '100vh'}</span>
                         <span>Layout: {getLayoutTypeDisplay(hero.layoutType)}</span>
                         {hero.visible ? (
                           <span className="flex items-center text-green-600">
@@ -630,11 +661,36 @@ const HeroSectionsManager: React.FC = () => {
                     {/* Media & Background */}
                     <div>
                       <h4 className="font-medium text-gray-900 mb-2">Media & Background</h4>
-                      <div className="space-y-1 text-sm">
-                        <p><span className="font-medium">Media Type:</span> {hero.mediaType}</p>
-                        <p><span className="font-medium">Media Height:</span> {hero.mediaHeight || '80vh'}</p>
-                        <p><span className="font-medium">Media Position:</span> {hero.mediaPosition}</p>
+                      <div className="space-y-2">
+                        {hero.mediaUrl ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium">Media:</span>
+                              {hero.mediaType === 'image' && (
+                                <img 
+                                  src={hero.mediaUrl} 
+                                  alt={hero.mediaAlt || 'Hero media'} 
+                                  className="w-16 h-12 object-cover rounded border"
+                                />
+                              )}
+                              {hero.mediaType === 'video' && (
+                                <div className="w-16 h-12 bg-gray-200 rounded border flex items-center justify-center">
+                                  <Video size={16} className="text-gray-500" />
+                                </div>
+                              )}
+                              <span className="text-sm text-gray-600 capitalize">{hero.mediaType}</span>
+                            </div>
+                            <div className="text-sm space-y-1">
+                              <p><span className="font-medium">Height:</span> {hero.mediaHeight || '80vh'}</p>
+                              <p><span className="font-medium">Position:</span> {hero.mediaPosition}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">No media selected</p>
+                        )}
+                        <div className="text-sm">
                         <p><span className="font-medium">Background:</span> {getBackgroundTypeDisplay(hero.backgroundType)}</p>
+                        </div>
                       </div>
                     </div>
 
@@ -688,6 +744,40 @@ const HeroSectionsManager: React.FC = () => {
                     <Settings size={20} className="mr-2" />
                     Basic Information
                   </h4>
+                  
+                  {/* Name and Section Height */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Section Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.name || ''}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter a name to identify this hero section"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Section Height
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.sectionHeight || ''}
+                        onChange={(e) => setFormData({ ...formData, sectionHeight: e.target.value })}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., 100vh, 80vh, 600px"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Use CSS units: vh (viewport height), px (pixels), % (percentage)
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -726,7 +816,7 @@ const HeroSectionsManager: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      value={formData.tagline}
+                      value={formData.tagline || ''}
                       onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Optional badge or label"
@@ -752,7 +842,7 @@ const HeroSectionsManager: React.FC = () => {
                       Subheading
                     </label>
                     <textarea
-                      value={formData.subheading}
+                      value={formData.subheading || ''}
                       onChange={(e) => setFormData({ ...formData, subheading: e.target.value })}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={3}
@@ -810,10 +900,49 @@ const HeroSectionsManager: React.FC = () => {
                     Media & Background
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
+                    <div className="space-y-4">
+                      {/* Current Media Preview */}
+                      {(formData.mediaUrl || formData.mediaItem) && (
+                        <div className="border border-gray-200 rounded-lg p-3 bg-white">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">Current Media</span>
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ 
+                                ...formData, 
+                                mediaItem: undefined,
+                                mediaUrl: ''
+                              })}
+                              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
+                              title="Remove media"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                          {formData.mediaType === 'image' && formData.mediaUrl && (
+                            <img 
+                              src={formData.mediaUrl} 
+                              alt={formData.mediaAlt || 'Hero media'} 
+                              className="w-full h-32 object-cover rounded border"
+                            />
+                          )}
+                          {formData.mediaType === 'video' && formData.mediaUrl && (
+                            <div className="w-full h-32 bg-gray-200 rounded border flex items-center justify-center">
+                              <div className="text-center">
+                                <Video size={24} className="text-gray-500 mx-auto mb-1" />
+                                <span className="text-sm text-gray-600">Video File</span>
+                              </div>
+                            </div>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2 truncate">
+                            {formData.mediaItem?.filename || 'Media file'}
+                          </p>
+                        </div>
+                      )}
+
                       <MediaSelector
-                        label="Media"
-                        value={formData.mediaItem || null}
+                        label="Select New Media"
+                        value={null}
                         onChange={(media) => {
                           const mediaItem = Array.isArray(media) ? media[0] : media;
                           setFormData({ 
@@ -850,7 +979,7 @@ const HeroSectionsManager: React.FC = () => {
                       </label>
                       <input
                         type="text"
-                        value={formData.mediaAlt}
+                        value={formData.mediaAlt || ''}
                         onChange={(e) => setFormData({ ...formData, mediaAlt: e.target.value })}
                         className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Alt text for accessibility"
@@ -927,9 +1056,51 @@ const HeroSectionsManager: React.FC = () => {
                           </p>
                         </div>
                       ) : (
+                        <div className="space-y-4">
+                          {/* Current Background Media Preview */}
+                          {(formData.backgroundValue || formData.backgroundMediaItem) && (
+                            <div className="border border-gray-200 rounded-lg p-3 bg-white">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-gray-700">
+                                  Current {formData.backgroundType === 'image' ? 'Background Image' : 'Background Video'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setFormData({ 
+                                    ...formData, 
+                                    backgroundMediaItem: undefined,
+                                    backgroundValue: ''
+                                  })}
+                                  className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
+                                  title="Remove background media"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                              {formData.backgroundType === 'image' && formData.backgroundValue && (
+                                <img 
+                                  src={formData.backgroundValue} 
+                                  alt="Background" 
+                                  className="w-full h-32 object-cover rounded border"
+                                />
+                              )}
+                              {formData.backgroundType === 'video' && formData.backgroundValue && (
+                                <div className="w-full h-32 bg-gray-200 rounded border flex items-center justify-center">
+                                  <div className="text-center">
+                                    <Video size={24} className="text-gray-500 mx-auto mb-1" />
+                                    <span className="text-sm text-gray-600">Background Video</span>
+                                  </div>
+                                </div>
+                              )}
+                              <p className="text-xs text-gray-500 mt-2 truncate">
+                                {formData.backgroundMediaItem?.filename || 'Background media file'}
+                              </p>
+                            </div>
+                          )}
+
                         <MediaSelector
-                          label={`${formData.backgroundType === 'image' ? 'Background Image' : 'Background Video'}`}
-                          value={formData.backgroundMediaItem || null}
+                            label={`Select New ${formData.backgroundType === 'image' ? 'Background Image' : 'Background Video'}`}
+                            value={null}
                           onChange={(media) => {
                             const mediaItem = Array.isArray(media) ? media[0] : media;
                             setFormData({ 
@@ -942,6 +1113,7 @@ const HeroSectionsManager: React.FC = () => {
                           acceptedTypes={formData.backgroundType === 'image' ? ['image'] : ['video']}
                           placeholder={`Select ${formData.backgroundType} from library or upload new`}
                         />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1117,7 +1289,7 @@ const HeroSectionsManager: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      value={formData.customClasses}
+                      value={formData.customClasses || ''}
                       onChange={(e) => setFormData({ ...formData, customClasses: e.target.value })}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Tailwind or utility class overrides"

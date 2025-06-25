@@ -8,7 +8,15 @@ export async function GET() {
     console.log('Attempting to fetch feature groups...');
     
     const featureGroups = await prisma.featureGroup.findMany({
-      include: {
+      select: {
+        id: true,
+        name: true,
+        heading: true,
+        subheading: true,
+        layoutType: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
         groupItems: {
           include: {
             feature: true
@@ -41,6 +49,11 @@ export async function GET() {
     });
 
     console.log('Found feature groups:', featureGroups.length);
+    
+    // Debug: Log layout types
+    featureGroups.forEach(group => {
+      console.log(`Group "${group.name}": layoutType = ${group.layoutType}`);
+    });
 
     const response: ApiResponse = {
       success: true,
@@ -73,8 +86,9 @@ export async function POST(request: NextRequest) {
         name: validatedData.name,
         heading: validatedData.heading,
         subheading: validatedData.subheading || null,
+        layoutType: validatedData.layoutType,
         isActive: validatedData.isActive
-      },
+      } as any,
       include: {
         groupItems: {
           include: {
@@ -136,9 +150,10 @@ export async function PUT(request: NextRequest) {
         ...(validatedData.name !== undefined && { name: validatedData.name }),
         ...(validatedData.heading !== undefined && { heading: validatedData.heading }),
         ...(validatedData.subheading !== undefined && { subheading: validatedData.subheading }),
+        ...(validatedData.layoutType !== undefined && { layoutType: validatedData.layoutType }),
         ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
         updatedAt: new Date()
-      },
+      } as any,
       include: {
         groupItems: {
           include: {

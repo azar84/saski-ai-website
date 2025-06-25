@@ -184,7 +184,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
                  )}
                  {(section as any).heroSection && (
                    <p className="text-xs text-purple-600 mt-1">
-                     Linked to: Hero Section "{(section as any).heroSection.headline || 'Untitled'}"
+                     Linked to: Hero Section "{(section as any).heroSection.name || (section as any).heroSection.headline || 'Untitled'}"
                    </p>
                  )}
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
@@ -280,6 +280,9 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
     mediaSections: []
   });
 
+  // Track which hero sections are in use by other pages
+  const [heroSectionUsage, setHeroSectionUsage] = useState<{[key: number]: string[]}>({});
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -295,6 +298,7 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
   useEffect(() => {
     if (currentPageId) {
       fetchSections();
+      fetchHeroSectionUsage(); // Refresh usage when page changes
     }
   }, [currentPageId]);
 
@@ -346,9 +350,35 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
           setAvailableContent(result.data);
         }
       }
+      
+      // Also fetch hero section usage across all pages
+      await fetchHeroSectionUsage();
     } catch (error) {
       console.error('Error fetching available content:', error);
       setMessage({ type: 'error', text: 'Failed to load available content' });
+    }
+  };
+
+  const fetchHeroSectionUsage = async () => {
+    try {
+      const response = await fetch('/api/admin/page-sections');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const usage: {[key: number]: string[]} = {};
+          result.data.forEach((section: any) => {
+            if (section.heroSectionId && section.pageId !== currentPageId) {
+              if (!usage[section.heroSectionId]) {
+                usage[section.heroSectionId] = [];
+              }
+              usage[section.heroSectionId].push(section.page.title);
+            }
+          });
+          setHeroSectionUsage(usage);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching hero section usage:', error);
     }
   };
 
@@ -575,6 +605,54 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
     setShowAddSection(false);
   };
 
+  const duplicateHeroSection = async (originalHeroId: number) => {
+    try {
+      // First, fetch the original hero section
+      const response = await fetch('/api/admin/hero-sections');
+      if (!response.ok) throw new Error('Failed to fetch hero sections');
+      
+      const result = await response.json();
+      if (!result.success) throw new Error('Failed to fetch hero sections');
+      
+      const originalHero = result.data.find((h: any) => h.id === originalHeroId);
+      if (!originalHero) throw new Error('Original hero section not found');
+      
+      // Create a duplicate with modified name
+      const currentPage = pages.find(p => p.id === currentPageId);
+      const duplicateData = {
+        ...originalHero,
+        name: `${originalHero.name || originalHero.headline} (${currentPage?.title} Copy)`,
+        headline: originalHero.headline,
+        id: undefined // Remove ID so it creates a new record
+      };
+      
+      const createResponse = await fetch('/api/admin/hero-sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(duplicateData)
+      });
+      
+      if (!createResponse.ok) throw new Error('Failed to create duplicate hero section');
+      
+      const createResult = await createResponse.json();
+      if (!createResult.success) throw new Error('Failed to create duplicate hero section');
+      
+      // Update form data to use the new hero section
+      setFormData({ ...formData, heroSectionId: createResult.data.id });
+      
+      // Refresh available content
+      await fetchAvailableContent();
+      
+      setMessage({ type: 'success', text: 'Hero section duplicated successfully!' });
+      
+      return createResult.data.id;
+    } catch (error) {
+      console.error('Error duplicating hero section:', error);
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Failed to duplicate hero section' });
+      return null;
+    }
+  };
+
   const currentPage = pages.find(page => page.id === currentPageId);
 
   // Auto-hide messages after 3 seconds
@@ -759,32 +837,77 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                       <span className="ml-2 text-sm text-green-600">✓ Selected</span>
                     )}
                   </label>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-start space-x-2">
+                      <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium">Hero sections can be shared across pages</p>
+                        <p className="mt-1">If a hero section is already used on another page, you can either:</p>
+                        <ul className="mt-1 ml-4 list-disc space-y-1">
+                          <li>Use the same hero section (changes will affect both pages)</li>
+                          <li>Create a copy specifically for this page using the "Create Copy" button</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
-                    {availableContent.heroSections.map((hero) => (
+                    {availableContent.heroSections.map((hero) => {
+                      const isInUse = heroSectionUsage[hero.id]?.length > 0;
+                      const usedInPages = heroSectionUsage[hero.id] || [];
+                      
+                      return (
+                        <div key={hero.id} className="space-y-2">
                       <button
-                        key={hero.id}
                         type="button"
                         onClick={() => setFormData({ ...formData, heroSectionId: hero.id })}
-                        className={`p-3 rounded-lg border-2 text-left transition-all duration-200 ${
+                            className={`w-full p-3 rounded-lg border-2 text-left transition-all duration-200 ${
                           formData.heroSectionId === hero.id
                             ? 'border-green-500 bg-green-50 text-green-900'
+                                : isInUse
+                                ? 'border-amber-300 bg-amber-50 text-amber-900'
                             : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="font-medium">{hero.heading || 'Untitled Hero'}</div>
+                              <div className="font-medium">{hero.name || hero.heading || 'Untitled Hero'}</div>
+                              <div className="flex items-center space-x-2">
+                                {isInUse && (
+                                  <span className="text-xs bg-amber-200 text-amber-800 px-2 py-1 rounded-full">
+                                    In Use
+                                  </span>
+                                )}
                           {formData.heroSectionId === hero.id && (
                             <CheckCircle className="w-5 h-5 text-green-600" />
                           )}
                         </div>
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1">{hero.heading}</div>
                         {hero.subheading && (
-                          <div className="text-sm text-gray-500 mt-1">{hero.subheading}</div>
+                              <div className="text-xs text-gray-400 mt-1">{hero.subheading}</div>
                         )}
                         <div className="text-xs text-gray-400 mt-1">
-                          Standalone Hero Section
+                              Height: {hero.sectionHeight || '100vh'} • Layout: {hero.layoutType}
                         </div>
+                            {isInUse && (
+                              <div className="text-xs text-amber-600 mt-2">
+                                ⚠️ Currently used in: {usedInPages.join(', ')}
+                              </div>
+                            )}
                       </button>
-                    ))}
+                          
+                          {isInUse && (
+                            <button
+                              type="button"
+                              onClick={() => duplicateHeroSection(hero.id)}
+                              className="w-full px-3 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                            >
+                              <Copy className="w-4 h-4" />
+                              <span>Create Copy for This Page</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                     {availableContent.heroSections.length === 0 && (
                       <p className="text-gray-500 text-center py-4">
                         No hero sections available. Create one first in Hero Sections manager.

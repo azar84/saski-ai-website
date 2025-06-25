@@ -10,12 +10,15 @@ export async function GET(request: NextRequest) {
 
     if (contentType === 'hero-sections') {
       // Fetch all hero sections
-      const heroSections = await prisma.heroSection.findMany({
+      const heroSections = await (prisma.heroSection as any).findMany({
         where: { visible: true },
         select: {
           id: true,
+          name: true,
           headline: true,
           subheading: true,
+          layoutType: true,
+          sectionHeight: true,
           mediaUrl: true,
           visible: true
         },
@@ -90,12 +93,15 @@ export async function GET(request: NextRequest) {
 
     // If no specific type, return all content types
     const [heroSections, featureGroups, mediaSections] = await Promise.all([
-      prisma.heroSection.findMany({
+      (prisma.heroSection as any).findMany({
         where: { visible: true },
         select: {
           id: true,
+          name: true,
           headline: true,
           subheading: true,
+          layoutType: true,
+          sectionHeight: true,
           mediaUrl: true,
           visible: true
         },

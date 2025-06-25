@@ -782,11 +782,15 @@ const MediaSectionsManager: React.FC = () => {
                         CTA URL
                       </label>
                       <input
-                        type="url"
+                        type="text"
                         value={formData.ctaUrl}
                         onChange={(e) => setFormData({ ...formData, ctaUrl: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="https://example.com, /page, or #section"
                       />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Enter a full URL, relative path, or anchor link (e.g., #pricing, #contact)
+                      </p>
                     </div>
                     
                     <div>

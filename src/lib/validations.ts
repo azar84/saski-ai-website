@@ -30,9 +30,32 @@ export const UpdatePageSchema = CreatePageSchema.extend({
 export const CTAStyleEnum = z.enum(['primary', 'secondary', 'outline', 'ghost']);
 export const CTATargetEnum = z.enum(['_self', '_blank']);
 
+// Custom URL validation that accepts both full URLs and anchor links
+const CTAUrlSchema = z.string()
+  .min(1, 'URL is required')
+  .refine((url) => {
+    // Allow anchor links (starting with #)
+    if (url.startsWith('#')) {
+      return url.length > 1; // Must have content after #
+    }
+    // Allow relative paths (starting with /)
+    if (url.startsWith('/')) {
+      return true;
+    }
+    // For full URLs, use standard URL validation
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }, {
+    message: 'Must be a valid URL, relative path (/page), or anchor link (#section)'
+  });
+
 export const CreateCTASchema = z.object({
   text: z.string().min(1, 'Text is required').max(50),
-  url: z.string().min(1, 'URL is required'),
+  url: CTAUrlSchema,
   icon: z.string().max(50).optional(),
   style: CTAStyleEnum.default('primary'),
   target: CTATargetEnum.default('_self'),
@@ -52,7 +75,9 @@ export const HeroBackgroundTypeEnum = z.enum(['color', 'gradient', 'image', 'vid
 export const HeroContainerMaxWidthEnum = z.enum(['xl', '2xl', 'full']);
 
 export const CreateHeroSectionSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100).optional().default('Untitled Hero Section'),
   layoutType: HeroLayoutTypeEnum.default('split'),
+  sectionHeight: z.string().max(50).optional().default('100vh'), // CSS height value (e.g., "100vh", "80vh", "600px")
   tagline: z.string().max(100).optional(),
   headline: z.string().min(1, 'Headline is required').max(200),
   subheading: z.string().max(500).optional(),
@@ -136,15 +161,18 @@ export const UpdateGlobalFeatureSchema = CreateGlobalFeatureSchema.extend({
 }).partial().required({ id: true });
 
 // Feature Group Schema
+export const FeatureGroupLayoutEnum = z.enum(['grid', 'list']);
+
 export const CreateFeatureGroupSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   heading: z.string().min(1, 'Heading is required').max(200),
   subheading: z.string().max(500).optional(),
+  layoutType: FeatureGroupLayoutEnum.default('grid'),
   isActive: z.boolean().default(true),
 });
 
 export const UpdateFeatureGroupSchema = CreateFeatureGroupSchema.extend({
-  id: IdSchema,
+  id: z.number().min(1, 'Valid ID is required'),
 }).partial().required({ id: true });
 
 // Feature Group Item Schema

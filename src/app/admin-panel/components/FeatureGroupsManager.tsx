@@ -115,6 +115,7 @@ interface FeatureGroup {
   name: string;
   heading: string;
   subheading?: string;
+  layoutType?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -141,11 +142,13 @@ const FeatureGroupsManager: React.FC = () => {
     name: string;
     heading: string;
     subheading: string;
+    layoutType: 'grid' | 'list';
     isActive: boolean;
   }>({
     name: '',
     heading: '',
     subheading: '',
+    layoutType: 'grid',
     isActive: true
   });
 
@@ -371,6 +374,7 @@ const FeatureGroupsManager: React.FC = () => {
       name: '',
       heading: '',
       subheading: '',
+      layoutType: 'grid',
       isActive: true
     });
     setEditingGroup(null);
@@ -382,6 +386,7 @@ const FeatureGroupsManager: React.FC = () => {
       name: group.name,
       heading: group.heading,
       subheading: group.subheading || '',
+      layoutType: (group as any).layoutType || 'grid',
       isActive: group.isActive
     });
     setEditingGroup(group);
@@ -491,7 +496,24 @@ const FeatureGroupsManager: React.FC = () => {
                 />
               </div>
 
-              <div className="md:col-span-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Layout Type *
+                </label>
+                <select
+                  value={formData.layoutType}
+                  onChange={(e) => setFormData({ ...formData, layoutType: e.target.value as 'grid' | 'list' })}
+                  className="w-full h-12 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="grid">Grid Layout (Classic Cards)</option>
+                  <option value="list">List Layout (Horizontal Features)</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Grid: Traditional card-based layout. List: Modern horizontal layout with icons and descriptions.
+                </p>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Display Subheading
                 </label>
@@ -565,6 +587,13 @@ const FeatureGroupsManager: React.FC = () => {
                       group.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
                     }`}>
                       {group.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      (group.layoutType || 'grid') === 'grid' 
+                        ? 'bg-blue-100 text-blue-800' 
+                        : 'bg-purple-100 text-purple-800'
+                    }`}>
+                      {(group.layoutType || 'grid') === 'grid' ? 'Grid Layout' : 'List Layout'}
                     </span>
                   </div>
                   <p className="text-gray-600">{group.heading}</p>

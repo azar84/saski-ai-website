@@ -226,10 +226,8 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
         setSelectedItems([...selectedItems, item]);
       }
     } else {
+      // For single selection, just mark as selected but don't auto-select
       setSelectedItems([item]);
-      if (onSelect) {
-        onSelect(item);
-      }
     }
   };
 
@@ -286,8 +284,14 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] overflow-hidden">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div 
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[90vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
           <div className="flex items-center justify-between">
@@ -300,16 +304,20 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
               </p>
             </div>
             <div className="flex items-center gap-3">
-              {isSelectionMode && allowMultiple && selectedItems.length > 0 && (
+              {isSelectionMode && selectedItems.length > 0 && (
                 <button
+                  type="button"
                   onClick={handleConfirmSelection}
                   className="px-6 py-2.5 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium shadow-sm"
                 >
-                  Select {selectedItems.length} {selectedItems.length === 1 ? 'item' : 'items'}
+                  Select {allowMultiple && selectedItems.length > 1 
+                    ? `${selectedItems.length} items` 
+                    : selectedItems[0]?.title || selectedItems[0]?.filename || 'item'}
                 </button>
               )}
               {onClose && (
                 <button
+                  type="button"
                   onClick={onClose}
                   className="p-2.5 hover:bg-blue-600 rounded-lg transition-colors"
                   title="Close"
@@ -329,6 +337,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
               <h3 className="font-semibold text-gray-900 mb-3">Upload Files</h3>
               <div className="space-y-2">
                 <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                   className="w-full flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
@@ -337,6 +346,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                   Choose Files
                 </button>
                 <button
+                  type="button"
                   onClick={() => setShowUrlImport(true)}
                   className="w-full flex items-center gap-2 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 >
@@ -386,6 +396,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                 
                 <div className="flex items-center gap-1 border border-gray-300 rounded-lg">
                   <button
+                    type="button"
                     onClick={() => setViewMode('grid')}
                     className={`p-2.5 transition-colors ${
                       viewMode === 'grid' 
@@ -396,6 +407,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                     <Grid className="w-4 h-4" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => setViewMode('list')}
                     className={`p-2.5 transition-colors ${
                       viewMode === 'list' 
@@ -413,11 +425,11 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
             {Object.keys(uploadProgress).length > 0 && (
               <div className="p-4 bg-blue-50 border-b border-blue-200">
                 <h4 className="text-sm font-medium text-blue-900 mb-3">Uploading Files</h4>
-                <div className="space-y-3">
-                  {Object.entries(uploadProgress).map(([key, upload]) => (
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {Object.entries(uploadProgress).filter(([key, upload]) => upload && upload.file && upload.file.name).map(([key, upload]) => (
                     <div key={key} className="bg-white p-3 rounded-lg border border-blue-200">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-900">{upload.file.name}</span>
+                        <span className="text-sm font-medium text-gray-900">{upload.file?.name || 'Unknown file'}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-gray-600">
                             {upload.status === 'success' ? 'Complete' : 
@@ -483,6 +495,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                       Upload your first files to get started. You can drag and drop files here or click the upload button.
                     </p>
                     <button
+                      type="button"
                       onClick={() => fileInputRef.current?.click()}
                       className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                     >
@@ -492,8 +505,8 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                 </div>
               ) : (
                 <div className={viewMode === 'grid' ? 'grid grid-cols-5 gap-4' : 'space-y-2'}>
-                  {media.map(item => {
-                    const isSelected = selectedItems.some(selected => selected.id === item.id);
+                  {media.filter(item => item && item.id && item.filename).map(item => {
+                    const isSelected = selectedItems.some(selected => selected && selected.id === item.id);
                     
                     return (
                       <div
@@ -511,7 +524,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                               {item.fileType === 'image' ? (
                                 <img
                                   src={item.publicUrl}
-                                  alt={item.alt || item.filename}
+                                  alt={item.alt || item.filename || 'Media file'}
                                   className="w-full h-full object-cover"
                                   loading="lazy"
                                   onError={(e) => {
@@ -540,6 +553,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
                                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
                                   <button
+                                    type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       window.open(item.publicUrl, '_blank');
@@ -551,6 +565,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                                   </button>
                                   {!isSelectionMode && (
                                     <button
+                                      type="button"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleDelete(item.id);
@@ -567,11 +582,11 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                             
                             <div className="p-3">
                               <div className="text-sm font-medium text-gray-900 truncate mb-1">
-                                {item.title || item.filename}
+                                {item.title || item.filename || 'Untitled'}
                               </div>
                               <div className="text-xs text-gray-500 flex items-center justify-between">
-                                <span>{formatFileSize(item.fileSize)}</span>
-                                <span>{formatDate(item.createdAt)}</span>
+                                <span>{formatFileSize(item.fileSize || 0)}</span>
+                                <span>{formatDate(item.createdAt || new Date().toISOString())}</span>
                               </div>
                             </div>
                             
@@ -587,7 +602,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                               {item.fileType === 'image' ? (
                                 <img
                                   src={item.publicUrl}
-                                  alt={item.alt || item.filename}
+                                  alt={item.alt || item.filename || 'Media file'}
                                   className="w-full h-full object-cover rounded-lg"
                                   loading="lazy"
                                   onError={(e) => {
@@ -615,12 +630,12 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                             
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-gray-900 truncate">
-                                {item.title || item.filename}
+                                {item.title || item.filename || 'Untitled'}
                               </div>
                               <div className="text-sm text-gray-500 flex items-center gap-4">
-                                <span>{formatFileSize(item.fileSize)}</span>
-                                <span>{item.mimeType}</span>
-                                <span>{formatDate(item.createdAt)}</span>
+                                <span>{formatFileSize(item.fileSize || 0)}</span>
+                                <span>{item.mimeType || 'Unknown type'}</span>
+                                <span>{formatDate(item.createdAt || new Date().toISOString())}</span>
                               </div>
                             </div>
                             
@@ -633,6 +648,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                             {!isSelectionMode && (
                               <div className="flex items-center gap-1">
                                 <button
+                                  type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     window.open(item.publicUrl, '_blank');
@@ -643,6 +659,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                                   <Eye className="w-4 h-4" />
                                 </button>
                                 <button
+                                  type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleDelete(item.id);
@@ -734,12 +751,19 @@ const UrlImportModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div 
+        className="bg-white rounded-xl shadow-2xl w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Import from URL</h3>
             <button
+              type="button"
               onClick={onClose}
               className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
             >
