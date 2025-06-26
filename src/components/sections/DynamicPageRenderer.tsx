@@ -125,6 +125,22 @@ interface PageSection {
     layoutType: string;
     isActive: boolean;
   };
+  faqSection?: {
+    id: number;
+    name: string;
+    heading: string;
+    subheading?: string;
+    heroTitle?: string;
+    heroSubtitle?: string;
+    searchPlaceholder?: string;
+    showHero: boolean;
+    showCategories: boolean;
+    backgroundColor?: string;
+    heroBackgroundColor?: string;
+    heroHeight?: string;
+    isActive: boolean;
+  };
+  faqCategoryId?: number;
 }
 
 interface DynamicPageRendererProps {
@@ -256,7 +272,17 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         return (
           <FAQSection
             key={sectionKey}
-            heading={section.title || 'Frequently Asked Questions'}
+            heading={section.title || section.faqSection?.heading || 'Frequently Asked Questions'}
+            subheading={section.subtitle || section.faqSection?.subheading}
+            heroTitle={section.faqSection?.heroTitle}
+            heroSubtitle={section.faqSection?.heroSubtitle}
+            searchPlaceholder={section.faqSection?.searchPlaceholder}
+            showHero={section.faqSection?.showHero ?? false}
+            showCategories={section.faqSection?.showCategories ?? true}
+            backgroundColor={section.faqSection?.backgroundColor}
+            heroBackgroundColor={section.faqSection?.heroBackgroundColor}
+            heroHeight={section.faqSection?.heroHeight}
+            faqCategoryId={section.faqCategoryId}
             className={className}
           />
         );

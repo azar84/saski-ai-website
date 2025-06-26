@@ -400,7 +400,7 @@ model PageFeatureGroup {
 model PageSection {
   id              Int           @id @default(autoincrement())
   pageId          Int
-  sectionType     String        // hero, features, media, testimonials, pricing, faq, cta, custom
+  sectionType     String        // hero, features, media, testimonials, pricing, faq, contact, cta, custom
   title           String?       // Section title/heading (optional override)
   subtitle        String?       // Section subtitle/subheading (optional override)
   content         String?       // JSON content for the section
@@ -411,6 +411,9 @@ model PageSection {
   featureGroupId  Int?          // Reference to FeatureGroup
   mediaSectionId  Int?          // Reference to MediaSection
   pricingSectionId Int?         // Reference to PricingSection
+  faqSectionId    Int?          // Reference to FAQSection
+  faqCategoryId   Int?          // Reference to FAQCategory (for FAQ sections)
+  contactSectionId Int?         // Reference to ContactSection
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   page            Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
@@ -418,6 +421,9 @@ model PageSection {
   featureGroup    FeatureGroup? @relation(fields: [featureGroupId], references: [id], onDelete: SetNull)
   mediaSection    MediaSection? @relation(fields: [mediaSectionId], references: [id], onDelete: SetNull)
   pricingSection  PricingSection? @relation(fields: [pricingSectionId], references: [id], onDelete: SetNull)
+  faqSection      FAQSection?   @relation(fields: [faqSectionId], references: [id], onDelete: SetNull)
+  faqCategory     FAQCategory?  @relation(fields: [faqCategoryId], references: [id], onDelete: SetNull)
+  contactSection  ContactSection? @relation(fields: [contactSectionId], references: [id], onDelete: SetNull)
 
   @@map("page_sections")
 }
@@ -457,17 +463,178 @@ model Testimonial {
 }
 
 // FAQ system
-model FAQ {
+// FAQ Categories for organized FAQ sections
+model FAQCategory {
   id          Int       @id @default(autoincrement())
-  question    String    // FAQ question
-  answer      String    // FAQ answer
-  category    String?   // FAQ category (e.g., "General", "Technical", "Billing")
-  isActive    Boolean   @default(true)
+  name        String    // Category name (e.g., "General", "Technical", "Billing")
+  description String?   // Category description
+  icon        String?   // Icon name or URL for category
+  color       String    @default("#5243E9") // Category color for UI
   sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  faqs        FAQ[]     // FAQs in this category
+  pageSections PageSection[] // Page builder references
+
+  @@map("faq_categories")
+}
+
+model FAQ {
+  id          Int         @id @default(autoincrement())
+  categoryId  Int?        // Optional category assignment
+  question    String      // FAQ question
+  answer      String      // FAQ answer (supports HTML/Markdown)
+  isActive    Boolean     @default(true)
+  sortOrder   Int         @default(0) // Order within category
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relations
+  category    FAQCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@map("faqs")
+}
+
+// FAQ Section Configuration - For managing FAQ display settings
+model FAQSection {
+  id                    Int      @id @default(autoincrement())
+  name                  String   @unique // Internal name (e.g., "Main FAQ Section")
+  heading               String   // Main heading (e.g., "Frequently Asked Questions")
+  subheading            String?  // Optional subheading
+  heroTitle             String   // Hero section title
+  heroSubtitle          String?  // Hero section subtitle
+  searchPlaceholder     String   @default("Enter your keyword here")
+  showHero              Boolean  @default(true)
+  showCategories        Boolean  @default(true)
+  backgroundColor       String   @default("#f8fafc")
+  heroBackgroundColor   String   @default("#6366f1")
+  heroHeight            String   @default("80vh")
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  pageSections          PageSection[] // Page builder references
+
+  @@map("faq_sections")
+}
+
+// Contact Section System - Dynamic Form Builder
+model ContactSection {
+  id            Int      @id @default(autoincrement())
+  name          String   // Internal name (e.g., "Main Contact Form")
+  heading       String   // Display heading (e.g., "Get In Touch")
+  subheading    String?  // Display subheading (optional)
+  successMessage String  @default("Thank you for your message! We'll get back to you soon.")
+  errorMessage  String   @default("Sorry, there was an error sending your message. Please try again.")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  fields        ContactField[]     // Form fields
+  emailSettings ContactEmailSettings? // Email configuration
+  submissions   ContactSubmission[] // Form submissions
+  pageSections  PageSection[]      // Page builder references
+
+  @@map("contact_sections")
+}
+
+// Dynamic form fields for contact forms
+model ContactField {
+  id              Int            @id @default(autoincrement())
+  contactSectionId Int
+  fieldType       String         // text, email, tel, textarea, select, checkbox, radio, number, date
+  fieldName       String         // Internal field name (e.g., "first_name", "email")
+  label           String         // Display label (e.g., "First Name", "Email Address")
+  placeholder     String?        // Placeholder text
+  helpText        String?        // Help text below field
+  isRequired      Boolean        @default(false)
+  isVisible       Boolean        @default(true)
+  sortOrder       Int            @default(0)
+  
+  // Field configuration (JSON string for flexibility)
+  fieldOptions    String?        // JSON: select options, validation rules, etc.
+  
+  // Styling
+  fieldWidth      String         @default("full") // full, half, third, quarter
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Relations
+  contactSection  ContactSection @relation(fields: [contactSectionId], references: [id], onDelete: Cascade)
+
+  @@map("contact_fields")
+}
+
+// Email server configuration for contact forms
+model ContactEmailSettings {
+  id              Int            @id @default(autoincrement())
+  contactSectionId Int           @unique
+  
+  // SMTP Configuration
+  smtpHost        String         // SMTP server host
+  smtpPort        Int            @default(587) // SMTP port
+  smtpUsername    String         // SMTP username
+  smtpPassword    String         // SMTP password (encrypted)
+  smtpSecure      Boolean        @default(true) // Use TLS/SSL
+  
+  // Email Settings
+  fromEmail       String         // From email address
+  fromName        String         // From name
+  toEmail         String         // Recipient email address
+  ccEmail         String?        // CC email addresses (comma-separated)
+  bccEmail        String?        // BCC email addresses (comma-separated)
+  replyToEmail    String?        // Reply-to email address
+  
+  // Email Template
+  emailSubject    String         @default("New Contact Form Submission")
+  emailTemplate   String?        // HTML email template (optional)
+  
+  // Auto-responder
+  autoRespond     Boolean        @default(false)
+  autoRespondSubject String?     // Auto-responder subject
+  autoRespondTemplate String?    // Auto-responder template
+  
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Relations
+  contactSection  ContactSection @relation(fields: [contactSectionId], references: [id], onDelete: Cascade)
+
+  @@map("contact_email_settings")
+}
+
+// Contact form submissions
+model ContactSubmission {
+  id              Int            @id @default(autoincrement())
+  contactSectionId Int
+  
+  // Submission data (JSON string of field values)
+  formData        String         // JSON: {"first_name": "John", "email": "john@example.com", ...}
+  
+  // Metadata
+  ipAddress       String?        // Submitter's IP address
+  userAgent       String?        // Submitter's user agent
+  referrer        String?        // Referring page
+  
+  // Status
+  isRead          Boolean        @default(false)
+  isSpam          Boolean        @default(false)
+  notes           String?        // Admin notes
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Relations
+  contactSection  ContactSection @relation(fields: [contactSectionId], references: [id], onDelete: Cascade)
+
+  @@map("contact_submissions")
 }
 
 // Comprehensive Pricing System with Configurable Plan Features

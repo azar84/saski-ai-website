@@ -1,4 +1,5 @@
 // Client-side error handling utilities
+import { NextResponse } from 'next/server';
 
 export interface ErrorInfo {
   message: string;
@@ -189,6 +190,80 @@ export async function safeAsync<T>(
 
     return fallback;
   }
+}
+
+// Server-side error handler for API routes
+export function handleApiError(error: unknown, context: string = 'API Error') {
+  console.error(`${context}:`, error);
+  
+  if (error instanceof AppError) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message,
+        code: error.code,
+        ...(error.details && { details: error.details })
+      },
+      { status: error.statusCode }
+    );
+  }
+  
+  // Handle Prisma errors
+  if (error && typeof error === 'object' && 'code' in error) {
+    const prismaError = error as any;
+    switch (prismaError.code) {
+      case 'P2002':
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'A record with this information already exists',
+            code: 'DUPLICATE_ERROR'
+          },
+          { status: 400 }
+        );
+      case 'P2025':
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Record not found',
+            code: 'NOT_FOUND'
+          },
+          { status: 404 }
+        );
+      default:
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Database error occurred',
+            code: 'DATABASE_ERROR'
+          },
+          { status: 500 }
+        );
+    }
+  }
+  
+  // Handle validation errors
+  if (error instanceof Error && error.message.includes('Validation failed')) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message,
+        code: 'VALIDATION_ERROR'
+      },
+      { status: 400 }
+    );
+  }
+  
+  // Generic error
+  const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+  return NextResponse.json(
+    {
+      success: false,
+      message,
+      code: 'INTERNAL_ERROR'
+    },
+    { status: 500 }
+  );
 }
 
 // Utility to get user-friendly error messages

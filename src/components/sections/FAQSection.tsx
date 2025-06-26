@@ -1,197 +1,391 @@
-'use client';
+﻿'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, Plus, Minus } from 'lucide-react';
+import { useDesignSystem } from '@/hooks/useDesignSystem';
 
-interface FAQItem {
+interface FAQCategory {
   id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+  color: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+interface FAQ {
+  id: number;
+  categoryId?: number;
   question: string;
   answer: string;
+  sortOrder: number;
+  isActive: boolean;
+  category?: FAQCategory;
 }
 
 interface FAQSectionProps {
+  faqs?: FAQ[];
+  categories?: FAQCategory[];
   heading?: string;
   subheading?: string;
-  linkText?: string;
-  linkHref?: string;
-  faqs?: FAQItem[];
+  heroTitle?: string;
+  heroSubtitle?: string;
+  searchPlaceholder?: string;
+  showCategories?: boolean;
+  defaultCategory?: number;
   className?: string;
+  backgroundColor?: string;
+  heroBackgroundColor?: string;
+  heroHeight?: string;
+  // Page builder specific props
+  faqCategoryId?: number; // If specified, only show FAQs from this category
+  showHero?: boolean;
 }
 
-const defaultFAQs: FAQItem[] = [
-  {
-    id: 1,
-    question: "How many languages do our AI agents support?",
-    answer: "AI agents built on Saski AI can understand and respond to customers in 12 languages, making it easy for businesses to support customers worldwide. Once deployed, your agents automatically detect the language of each customer message and provide natural, accurate replies — no manual configuration needed. The supported languages include: English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Japanese, Korean, Arabic, and Chinese (Simplified). This multilingual capability allows small businesses to deliver consistent, 24/7 customer support across global markets — without hiring multilingual staff or adding extra tools."
-  },
-  {
-    id: 2,
-    question: "What type of content can I upload to teach my AI agent?",
-    answer: "You can upload PDFs, Word documents, text files, or simply paste in content directly. You can also provide website URLs, and the system will extract content automatically. This flexibility allows you to build a rich knowledge base using your existing materials."
-  },
-  {
-    id: 3,
-    question: "Do I need to be technical to use it?",
-    answer: "No technical skills are needed. Saski AI is designed to eliminate the complexity you'll find on other platforms. You simply follow a short guided flow where you: Enter your agent name and description, Select from ready-made templates, Connect your knowledge base (by uploading files or adding website links). Once done, your agent is created and ready to use, usually in less than a minute. There's no need to build conversation flows, set up logic trees, or handle any coding."
-  },
-  {
-    id: 4,
-    question: "On which channels can I deploy my AI agent?",
-    answer: "Your Saski AI agent can be deployed across all major customer touchpoints, allowing you to serve customers wherever they engage with your business. Supported channels include: Your website (web chat widget), WordPress, Shopify, SMS, WhatsApp, Voice (phone systems), Facebook Messenger. Everything is managed directly inside the platform. You simply choose the channels you want to activate — no coding, no complicated setup, and your agent is live within minutes, providing consistent support across all platforms."
-  },
-  {
-    id: 5,
-    question: "How long does setup take?",
-    answer: "You can have your first AI assistant created and deployed within 5 minutes. The entire process is fully guided, so you can start automating customer support the same day — without needing technical expertise or lengthy setup."
-  }
-];
-
-const FAQSection: React.FC<FAQSectionProps> = ({
+export default function FAQSection({
+  faqs: propFaqs,
+  categories: propCategories = [],
   heading = "Frequently Asked Questions",
-  subheading = "Didn't find your answer?",
-  linkText = "Check our FAQs page",
-  linkHref = "/faq",
-  faqs = defaultFAQs,
-  className = ""
-}) => {
-  // Pre-open the first item by default
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  subheading,
+  heroTitle = "Frequently asked questions",
+  heroSubtitle = "Got a question? Use the search bar or browse the categories below to find your answer",
+  searchPlaceholder = "Enter your keyword here",
+  showCategories = true,
+  defaultCategory,
+  className = "",
+  backgroundColor = "#f8fafc",
+  heroBackgroundColor = "#6366f1",
+  heroHeight = "80vh",
+  faqCategoryId,
+  showHero = true
+}: FAQSectionProps) {
+  const { designSystem } = useDesignSystem();
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(defaultCategory || faqCategoryId || null);
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [faqs, setFaqs] = useState<FAQ[]>(propFaqs || []);
+  const [categories, setCategories] = useState<FAQCategory[]>(propCategories);
+  const [loading, setLoading] = useState(!propFaqs);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggleItem = (id: number) => {
-    if (expandedIndex === id) {
-      setExpandedIndex(null);
-    } else {
-      setExpandedIndex(id);
+  // Fetch FAQ data if not provided as props
+  useEffect(() => {
+    const fetchFAQData = async () => {
+      if (propFaqs) {
+        return; // Use provided data
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [categoriesRes, faqsRes] = await Promise.all([
+          fetch('/api/admin/faq-categories'),
+          fetch('/api/admin/faqs')
+        ]);
+
+        if (!categoriesRes.ok || !faqsRes.ok) {
+          throw new Error('Failed to fetch FAQ data');
+        }
+
+        const categoriesData = await categoriesRes.json();
+        const faqsData = await faqsRes.json();
+
+        setCategories(categoriesData);
+        setFaqs(faqsData);
+      } catch (err) {
+        console.error('Error fetching FAQ data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load FAQ data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFAQData();
+  }, [propFaqs]);
+
+  const filteredAndSearchedFAQs = useMemo(() => {
+    let filtered = (faqs || []).filter(faq => faq.isActive);
+    
+    // If faqCategoryId is specified (page builder mode), filter to that category only
+    if (faqCategoryId) {
+      filtered = filtered.filter(faq => faq.categoryId === faqCategoryId);
+    } else if (selectedCategory) {
+      filtered = filtered.filter(faq => faq.categoryId === selectedCategory);
     }
+    
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(faq => 
+        faq.question.toLowerCase().includes(searchLower) ||
+        faq.answer.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    return filtered.sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [faqs, selectedCategory, searchTerm, faqCategoryId]);
+
+  const sortedCategories = useMemo(() => {
+    return (categories || [])
+      .filter(cat => cat.isActive)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [categories]);
+
+  const toggleFAQ = (faqId: number) => {
+    setOpenFAQ(openFAQ === faqId ? null : faqId);
   };
 
-  return (
-    <section className={`py-20 bg-gradient-to-b from-[#F6F8FC] to-[#FBFBFB] ${className}`}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-          {/* Left Column - Content (1/3) */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--color-dark-900)] leading-tight" style={{fontFamily: 'Manrope, sans-serif'}}>
-                {heading}
-              </h2>
-              
-              <p className="text-[var(--color-dark-600)] leading-snug text-lg" style={{fontFamily: 'Manrope, sans-serif'}}>
-                Get instant answers to common questions about Saski AI's features, setup process, and capabilities.
-              </p>
-            </div>
+  const handleCategoryChange = (categoryId: number | null) => {
+    setSelectedCategory(categoryId);
+    setOpenFAQ(null);
+  };
 
-            {/* CTA Box */}
-            <div className="bg-[var(--color-light-100)] border border-[var(--color-light-200)] rounded-xl p-6 space-y-3">
-              <HelpCircle className="w-5 h-5 text-[var(--color-primary)]" />
-              <p className="text-sm font-medium text-[var(--color-dark-600)]" style={{fontFamily: 'Manrope, sans-serif'}}>
-                Still have questions?
-              </p>
-              <a 
-                href="mailto:support@saskiai.com"
-                className="inline-flex items-center text-[var(--color-primary)] font-semibold hover:text-[var(--color-primary-dark)] transition-colors duration-200 underline underline-offset-2"
-                style={{fontFamily: 'Manrope, sans-serif'}}
-              >
-                Contact our support team
-              </a>
-            </div>
+  const clearSearch = () => {
+    setSearchTerm('');
+    if (!faqCategoryId) {
+      setSelectedCategory(null);
+    }
+    setOpenFAQ(null);
+  };
 
-            {/* Decorative gradient bar */}
-            <div className="w-24 h-1 bg-gradient-to-r from-[#5243E9] to-[#7C3AED] rounded-full"></div>
-          </div>
-
-          {/* Right Column - FAQ Accordion (2/3) */}
-          <div className="lg:col-span-2 space-y-4">
-            {faqs.map((faq, index) => (
-              <div 
-                key={faq.id}
-                className="border border-[var(--color-light-300)] shadow-sm rounded-xl bg-white hover:shadow-md hover:border-[var(--color-primary)] transition-all duration-300 overflow-hidden"
-                style={{
-                  animationDelay: `${index * 100}ms`,
-                  animation: 'fadeInUp 0.6s ease-out forwards'
-                }}
-              >
-                <button
-                  className="w-full px-6 py-5 text-left hover:bg-[#F8FAFC] transition-colors duration-200 flex items-start justify-between group"
-                  onClick={() => toggleItem(faq.id)}
-                  aria-expanded={expandedIndex === faq.id}
-                >
-                  <div className="flex items-start gap-4 flex-1 pr-4">
-                    {/* Number pill */}
-                    <div className="text-xs bg-[var(--color-light-200)] text-[var(--color-primary)] px-2 py-1 rounded-full font-semibold flex-shrink-0 mt-1" style={{fontFamily: 'Manrope, sans-serif'}}>
-                      Q{index + 1}
-                    </div>
-                    
-                    <h4 className="text-lg font-semibold text-[var(--color-dark-900)] leading-tight group-hover:text-[var(--color-primary)] transition-colors duration-200" style={{fontFamily: 'Manrope, sans-serif'}}>
-                      {faq.question}
-                    </h4>
-                  </div>
-                  
-                  <div className="flex-shrink-0 mt-1">
-                    <ChevronDown 
-                      className={`w-5 h-5 text-[var(--color-dark-500)] group-hover:text-[var(--color-primary)] transition-all duration-300 ${
-                        expandedIndex === faq.id ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </div>
-                </button>
-                
-                {expandedIndex === faq.id && (
-                  <div 
-                    className="px-6 pb-6 pt-4 bg-white border-t border-[var(--color-light-200)] animate-fadeIn"
-                    style={{
-                      animation: 'slideDown 0.3s ease-out forwards'
-                    }}
-                  >
-                    <div className="text-[var(--color-dark-600)] leading-relaxed pl-8" style={{fontFamily: 'Manrope, sans-serif'}}>
-                      {faq.answer}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+  // Loading state
+  if (loading) {
+    return (
+      <div className={className} style={{ backgroundColor }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading FAQ data...</p>
           </div>
         </div>
       </div>
-      
-      {/* Custom animations */}
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            max-height: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            max-height: 500px;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-      `}</style>
-    </section>
-  );
-};
+    );
+  }
 
-export default FAQSection; 
+  // Error state
+  if (error) {
+    return (
+      <div className={className} style={{ backgroundColor }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Error loading FAQ data: {error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No data state
+  if (!faqs || faqs.length === 0) {
+    return (
+      <div className={className} style={{ backgroundColor }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{heading}</h2>
+            <p className="text-gray-600">No FAQ data available at the moment.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Get the current category name for display
+  const currentCategoryName = faqCategoryId 
+    ? sortedCategories.find(cat => cat.id === faqCategoryId)?.name
+    : selectedCategory 
+      ? sortedCategories.find(cat => cat.id === selectedCategory)?.name
+      : null;
+
+  return (
+    <div className={className} style={{ backgroundColor }}>
+      {showHero && (
+        <div 
+          className="relative py-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center"
+          style={{ 
+            backgroundColor: heroBackgroundColor,
+            minHeight: heroHeight
+          }}
+        >
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              {heroTitle}
+            </h1>
+            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+              {heroSubtitle}
+            </p>
+            
+            <div className="max-w-2xl mx-auto relative">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder={searchPlaceholder}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 text-lg border-0 rounded-lg shadow-lg focus:ring-2 focus:ring-white/20 focus:outline-none"
+                  style={{ backgroundColor: 'white' }}
+                />
+              </div>
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <Plus className="w-5 h-5 rotate-45" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          
+          {showCategories && !faqCategoryId && sortedCategories.length > 0 && (
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Quick Navigation
+                </h3>
+                
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleCategoryChange(null)}
+                    className={'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ' + 
+                      (selectedCategory === null
+                        ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50')
+                    }
+                  >
+                    All Questions
+                  </button>
+                  
+                  {sortedCategories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => handleCategoryChange(category.id)}
+                      className={'w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ' +
+                        (selectedCategory === category.id
+                          ? 'text-white border-l-4'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50')
+                      }
+                      style={{
+                        backgroundColor: selectedCategory === category.id ? category.color : 'transparent',
+                        borderLeftColor: selectedCategory === category.id ? category.color : 'transparent'
+                      }}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className={(showCategories && !faqCategoryId && sortedCategories.length > 0) ? 'lg:col-span-3' : 'lg:col-span-4'}>
+            
+            {!searchTerm && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {currentCategoryName || heading}
+                </h2>
+                {subheading && !currentCategoryName && (
+                  <p className="text-gray-600">
+                    {subheading}
+                  </p>
+                )}
+                {currentCategoryName && (
+                  <p className="text-gray-600">
+                    {sortedCategories.find(cat => cat.id === (faqCategoryId || selectedCategory))?.description || 
+                     'Questions related to ' + currentCategoryName}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {searchTerm && (
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  Search Results for "{searchTerm}"
+                </h2>
+                <p className="text-gray-600">
+                  {filteredAndSearchedFAQs.length} result{filteredAndSearchedFAQs.length !== 1 ? 's' : ''} found
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {filteredAndSearchedFAQs.map((faq) => (
+                <div
+                  key={faq.id}
+                  className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  <button
+                    onClick={() => toggleFAQ(faq.id)}
+                    className="w-full px-6 py-5 text-left flex items-start justify-between hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex-1 pr-4">
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">
+                        {faq.question}
+                      </h3>
+                    </div>
+                    <div className="flex-shrink-0 ml-4">
+                      {openFAQ === faq.id ? (
+                        <Minus className="w-5 h-5 text-gray-400" />
+                      ) : (
+                        <Plus className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
+                  </button>
+                  
+                  {openFAQ === faq.id && (
+                    <div className="px-6 pb-5 border-t border-gray-100">
+                      <div className="pt-4 text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {faq.answer}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {filteredAndSearchedFAQs.length === 0 && (
+              <div className="text-center py-12">
+                <div className="bg-white rounded-lg border border-gray-200 p-8">
+                  <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {searchTerm ? 'No results found' : 'No questions available'}
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    {searchTerm 
+                      ? 'We could not find any questions matching "' + searchTerm + '". Try different keywords or browse categories.'
+                      : (faqCategoryId || selectedCategory)
+                        ? 'No questions found in this category.'
+                        : 'No questions available at the moment.'
+                    }
+                  </p>
+                  {searchTerm && (
+                    <button
+                      onClick={clearSearch}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      Clear search
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

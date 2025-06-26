@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { IconPicker } from '@/components/ui';
+import { IconPicker } from '@/components/ui/index';
 import { 
   Plus, Edit2, Trash2, Save, X, ExternalLink, Eye, EyeOff,
   ArrowRight, Play, CheckCircle, Sparkles, MessageSquare, Zap, Mail, Star, Users, Globe, Shield, TrendingUp, 

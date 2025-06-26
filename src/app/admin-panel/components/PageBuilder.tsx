@@ -90,6 +90,7 @@ interface PageSection {
   featureGroupId?: number;
   mediaSectionId?: number;
   pricingSectionId?: number;
+  faqSectionId?: number;
 }
 
 interface Page {
@@ -268,6 +269,7 @@ interface FormData {
   featureGroupId?: number;
   mediaSectionId?: number;
   pricingSectionId?: number;
+  faqSectionId?: number;
 }
 
 interface AvailableContent {
@@ -275,6 +277,7 @@ interface AvailableContent {
   featureGroups: any[];
   mediaSections: any[];
   pricingSections: any[];
+  faqSections: any[];
 }
 
 const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
@@ -296,7 +299,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
     heroSectionId: undefined,
     featureGroupId: undefined,
     mediaSectionId: undefined,
-    pricingSectionId: undefined
+    pricingSectionId: undefined,
+    faqSectionId: undefined
   });
 
   // Available content for selection
@@ -304,7 +308,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
     heroSections: [],
     featureGroups: [],
     mediaSections: [],
-    pricingSections: []
+    pricingSections: [],
+    faqSections: []
   });
 
   // Track which hero sections are in use by other pages
@@ -470,6 +475,11 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       return;
     }
 
+    if (formData.sectionType === 'faq' && !formData.faqSectionId) {
+      setMessage({ type: 'error', text: 'Please select a FAQ section' });
+      return;
+    }
+
     setSaving(true);
     try {
       const requestData = {
@@ -618,7 +628,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       heroSectionId: section.heroSectionId,
       featureGroupId: section.featureGroupId,
       mediaSectionId: section.mediaSectionId,
-      pricingSectionId: section.pricingSectionId
+      pricingSectionId: section.pricingSectionId,
+      faqSectionId: section.faqSectionId
     });
     setShowAddSection(true);
   };
@@ -633,7 +644,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       heroSectionId: undefined,
       featureGroupId: undefined,
       mediaSectionId: undefined,
-      pricingSectionId: undefined
+      pricingSectionId: undefined,
+      faqSectionId: undefined
     });
     setEditingSection(null);
     setShowAddSection(false);
@@ -1096,6 +1108,60 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                 </div>
               )}
 
+              {formData.sectionType === 'faq' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Select FAQ Section *
+                    {formData.faqSectionId && (
+                      <span className="ml-2 text-sm text-green-600">✓ Selected</span>
+                    )}
+                  </label>
+                  <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
+                    {availableContent.faqSections.map((faq) => (
+                      <button
+                        key={faq.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, faqSectionId: faq.id })}
+                        className={`p-3 rounded-lg border-2 text-left transition-all duration-200 ${
+                          formData.faqSectionId === faq.id
+                            ? 'border-green-500 bg-green-50 text-green-900'
+                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{faq.name}</div>
+                          {formData.faqSectionId === faq.id && (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">{faq.heading}</div>
+                        {faq.subheading && (
+                          <div className="text-sm text-gray-500 mt-1">{faq.subheading}</div>
+                        )}
+                        <div className="text-xs text-gray-400 mt-1 flex items-center space-x-3">
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-medium">
+                            {faq.showHero ? 'With Hero' : 'No Hero'}
+                          </span>
+                          <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-md font-medium">
+                            {faq.showCategories ? 'With Categories' : 'No Categories'}
+                          </span>
+                        </div>
+                        {faq.heroTitle && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Hero: {faq.heroTitle}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                    {availableContent.faqSections.length === 0 && (
+                      <p className="text-gray-500 text-center py-4">
+                        No FAQ sections available. Create one first in FAQ Sections manager.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1158,7 +1224,7 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
               {/* Actions */}
               <div className="flex space-x-4 pt-4 border-t border-gray-200">
                 {/* Validation Status */}
-                {(formData.sectionType === 'hero' || formData.sectionType === 'features' || formData.sectionType === 'media' || formData.sectionType === 'pricing') && (
+                {(formData.sectionType === 'hero' || formData.sectionType === 'features' || formData.sectionType === 'media' || formData.sectionType === 'pricing' || formData.sectionType === 'faq') && (
                   <div className="flex-1 text-sm">
                     {formData.sectionType === 'hero' && !formData.heroSectionId && (
                       <div className="text-amber-600 flex items-center">
@@ -1184,10 +1250,17 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                         Please select a pricing section
                       </div>
                     )}
+                    {formData.sectionType === 'faq' && !formData.faqSectionId && (
+                      <div className="text-amber-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        Please select a FAQ section
+                      </div>
+                    )}
                     {((formData.sectionType === 'hero' && formData.heroSectionId) || 
                       (formData.sectionType === 'features' && formData.featureGroupId) ||
                       (formData.sectionType === 'media' && formData.mediaSectionId) ||
-                      (formData.sectionType === 'pricing' && formData.pricingSectionId)) && (
+                      (formData.sectionType === 'pricing' && formData.pricingSectionId) ||
+                      (formData.sectionType === 'faq' && formData.faqSectionId)) && (
                       <div className="text-green-600 flex items-center">
                         <CheckCircle className="w-4 h-4 mr-1" />
                         Ready to save

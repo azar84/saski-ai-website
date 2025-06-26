@@ -20,7 +20,9 @@ import {
   DollarSign,
   Palette,
   Grid,
-  Zap
+  Zap,
+  MessageSquare,
+  Mail
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -38,8 +40,10 @@ import MediaSectionsManager from './components/MediaSectionsManager';
 import DesignSystemManager from './components/DesignSystemManager';
 import MediaLibraryManager from './components/MediaLibraryManager';
 import ConfigurablePricingManager from './components/ConfigurablePricingManager';
+import FAQManager from './components/FAQManager';
+import ContactManager from './components/ContactManager';
 
-type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
@@ -55,7 +59,8 @@ const navigation = [
   { id: 'media-library', name: 'Media Library', icon: FolderOpen, color: 'text-blue-600' },
   { id: 'pricing', name: 'Pricing Plans', icon: DollarSign, color: 'text-green-600' },
   { id: 'testimonials', name: 'Testimonials', icon: Users, color: 'text-indigo-600' },
-  { id: 'faqs', name: 'FAQs', icon: Layers, color: 'text-cyan-600' },
+  { id: 'faq-management', name: 'FAQ Management', icon: MessageSquare, color: 'text-cyan-600' },
+  { id: 'contact-management', name: 'Forms Management', icon: Mail, color: 'text-blue-600' },
   { id: 'users', name: 'Users', icon: Users, color: 'text-pink-600' },
   { id: 'analytics', name: 'Analytics', icon: BarChart3, color: 'text-emerald-600' },
   { id: 'design-system', name: 'Design System', icon: Layers, color: 'text-blue-600' },
@@ -108,16 +113,10 @@ export default function AdminPanel() {
             </div>
           </div>
         );
-      case 'faqs':
-        return (
-          <div className="p-8">
-            <div className="text-center py-12">
-              <Layers className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">FAQs</h2>
-              <p className="text-gray-600">FAQ management coming soon...</p>
-            </div>
-          </div>
-        );
+      case 'faq-management':
+        return <FAQManager />;
+      case 'contact-management':
+        return <ContactManager />;
       case 'users':
         return (
           <div className="p-8">

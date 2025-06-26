@@ -118,8 +118,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response);
     }
 
+    if (contentType === 'faq-sections') {
+      // Fetch all FAQ sections
+      const faqSections = await prisma.fAQSection.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          heading: true,
+          subheading: true,
+          heroTitle: true,
+          heroSubtitle: true,
+          searchPlaceholder: true,
+          showHero: true,
+          showCategories: true,
+          backgroundColor: true,
+          heroBackgroundColor: true,
+          isActive: true
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: faqSections
+      };
+      return NextResponse.json(response);
+    }
+
     // If no specific type, return all content types
-    const [heroSections, featureGroups, mediaSections, pricingSections] = await Promise.all([
+    const [heroSections, featureGroups, mediaSections, pricingSections, faqSections] = await Promise.all([
       (prisma.heroSection as any).findMany({
         where: { visible: true },
         select: {
@@ -189,6 +217,24 @@ export async function GET(request: NextRequest) {
           }
         },
         orderBy: { createdAt: 'desc' }
+      }),
+      prisma.fAQSection.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          heading: true,
+          subheading: true,
+          heroTitle: true,
+          heroSubtitle: true,
+          searchPlaceholder: true,
+          showHero: true,
+          showCategories: true,
+          backgroundColor: true,
+          heroBackgroundColor: true,
+          isActive: true
+        },
+        orderBy: { createdAt: 'desc' }
       })
     ]);
 
@@ -198,7 +244,8 @@ export async function GET(request: NextRequest) {
         heroSections,
         featureGroups,
         mediaSections,
-        pricingSections
+        pricingSections,
+        faqSections
       }
     };
     return NextResponse.json(response);

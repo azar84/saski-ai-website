@@ -175,6 +175,23 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        },
+        faqSection: {
+          select: {
+            id: true,
+            name: true,
+            heading: true,
+            subheading: true,
+            heroTitle: true,
+            heroSubtitle: true,
+            searchPlaceholder: true,
+            showHero: true,
+            showCategories: true,
+            backgroundColor: true,
+            heroBackgroundColor: true,
+            heroHeight: true,
+            isActive: true
+          }
         }
       },
       orderBy: [
@@ -229,7 +246,10 @@ export async function POST(request: NextRequest) {
         heroSectionId: validatedData.heroSectionId,
         featureGroupId: validatedData.featureGroupId,
         mediaSectionId: validatedData.mediaSectionId,
-        pricingSectionId: validatedData.pricingSectionId
+        pricingSectionId: validatedData.pricingSectionId,
+        faqSectionId: validatedData.faqSectionId,
+        faqCategoryId: validatedData.faqCategoryId,
+        contactSectionId: validatedData.contactSectionId
       },
       include: {
         page: {
@@ -408,6 +428,9 @@ export async function PUT(request: NextRequest) {
         ...(validatedData.featureGroupId !== undefined && { featureGroupId: validatedData.featureGroupId }),
         ...(validatedData.mediaSectionId !== undefined && { mediaSectionId: validatedData.mediaSectionId }),
         ...(validatedData.pricingSectionId !== undefined && { pricingSectionId: validatedData.pricingSectionId }),
+        ...(validatedData.faqSectionId !== undefined && { faqSectionId: validatedData.faqSectionId }),
+        ...(validatedData.faqCategoryId !== undefined && { faqCategoryId: validatedData.faqCategoryId }),
+        ...(validatedData.contactSectionId !== undefined && { contactSectionId: validatedData.contactSectionId }),
         updatedAt: new Date()
       },
       include: {
@@ -561,6 +584,23 @@ export async function PUT(request: NextRequest) {
               select: {
                 sectionPlans: true
               }
+            }
+          },
+          faqSection: {
+            select: {
+              id: true,
+              name: true,
+              heading: true,
+              subheading: true,
+              heroTitle: true,
+              heroSubtitle: true,
+              searchPlaceholder: true,
+              showHero: true,
+              showCategories: true,
+              backgroundColor: true,
+              heroBackgroundColor: true,
+              heroHeight: true,
+              isActive: true
             }
           }
         }
