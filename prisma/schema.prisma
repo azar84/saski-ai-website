@@ -198,94 +198,88 @@ model MediaSection {
   layoutType               String                  @default("media_right") // media_left, media_right, stacked
   badgeText                String?                 // Text above headline
   badgeColor               String                  @default("#5243E9") // HEX color
-  headline                 String                  // Section title
-  subheading               String?                 // Supporting paragraph
-  alignment                String                  @default("left") // left, center, right
-  mediaType                String                  @default("image") // image, video, animation, 3d
-  mediaUrl                 String                  // Path or embed URL
+  headline                 String                  // Main title
+  subheading               String?                 // Supporting text
+  description              String?                 // Body content
+  mediaUrl                 String?                 // Image/video path
+  mediaType                String                  @default("image") // image, video
   mediaAlt                 String?                 // Alt text for accessibility
-  mediaSize                String                  @default("md") // sm, md, lg, full
-  mediaPosition            String                  @default("right") // left, right
-  showBadge                Boolean                 @default(true) // Show/hide badge
-  showCtaButton            Boolean                 @default(false) // Show/hide CTA button
-  ctaText                  String?                 // CTA button text
-  ctaUrl                   String?                 // Link target
-  ctaStyle                 String                  @default("primary") // primary, secondary, link
-  enableScrollAnimations   Boolean                 @default(false) // Trigger scroll-based animations
-  animationType            String                  @default("none") // fade, slide, zoom, none
-  backgroundStyle          String                  @default("solid") // solid, gradient, radial, none
-  backgroundColor          String                  @default("#F6F8FC") // HEX color
-  textColor                String                  @default("#0F1A2A") // HEX color
-  paddingTop               Int                     @default(80) // Top padding in px
-  paddingBottom            Int                     @default(80) // Bottom padding in px
-  containerMaxWidth        String                  @default("2xl") // xl, 2xl, full
-  isActive                 Boolean                 @default(true)
+  ctaPrimaryText           String?                 // Primary button text
+  ctaPrimaryUrl            String?                 // Primary button URL
+  ctaSecondaryText         String?                 // Secondary button text
+  ctaSecondaryUrl          String?                 // Secondary button URL
+  backgroundType           String                  @default("white") // white, gray, gradient, image
+  backgroundValue          String?                 // Gradient colors or image URL
+  paddingTop               Int                     @default(80) // Section padding top (px)
+  paddingBottom            Int                     @default(80) // Section padding bottom (px)
+  isVisible                Boolean                 @default(true)
   createdAt                DateTime                @default(now())
   updatedAt                DateTime                @updatedAt
-  features                 MediaSectionFeature[]   // One-to-many relationship
+  features                 MediaSectionFeature[]   // Optional features list
   pageSections             PageSection[]           // Page builder references
 
   @@map("media_sections")
 }
 
 model MediaSectionFeature {
-  id              Int          @id @default(autoincrement())
-  mediaSectionId  Int
-  icon            String       // Icon name from icon library
-  label           String       // Feature text
-  color           String       @default("#5243E9") // HEX color
-  sortOrder       Int          @default(0)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  mediaSection    MediaSection @relation(fields: [mediaSectionId], references: [id], onDelete: Cascade)
+  id             Int          @id @default(autoincrement())
+  mediaSectionId Int
+  iconUrl        String?      // Feature icon
+  title          String       // Feature title
+  description    String?      // Feature description
+  position       Int          @default(0) // Display order
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  mediaSection   MediaSection @relation(fields: [mediaSectionId], references: [id], onDelete: Cascade)
 
   @@map("media_section_features")
 }
 
 model HeaderConfig {
-  id          Int             @id @default(autoincrement())
-  isActive    Boolean         @default(true)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  navItems    HeaderNavItem[]
-  ctaButtons  HeaderCTA[]
+  id           Int             @id @default(autoincrement())
+  logoUrl      String?
+  logoAlt      String?
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  navItems     HeaderNavItem[]
+  ctaButtons   HeaderCTA[]
 
   @@map("header_config")
 }
 
 model HeaderNavItem {
-  id             Int          @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   headerConfigId Int
-  pageId         Int?         // Optional - can be null for custom links
-  customText     String?      // Custom text for non-page links
-  customUrl      String?      // Custom URL for non-page links
-  sortOrder      Int          @default(0)
-  isVisible      Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
-  page           Page?        @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pageId         Int
+  label          String
+  sortOrder      Int           @default(0)
+  isVisible      Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  headerConfig   HeaderConfig  @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
+  page           Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@map("header_nav_items")
 }
 
 model CTA {
-  id                    Int                 @id @default(autoincrement())
-  text                  String              // Button text
-  url                   String              // Button URL/link
-  icon                  String?             // Optional Lucide icon name (e.g., "ArrowRight", "ExternalLink")
-  style                 String              @default("primary") // primary, secondary, outline, ghost
-  target                String              @default("_self") // _self, _blank
-  isActive              Boolean             @default(true)
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
-  headerCTAs            HeaderCTA[]
-  homeHeroPrimary       HomePageHero[]      @relation("PrimaryCTA")
-  homeHeroSecondary     HomePageHero[]      @relation("SecondaryCTA")
-  heroPrimary           HeroSection[]       @relation("HeroPrimaryCTA")
-  heroSecondary         HeroSection[]       @relation("HeroSecondaryCTA")
+  id               Int           @id @default(autoincrement())
+  text             String        // Button text
+  url              String        // Button URL
+  icon             String?       // Lucide icon name
+  style            String        @default("primary") // primary, secondary, outline, ghost
+  target           String        @default("_self") // _self, _blank
+  isActive         Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  
+  // Relations
+  headerCTAs       HeaderCTA[]
+  heroPrimary      HeroSection[] @relation("HeroPrimaryCTA")
+  heroSecondary    HeroSection[] @relation("HeroSecondaryCTA")
 
-  @@map("cta_buttons")
+  @@map("ctas")
 }
 
 model HeaderCTA {
@@ -299,66 +293,66 @@ model HeaderCTA {
   headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
   cta            CTA          @relation(fields: [ctaId], references: [id], onDelete: Cascade)
 
-  @@map("header_cta_items")
+  @@map("header_ctas")
 }
 
 model HomePageHero {
-  id                    Int                     @id @default(autoincrement())
-  heading               String                  @default("Automate Conversations, Capture Leads, Serve Customers — All Without Code")
-  subheading            String                  @default("Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.")
-  primaryCtaId          Int?                    // Reference to CTA button
-  secondaryCtaId        Int?                    // Reference to CTA button
-  isActive              Boolean                 @default(true)
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
-  trustIndicators       TrustIndicator[]
-  primaryCta            CTA?                    @relation("PrimaryCTA", fields: [primaryCtaId], references: [id], onDelete: SetNull)
-  secondaryCta          CTA?                    @relation("SecondaryCTA", fields: [secondaryCtaId], references: [id], onDelete: SetNull)
+  id              Int       @id @default(autoincrement())
+  tagline         String?   // Optional badge text
+  headline        String    // Main hero title
+  subheading      String?   // Supporting text
+  ctaPrimaryText  String?   // Primary button text
+  ctaPrimaryUrl   String?   // Primary button URL
+  ctaSecondaryText String?  // Secondary button text
+  ctaSecondaryUrl String?   // Secondary button URL
+  mediaUrl        String?   // Hero image/video
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@map("home_page_hero")
 }
 
 model TrustIndicator {
-  id              Int            @id @default(autoincrement())
-  homePageHeroId  Int
-  iconName        String         // Icon name from Lucide React (e.g., "Shield", "Clock", "Code")
-  text            String         // Display text (e.g., "99.9% Uptime")
-  sortOrder       Int            @default(0)
-  isVisible       Boolean        @default(true)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  homePageHero    HomePageHero   @relation(fields: [homePageHeroId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  name      String   // Company name
+  logoUrl   String   // Logo image URL
+  url       String?  // Optional link to company
+  position  Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("trust_indicators")
 }
 
 model GlobalFeature {
-  id          Int                 @id @default(autoincrement())
-  title       String              // Feature title (e.g., "Multi-Channel Support")
-  description String              // Feature description
-  iconName    String              // Icon name from Lucide React (e.g., "MessageSquare", "Users")
-  category    String              @default("integration") // Category: integration, ai, automation, analytics, security, support
-  sortOrder   Int                 @default(0)
-  isVisible   Boolean             @default(true)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  groupItems  FeatureGroupItem[]  // Features can be in multiple groups
+  id               Int                @id @default(autoincrement())
+  name             String             // Feature name
+  description      String?            // Feature description
+  iconUrl          String?            // Feature icon
+  category         String?            // Feature category
+  isActive         Boolean            @default(true)
+  sortOrder        Int                @default(0)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  featureGroupItems FeatureGroupItem[]
 
   @@map("global_features")
 }
 
 model FeatureGroup {
-  id              Int                   @id @default(autoincrement())
-  name            String                // Group name (e.g., "Home Page Features", "About Page Features")
-  heading         String                // Display heading (e.g., "Why Saski AI?")
-  subheading      String?               // Display subheading (e.g., "Simple. Smart. Built for growing businesses")
-  layoutType      String                @default("grid") // Layout type: "grid" (classic cards) or "list" (horizontal list)
-  isActive        Boolean               @default(true)
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-  groupItems      FeatureGroupItem[]    // Features in this group
-  pageAssignments PageFeatureGroup[]    // Pages that use this group
-  pageSections    PageSection[]         // Page builder references
+  id             Int                @id @default(autoincrement())
+  name           String             // Group name (e.g., "Core Features", "Advanced Tools")
+  description    String?            // Group description
+  layoutType     String             @default("grid") // grid, list, carousel
+  sortOrder      Int                @default(0)
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  items          FeatureGroupItem[]
+  pageGroups     PageFeatureGroup[]
+  pageSections   PageSection[]
 
   @@map("feature_groups")
 }
@@ -465,22 +459,126 @@ model FAQ {
   @@map("faqs")
 }
 
-// Pricing system
-model PricingPlan {
-  id            Int      @id @default(autoincrement())
-  name          String
-  description   String
-  price         Float
-  currency      String   @default("USD")
-  billingPeriod String   @default("monthly") // monthly, yearly
-  features      String   // JSON array of features
-  isPopular     Boolean  @default(false)
-  isActive      Boolean  @default(true)
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// Comprehensive Pricing System with Configurable Plan Features
+model Plan {
+  id          String        @id @default(uuid())
+  name        String        // Plan name (e.g., "Starter", "Professional", "Enterprise")
+  description String?       // Plan description
+  position    Int           @default(0) // For sorting plans
+  isActive    Boolean       @default(true)
+  isPopular   Boolean       @default(false) // Only one plan should be popular at a time
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  pricing        PlanPricing[]
+  features       PlanFeature[]
+  featureLimits  PlanFeatureLimit[] // Configurable limits (assistants, tokens, etc.)
+  basicFeatures  PlanBasicFeature[] // Basic features assigned to this plan
 
-  @@map("pricing_plans")
+  @@map("plans")
+}
+
+model BillingCycle {
+  id         String        @id @default(uuid())
+  label      String        // "Monthly", "Yearly"
+  multiplier Float         // 1 for monthly, 12 for yearly
+  isDefault  Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  
+  // Relations
+  pricing    PlanPricing[]
+
+  @@map("billing_cycles")
+}
+
+model PlanPricing {
+  id              String       @id @default(uuid())
+  planId          String
+  billingCycleId  String
+  priceCents      Int          // Price in cents (e.g., 2999 for $29.99)
+  stripePriceId   String?      // Stripe Price ID for integration
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  // Relations
+  plan            Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  billingCycle    BillingCycle @relation(fields: [billingCycleId], references: [id], onDelete: Cascade)
+  
+  @@unique([planId, billingCycleId])
+  @@map("plan_pricing")
+}
+
+// Configurable Plan Feature Types (Assistants, Tokens, etc.)
+model PlanFeatureType {
+  id          String   @id @default(uuid())
+  name        String   // "Assistants", "Tokens", "Phone Numbers", "Knowledge Bases"
+  unit        String?  // "per month", "total", "users", etc.
+  description String?  // Feature description
+  icon        String?  // Icon name
+  iconUrl     String?  // Custom PNG/SVG icon URL
+  dataType    String   @default("number") // "number", "boolean", "text"
+  sortOrder   Int      @default(0) // Display order
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  limits      PlanFeatureLimit[] // Plan-specific limits for this feature type
+
+  @@map("plan_feature_types")
+}
+
+// Plan-specific limits for configurable features
+model PlanFeatureLimit {
+  id               String          @id @default(uuid())
+  planId           String
+  featureTypeId    String
+  value            String          // Store as string to handle different data types
+  isUnlimited      Boolean         @default(false) // True for unlimited values
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  
+  // Relations
+  plan             Plan            @relation(fields: [planId], references: [id], onDelete: Cascade)
+  featureType      PlanFeatureType @relation(fields: [featureTypeId], references: [id], onDelete: Cascade)
+  
+  @@unique([planId, featureTypeId])
+  @@map("plan_feature_limits")
+}
+
+// Shared Features (for additional benefits, not limits)
+model SharedFeature {
+  id       String        @id @default(uuid())
+  name     String        // Global feature name (e.g., "API Access", "Custom Branding")
+  icon     String?       // Icon name or URL
+  category String?       // Feature category for grouping
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  
+  // Relations
+  usedIn   PlanFeature[] // Plans that use this shared feature
+
+  @@map("shared_features")
+}
+
+// Plan Features (additional benefits, not limits)
+model PlanFeature {
+  id          String         @id @default(uuid())
+  planId      String
+  featureId   String?        // Optional: null if custom feature
+  available   Boolean        @default(true) // Whether this feature is available in this plan
+  label       String?        // Override display name if needed (for custom features)
+  icon        String?        // Optional icon override
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  // Relations
+  plan        Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  feature     SharedFeature? @relation(fields: [featureId], references: [id], onDelete: SetNull)
+
+  @@map("plan_features")
 }
 
 // Media Library System
@@ -558,4 +656,35 @@ model MediaUsage {
   
   @@unique([mediaId, entityType, entityId, fieldName])
   @@map("media_usage")
+}
+
+// Basic Features (simple checkbox features for plans)
+model BasicFeature {
+  id          String              @id @default(uuid())
+  name        String              // Feature name (e.g., "API Access", "Priority Support")
+  description String?             // Feature description
+  sortOrder   Int                 @default(0) // Display order
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  
+  // Relations
+  planAssignments PlanBasicFeature[] // Plans that have this feature
+
+  @@map("basic_features")
+}
+
+// Plan-Basic Feature assignments (many-to-many relationship)
+model PlanBasicFeature {
+  id             String       @id @default(uuid())
+  planId         String
+  basicFeatureId String
+  createdAt      DateTime     @default(now())
+  
+  // Relations
+  plan           Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  basicFeature   BasicFeature @relation(fields: [basicFeatureId], references: [id], onDelete: Cascade)
+  
+  @@unique([planId, basicFeatureId])
+  @@map("plan_basic_features")
 }

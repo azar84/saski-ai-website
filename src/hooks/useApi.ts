@@ -1,44 +1,66 @@
-'use client';
+import { useState, useCallback } from 'react';
 
-import useSWR from 'swr';
-import { apiClient } from '@/lib/api';
-
-// Custom hooks for data fetching
-export function useFeatures(highlighted = false) {
-  const params = highlighted ? '?filters[isHighlighted][$eq]=true&sort=order:asc' : '';
-  return useSWR(`/features${params}`, () => 
-    highlighted ? apiClient.getHighlightedFeatures() : apiClient.getFeatures(params)
-  );
+interface ApiResponse<T> {
+  data?: T;
+  error?: string;
+  loading: boolean;
 }
 
-export function useChannels(supported = true) {
-  const params = supported ? '?filters[isSupported][$eq]=true' : '';
-  return useSWR(`/channels${params}`, () => 
-    supported ? apiClient.getSupportedChannels() : apiClient.getChannels(params)
-  );
-}
+export function useAdminApi() {
+  const [loading, setLoading] = useState(false);
 
-export function useTestimonials(featured = true) {
-  return useSWR('/testimonials/featured', () => 
-    featured ? apiClient.getFeaturedTestimonials() : apiClient.getTestimonials()
-  );
-}
+  const apiCall = useCallback(async <T>(
+    url: string,
+    options: RequestInit = {}
+  ): Promise<T> => {
+    setLoading(true);
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+        ...options,
+      });
 
-export function usePricingPlans() {
-  return useSWR('/pricing-plans/active', () => apiClient.getActivePricingPlans());
-}
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-export function useFAQs(category?: string) {
-  const key = category ? `/faqs/${category}` : '/faqs/active';
-  return useSWR(key, () => 
-    category ? apiClient.getTechnicalFAQs() : apiClient.getActiveFAQs()
-  );
-}
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('API call failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-export function useHeroSection() {
-  return useSWR('/hero-section', () => apiClient.getHeroSection());
-}
+  // Generic CRUD operations
+  const get = useCallback(<T>(url: string) => apiCall<T>(url), [apiCall]);
+  
+  const post = useCallback(<T>(url: string, data: any) => 
+    apiCall<T>(url, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }), [apiCall]);
+  
+  const put = useCallback(<T>(url: string, data: any) => 
+    apiCall<T>(url, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }), [apiCall]);
+  
+  const del = useCallback(<T>(url: string) => 
+    apiCall<T>(url, { method: 'DELETE' }), [apiCall]);
 
-export function useGlobalSettings() {
-  return useSWR('/global-settings', () => apiClient.getGlobalSettings());
-} 
+  return {
+    loading,
+    get,
+    post,
+    put,
+    delete: del,
+    apiCall,
+  };
+}

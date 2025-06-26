@@ -16,7 +16,11 @@ import {
   Play,
   MousePointer,
   Home,
-  FolderOpen
+  FolderOpen,
+  DollarSign,
+  Palette,
+  Grid,
+  Zap
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -33,8 +37,9 @@ import PageBuilder from './components/PageBuilder';
 import MediaSectionsManager from './components/MediaSectionsManager';
 import DesignSystemManager from './components/DesignSystemManager';
 import MediaLibraryManager from './components/MediaLibraryManager';
+import ConfigurablePricingManager from './components/ConfigurablePricingManager';
 
-type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'media-library' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faqs' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
@@ -48,6 +53,7 @@ const navigation = [
   { id: 'feature-groups', name: 'Feature Groups', icon: Layers, color: 'text-emerald-600' },
   { id: 'media-sections', name: 'Media Sections', icon: Play, color: 'text-red-600' },
   { id: 'media-library', name: 'Media Library', icon: FolderOpen, color: 'text-blue-600' },
+  { id: 'pricing', name: 'Pricing Plans', icon: DollarSign, color: 'text-green-600' },
   { id: 'testimonials', name: 'Testimonials', icon: Users, color: 'text-indigo-600' },
   { id: 'faqs', name: 'FAQs', icon: Layers, color: 'text-cyan-600' },
   { id: 'users', name: 'Users', icon: Users, color: 'text-pink-600' },
@@ -90,6 +96,8 @@ export default function AdminPanel() {
             <MediaLibraryManager onClose={() => setActiveSection('dashboard')} />
           </div>
         );
+      case 'pricing':
+        return <ConfigurablePricingManager />;
       case 'testimonials':
         return (
           <div className="p-8">
@@ -190,15 +198,15 @@ export default function AdminPanel() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Media Library</p>
-                    <p className="text-2xl font-bold text-gray-900">156</p>
+                    <p className="text-sm font-medium text-gray-600">Pricing Plans</p>
+                    <p className="text-2xl font-bold text-gray-900">3</p>
                   </div>
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <FolderOpen className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <DollarSign className="w-6 h-6 text-green-600" />
                   </div>
                 </div>
                 <div className="mt-4 flex items-center">
-                  <span className="text-sm text-blue-600 font-medium">+18% from last month</span>
+                  <span className="text-sm text-green-600 font-medium">Professional most popular</span>
                 </div>
               </Card>
             </div>

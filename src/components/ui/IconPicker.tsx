@@ -389,4 +389,5 @@ const IconPicker: React.FC<IconPickerProps> = ({
 };
 
 export default IconPicker;
+export { iconLibrary };
  
