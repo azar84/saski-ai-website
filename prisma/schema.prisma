@@ -478,6 +478,7 @@ model FAQCategory {
   // Relations
   faqs        FAQ[]     // FAQs in this category
   pageSections PageSection[] // Page builder references
+  sectionCategories FAQSectionCategory[] // FAQ sections using this category
 
   @@map("faq_categories")
 }
@@ -518,8 +519,26 @@ model FAQSection {
 
   // Relations
   pageSections          PageSection[] // Page builder references
+  sectionCategories     FAQSectionCategory[] // Categories assigned to this section
 
   @@map("faq_sections")
+}
+
+// Junction table for FAQ sections and categories (many-to-many)
+model FAQSectionCategory {
+  id            Int         @id @default(autoincrement())
+  faqSectionId  Int
+  categoryId    Int
+  sortOrder     Int         @default(0) // Order of categories within section
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  faqSection    FAQSection  @relation(fields: [faqSectionId], references: [id], onDelete: Cascade)
+  category      FAQCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([faqSectionId, categoryId])
+  @@map("faq_section_categories")
 }
 
 // Contact Section System - Dynamic Form Builder

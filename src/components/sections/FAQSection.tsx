@@ -27,6 +27,7 @@ interface FAQ {
 interface FAQSectionProps {
   faqs?: FAQ[];
   categories?: FAQCategory[];
+  sectionCategories?: number[]; // Array of category IDs selected for this section
   heading?: string;
   subheading?: string;
   heroTitle?: string;
@@ -46,6 +47,7 @@ interface FAQSectionProps {
 export default function FAQSection({
   faqs: propFaqs,
   categories: propCategories = [],
+  sectionCategories = [],
   heading = "Frequently Asked Questions",
   subheading,
   heroTitle = "Frequently asked questions",
@@ -111,7 +113,13 @@ export default function FAQSection({
     // If faqCategoryId is specified (page builder mode), filter to that category only
     if (faqCategoryId) {
       filtered = filtered.filter(faq => faq.categoryId === faqCategoryId);
+    } else if (sectionCategories.length > 0) {
+      // If section has specific categories selected, filter to those categories
+      filtered = filtered.filter(faq => 
+        faq.categoryId && sectionCategories.includes(faq.categoryId)
+      );
     } else if (selectedCategory) {
+      // Otherwise use the selected category filter
       filtered = filtered.filter(faq => faq.categoryId === selectedCategory);
     }
     
@@ -124,13 +132,20 @@ export default function FAQSection({
     }
     
     return filtered.sort((a, b) => a.sortOrder - b.sortOrder);
-  }, [faqs, selectedCategory, searchTerm, faqCategoryId]);
+  }, [faqs, selectedCategory, searchTerm, faqCategoryId, sectionCategories]);
 
   const sortedCategories = useMemo(() => {
-    return (categories || [])
-      .filter(cat => cat.isActive)
-      .sort((a, b) => a.sortOrder - b.sortOrder);
-  }, [categories]);
+    let availableCategories = (categories || []).filter(cat => cat.isActive);
+    
+    // If section has specific categories selected, only show those categories
+    if (sectionCategories.length > 0) {
+      availableCategories = availableCategories.filter(cat => 
+        sectionCategories.includes(cat.id)
+      );
+    }
+    
+    return availableCategories.sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [categories, sectionCategories]);
 
   const toggleFAQ = (faqId: number) => {
     setOpenFAQ(openFAQ === faqId ? null : faqId);

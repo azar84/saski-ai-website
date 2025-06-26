@@ -139,6 +139,23 @@ interface PageSection {
     heroBackgroundColor?: string;
     heroHeight?: string;
     isActive: boolean;
+    sectionCategories?: Array<{
+      id: number;
+      categoryId: number;
+      sortOrder: number;
+      category: {
+        id: number;
+        name: string;
+        description?: string;
+        icon?: string;
+        color: string;
+        sortOrder: number;
+        isActive: boolean;
+        _count: {
+          faqs: number;
+        };
+      };
+    }>;
   };
   faqCategoryId?: number;
 }
@@ -269,6 +286,7 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         break;
 
       case 'faq':
+        const sectionCategories = section.faqSection?.sectionCategories?.map(sc => sc.categoryId) || [];
         return (
           <FAQSection
             key={sectionKey}
@@ -283,6 +301,7 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             heroBackgroundColor={section.faqSection?.heroBackgroundColor}
             heroHeight={section.faqSection?.heroHeight}
             faqCategoryId={section.faqCategoryId}
+            sectionCategories={sectionCategories}
             className={className}
           />
         );

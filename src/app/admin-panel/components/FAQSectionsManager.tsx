@@ -25,6 +25,27 @@ interface FAQSection {
   updatedAt: string;
 }
 
+interface FAQCategory {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+  color: string;
+  sortOrder: number;
+  isActive: boolean;
+  _count: {
+    faqs: number;
+  };
+}
+
+interface FAQSectionCategory {
+  id: number;
+  faqSectionId: number;
+  categoryId: number;
+  sortOrder: number;
+  category: FAQCategory;
+}
+
 // Theme color options for hero background
 const THEME_COLORS = [
   { name: 'Primary', value: 'var(--color-primary)', key: 'primaryColor' },
@@ -197,6 +218,9 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, descr
 export default function FAQSectionsManager() {
   const { designSystem } = useDesignSystem();
   const [sections, setSections] = useState<FAQSection[]>([]);
+  const [categories, setCategories] = useState<FAQCategory[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [sectionCategories, setSectionCategories] = useState<FAQSectionCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -218,6 +242,7 @@ export default function FAQSectionsManager() {
 
   useEffect(() => {
     fetchSections();
+    fetchCategories();
   }, []);
 
   const fetchSections = async () => {
@@ -231,6 +256,31 @@ export default function FAQSectionsManager() {
       setError(err instanceof Error ? err.message : 'Failed to load FAQ sections');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/faq-categories');
+      if (!response.ok) throw new Error('Failed to fetch FAQ categories');
+      const data = await response.json();
+      setCategories(data.filter((cat: FAQCategory) => cat.isActive));
+    } catch (err) {
+      console.error('Failed to load FAQ categories:', err);
+    }
+  };
+
+  const fetchSectionCategories = async (sectionId: number) => {
+    try {
+      const response = await fetch(`/api/admin/faq-section-categories?faqSectionId=${sectionId}`);
+      if (!response.ok) throw new Error('Failed to fetch section categories');
+      const data = await response.json();
+      setSectionCategories(data);
+      setSelectedCategories(data.map((sc: FAQSectionCategory) => sc.categoryId));
+    } catch (err) {
+      console.error('Failed to load section categories:', err);
+      setSectionCategories([]);
+      setSelectedCategories([]);
     }
   };
 
@@ -249,6 +299,8 @@ export default function FAQSectionsManager() {
       heroHeight: '80vh',
       isActive: true
     });
+    setSelectedCategories([]);
+    setSectionCategories([]);
   };
 
   const handleCreate = () => {
@@ -274,6 +326,7 @@ export default function FAQSectionsManager() {
       heroHeight: section.heroHeight || '80vh',
       isActive: section.isActive
     });
+    fetchSectionCategories(section.id);
   };
 
   const handleCancel = () => {
@@ -297,11 +350,34 @@ export default function FAQSectionsManager() {
 
       if (!response.ok) throw new Error('Failed to save FAQ section');
       
+      const savedSection = await response.json();
+      const sectionId = isCreating ? savedSection.id : editingId;
+
+      // Update section categories if any are selected
+      if (selectedCategories.length > 0) {
+        await fetch('/api/admin/faq-section-categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            faqSectionId: sectionId,
+            categoryIds: selectedCategories
+          })
+        });
+      }
+      
       await fetchSections();
       handleCancel();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save FAQ section');
     }
+  };
+
+  const handleCategoryToggle = (categoryId: number) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
   };
 
   const handleToggleActive = async (id: number, isActive: boolean) => {
@@ -515,6 +591,81 @@ export default function FAQSectionsManager() {
                   <span className="text-sm text-gray-700">Active</span>
                 </label>
               </div>
+            </div>
+
+            {/* Category Selection */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-md font-medium text-gray-900">FAQ Categories</h4>
+                <span className="text-sm text-gray-500">
+                  {selectedCategories.length} of {categories.length} selected
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">
+                Select which FAQ categories to include in this section. If none are selected, all active categories will be displayed.
+              </p>
+              
+              {categories.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                  {categories.map((category) => (
+                    <label
+                      key={category.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        selectedCategories.includes(category.id)
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(category.id)}
+                        onChange={() => handleCategoryToggle(category.id)}
+                        className="rounded border-gray-300"
+                      />
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div
+                          className="w-4 h-4 rounded-full border border-gray-200"
+                          style={{ backgroundColor: category.color }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 truncate">
+                            {category.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {category._count.faqs} FAQ{category._count.faqs !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No FAQ categories available.</p>
+                  <p className="text-sm mt-1">Create some FAQ categories first to select them for this section.</p>
+                </div>
+              )}
+
+              {selectedCategories.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedCategories([])}
+                  >
+                    Clear Selection
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedCategories(categories.map(c => c.id))}
+                  >
+                    Select All
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-3">

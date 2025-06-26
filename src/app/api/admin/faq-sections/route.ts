@@ -6,6 +6,31 @@ import { handleApiError } from '@/lib/errorHandling';
 export async function GET() {
   try {
     const sections = await prisma.fAQSection.findMany({
+      include: {
+        sectionCategories: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                icon: true,
+                color: true,
+                sortOrder: true,
+                isActive: true,
+                _count: {
+                  select: {
+                    faqs: true
+                  }
+                }
+              }
+            }
+          },
+          orderBy: {
+            sortOrder: 'asc'
+          }
+        }
+      },
       orderBy: [
         { isActive: 'desc' },
         { createdAt: 'desc' }

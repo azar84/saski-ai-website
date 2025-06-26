@@ -190,7 +190,30 @@ export async function GET(request: NextRequest) {
             backgroundColor: true,
             heroBackgroundColor: true,
             heroHeight: true,
-            isActive: true
+            isActive: true,
+            sectionCategories: {
+              include: {
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    icon: true,
+                    color: true,
+                    sortOrder: true,
+                    isActive: true,
+                    _count: {
+                      select: {
+                        faqs: true
+                      }
+                    }
+                  }
+                }
+              },
+              orderBy: {
+                sortOrder: 'asc'
+              }
+            }
           }
         }
       },
@@ -600,7 +623,30 @@ export async function PUT(request: NextRequest) {
               backgroundColor: true,
               heroBackgroundColor: true,
               heroHeight: true,
-              isActive: true
+              isActive: true,
+              sectionCategories: {
+                include: {
+                  category: {
+                    select: {
+                      id: true,
+                      name: true,
+                      description: true,
+                      icon: true,
+                      color: true,
+                      sortOrder: true,
+                      isActive: true,
+                      _count: {
+                        select: {
+                          faqs: true
+                        }
+                      }
+                    }
+                  }
+                },
+                orderBy: {
+                  sortOrder: 'asc'
+                }
+              }
             }
           }
         }
