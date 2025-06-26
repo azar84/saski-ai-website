@@ -55,9 +55,8 @@ export async function POST(request: NextRequest) {
         isActive: true,
         navItems: {
           create: navItems?.map((item: any, index: number) => ({
-            pageId: item.pageId || null,
-            customText: item.customText || null,
-            customUrl: item.customUrl || null,
+            pageId: item.pageId,
+            label: item.label || item.customText || '',
             sortOrder: item.sortOrder || index,
             isVisible: item.isVisible !== undefined ? item.isVisible : true
           })) || []
@@ -149,9 +148,8 @@ export async function PUT(request: NextRequest) {
         updatedAt: new Date(),
         navItems: {
           create: navItems?.map((item: any, index: number) => ({
-            pageId: item.pageId || null,
-            customText: item.customText || null,
-            customUrl: item.customUrl || null,
+            pageId: item.pageId,
+            label: item.label || item.customText || '',
             sortOrder: item.sortOrder || index,
             isVisible: item.isVisible !== undefined ? item.isVisible : true
           })) || []

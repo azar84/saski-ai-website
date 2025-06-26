@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../../../lib/db';
-import { HomeHeroSchema, UpdateHomeHeroSchema, validateAndTransform, type ApiResponse } from '../../../../lib/validations';
+import { prisma } from '@/lib/db';
 
 // GET - Fetch home hero data
 export async function GET() {
@@ -10,58 +9,117 @@ export async function GET() {
         isActive: true
       },
       include: {
-        primaryCta: true,
-        secondaryCta: true,
-        trustIndicators: {
-          where: {
-            isVisible: true
-          },
-          orderBy: {
-            sortOrder: 'asc'
-          }
-        }
+        ctaPrimary: true,    // Include the primary CTA button data
+        ctaSecondary: true   // Include the secondary CTA button data
       }
     });
 
-    // If no home hero exists, return default data
     if (!homeHero) {
-      const defaultData = {
+      // Return default data if no hero exists in the format the component expects
+      const defaultHero = {
         id: null,
-        heading: "Automate Conversations, Capture Leads, Serve Customers — All Without Code",
-        subheading: "Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.",
+        heading: 'Automate Conversations, Capture Leads, Serve Customers — All Without Code',
+        subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
         primaryCtaId: null,
         secondaryCtaId: null,
-        isActive: true,
         primaryCta: null,
         secondaryCta: null,
+        isActive: true,
         trustIndicators: [
-          { iconName: "Shield", text: "99.9% Uptime", sortOrder: 0, isVisible: true },
-          { iconName: "Clock", text: "<30s Response", sortOrder: 1, isVisible: true },
-          { iconName: "Users", text: "10K+ Customers", sortOrder: 2, isVisible: true },
-          { iconName: "Globe", text: "50+ Countries", sortOrder: 3, isVisible: true }
+          { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0, isVisible: true },
+          { iconName: 'Clock', text: '24/7 Support', sortOrder: 1, isVisible: true },
+          { iconName: 'Code', text: 'No Code Required', sortOrder: 2, isVisible: true }
         ]
       };
-      
-      const response: ApiResponse = {
+
+      return NextResponse.json({
         success: true,
-        data: defaultData
-      };
-      return NextResponse.json(response);
+        data: defaultHero
+      });
     }
 
-    const response: ApiResponse = {
-      success: true,
-      data: homeHero
+    // Transform database data to component format
+    const transformedHero = {
+      id: homeHero.id,
+      heading: homeHero.headline,           // Map headline -> heading
+      subheading: homeHero.subheading,
+      primaryCtaId: homeHero.ctaPrimaryId || null,    // Use actual CTA ID from database
+      secondaryCtaId: homeHero.ctaSecondaryId || null, // Use actual CTA ID from database
+      primaryCta: homeHero.ctaPrimary || null,         // Include actual CTA button data
+      secondaryCta: homeHero.ctaSecondary || null,     // Include actual CTA button data
+      isActive: homeHero.isActive,
+      trustIndicators: [                    // Default trust indicators since DB doesn't have them
+        { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0, isVisible: true },
+        { iconName: 'Clock', text: '24/7 Support', sortOrder: 1, isVisible: true },
+        { iconName: 'Code', text: 'No Code Required', sortOrder: 2, isVisible: true }
+      ]
     };
-    return NextResponse.json(response);
+
+    return NextResponse.json({
+      success: true,
+      data: transformedHero
+    });
   } catch (error) {
     console.error('Failed to fetch home hero data:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch home hero data' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Create a new home hero
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
     
-    const response: ApiResponse = {
-      success: false,
-      message: 'Failed to fetch home hero data'
+    // Deactivate existing heroes
+    await prisma.homePageHero.updateMany({
+      data: { isActive: false }
+    });
+
+    // Create new hero - map component data to database format
+    const homeHero = await prisma.homePageHero.create({
+      data: {
+        tagline: body.tagline || null,
+        headline: body.heading || body.headline, // Accept both heading and headline
+        subheading: body.subheading || null,
+        ctaPrimaryId: body.primaryCtaId || null,     // Store CTA ID
+        ctaSecondaryId: body.secondaryCtaId || null, // Store CTA ID
+        ctaPrimaryText: body.ctaPrimaryText || null,
+        ctaPrimaryUrl: body.ctaPrimaryUrl || null,
+        ctaSecondaryText: body.ctaSecondaryText || null,
+        ctaSecondaryUrl: body.ctaSecondaryUrl || null,
+        mediaUrl: body.mediaUrl || null,
+        isActive: true
+      }
+    });
+
+    // Transform response back to component format
+    const transformedHero = {
+      id: homeHero.id,
+      heading: homeHero.headline,
+      subheading: homeHero.subheading,
+      primaryCtaId: homeHero.ctaPrimaryId,
+      secondaryCtaId: homeHero.ctaSecondaryId,
+      isActive: homeHero.isActive,
+      trustIndicators: body.trustIndicators || [
+        { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0, isVisible: true },
+        { iconName: 'Clock', text: '24/7 Support', sortOrder: 1, isVisible: true },
+        { iconName: 'Code', text: 'No Code Required', sortOrder: 2, isVisible: true }
+      ]
     };
-    return NextResponse.json(response, { status: 500 });
+
+    return NextResponse.json({
+      success: true,
+      data: transformedHero
+    });
+  } catch (error) {
+    console.error('Failed to create home hero:', error);
+    return NextResponse.json(
+      { success: false, message: 'Failed to create home hero' },
+      { status: 500 }
+    );
   }
 }
 
@@ -69,124 +127,90 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    
-    // Validate input using Zod schema
-    const validatedData = validateAndTransform(UpdateHomeHeroSchema, body);
+    const { id, ...updateData } = body;
 
-    // Check if a home hero already exists
-    const existingHero = await prisma.homePageHero.findFirst();
-
-    let homeHero;
-    
-    if (existingHero) {
-      // If trust indicators are provided, update them
-      if (validatedData.trustIndicators !== undefined) {
-        // Delete existing trust indicators
-        await prisma.trustIndicator.deleteMany({
-          where: { homePageHeroId: existingHero.id }
-        });
-
-        // Create new trust indicators
-        if (validatedData.trustIndicators && validatedData.trustIndicators.length > 0) {
-          await prisma.trustIndicator.createMany({
-            data: validatedData.trustIndicators.map((indicator, index) => ({
-              homePageHeroId: existingHero.id,
-              iconName: indicator.iconName,
-              text: indicator.text,
-              sortOrder: indicator.sortOrder ?? index,
-              isVisible: indicator.isVisible
-            }))
-          });
-        }
-      }
-
-      // Update existing hero
-      homeHero = await prisma.homePageHero.update({
-        where: { id: existingHero.id },
-        data: {
-          ...(validatedData.heading !== undefined && { heading: validatedData.heading }),
-          ...(validatedData.subheading !== undefined && { subheading: validatedData.subheading }),
-          ...(validatedData.primaryCtaId !== undefined && { primaryCtaId: validatedData.primaryCtaId }),
-          ...(validatedData.secondaryCtaId !== undefined && { secondaryCtaId: validatedData.secondaryCtaId }),
-          ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
-          updatedAt: new Date()
-        },
-        include: {
-          primaryCta: true,
-          secondaryCta: true,
-          trustIndicators: {
-            orderBy: {
-              sortOrder: 'asc'
-            }
-          }
-        }
+    // If no ID provided or ID is null, create a new hero instead of updating
+    if (!id || id === null) {
+      // Deactivate existing heroes first
+      await prisma.homePageHero.updateMany({
+        data: { isActive: false }
       });
-    } else {
-      // Create new hero with validated data
-      const createData = validateAndTransform(HomeHeroSchema, body);
-      
-      homeHero = await prisma.homePageHero.create({
+
+      // Create new hero - map component data to database format
+      const homeHero = await prisma.homePageHero.create({
         data: {
-          heading: createData.heading,
-          subheading: createData.subheading,
-          primaryCtaId: createData.primaryCtaId,
-          secondaryCtaId: createData.secondaryCtaId,
-          isActive: createData.isActive
-        },
-        include: {
-          primaryCta: true,
-          secondaryCta: true,
-          trustIndicators: {
-            orderBy: {
-              sortOrder: 'asc'
-            }
-          }
+          tagline: null,
+          headline: updateData.heading || 'Welcome to Our Platform',  // Map heading -> headline
+          subheading: updateData.subheading || null,
+          ctaPrimaryId: updateData.primaryCtaId || null,     // Store CTA ID
+          ctaSecondaryId: updateData.secondaryCtaId || null, // Store CTA ID
+          ctaPrimaryText: null,    // These will be fetched from CTA table when needed
+          ctaPrimaryUrl: null,
+          ctaSecondaryText: null,
+          ctaSecondaryUrl: null,
+          mediaUrl: null,
+          isActive: updateData.isActive !== undefined ? updateData.isActive : true
         }
       });
 
-      // Create trust indicators if provided
-      if (createData.trustIndicators && createData.trustIndicators.length > 0) {
-        await prisma.trustIndicator.createMany({
-          data: createData.trustIndicators.map((indicator, index) => ({
-            homePageHeroId: homeHero.id,
-            iconName: indicator.iconName,
-            text: indicator.text,
-            sortOrder: indicator.sortOrder ?? index,
-            isVisible: indicator.isVisible
-          }))
-        });
+      // Transform response back to component format
+      const transformedHero = {
+        id: homeHero.id,
+        heading: homeHero.headline,
+        subheading: homeHero.subheading,
+        primaryCtaId: homeHero.ctaPrimaryId,
+        secondaryCtaId: homeHero.ctaSecondaryId,
+        isActive: homeHero.isActive,
+        trustIndicators: updateData.trustIndicators || [
+          { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0, isVisible: true },
+          { iconName: 'Clock', text: '24/7 Support', sortOrder: 1, isVisible: true },
+          { iconName: 'Code', text: 'No Code Required', sortOrder: 2, isVisible: true }
+        ]
+      };
 
-        // Fetch the updated hero with trust indicators
-        homeHero = await prisma.homePageHero.findFirst({
-          where: { id: homeHero.id },
-          include: {
-            primaryCta: true,
-            secondaryCta: true,
-            trustIndicators: {
-              orderBy: {
-                sortOrder: 'asc'
-              }
-            }
-          }
-        });
-      }
+      return NextResponse.json({
+        success: true,
+        data: transformedHero
+      });
     }
 
-    const response: ApiResponse = {
-      success: true,
-      data: homeHero,
-      message: existingHero ? 'Home hero updated successfully' : 'Home hero created successfully'
+    // Update existing hero - map component data to database format
+    const homeHero = await prisma.homePageHero.update({
+      where: { id: parseInt(id) },
+      data: {
+        ...(updateData.heading !== undefined && { headline: updateData.heading }),  // Map heading -> headline
+        ...(updateData.subheading !== undefined && { subheading: updateData.subheading }),
+        ...(updateData.primaryCtaId !== undefined && { ctaPrimaryId: updateData.primaryCtaId }),     // Store CTA ID
+        ...(updateData.secondaryCtaId !== undefined && { ctaSecondaryId: updateData.secondaryCtaId }), // Store CTA ID
+        ...(updateData.isActive !== undefined && { isActive: updateData.isActive }),
+        updatedAt: new Date()
+      }
+    });
+
+    // Transform response back to component format
+    const transformedHero = {
+      id: homeHero.id,
+      heading: homeHero.headline,
+      subheading: homeHero.subheading,
+      primaryCtaId: homeHero.ctaPrimaryId,
+      secondaryCtaId: homeHero.ctaSecondaryId,
+      isActive: homeHero.isActive,
+      trustIndicators: updateData.trustIndicators || [
+        { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0, isVisible: true },
+        { iconName: 'Clock', text: '24/7 Support', sortOrder: 1, isVisible: true },
+        { iconName: 'Code', text: 'No Code Required', sortOrder: 2, isVisible: true }
+      ]
     };
-    return NextResponse.json(response);
+
+    return NextResponse.json({
+      success: true,
+      data: transformedHero
+    });
   } catch (error) {
     console.error('Failed to update home hero:', error);
-    
-    const response: ApiResponse = {
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to update home hero'
-    };
-    
-    const statusCode = error instanceof Error && error.message.includes('Validation failed') ? 400 : 500;
-    return NextResponse.json(response, { status: statusCode });
+    return NextResponse.json(
+      { success: false, message: 'Failed to update home hero' },
+      { status: 500 }
+    );
   }
 } 

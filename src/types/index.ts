@@ -397,6 +397,48 @@ export interface PageWithContent extends Page {
   };
 }
 
+// Page Builder Types
+export interface PageSection {
+  id: number;
+  pageId: number;
+  sectionType: string;
+  title?: string;
+  subtitle?: string;
+  content?: string;
+  sortOrder: number;
+  isVisible: boolean;
+  heroSectionId?: number;
+  featureGroupId?: number;
+  mediaSectionId?: number;
+  pricingSectionId?: number;
+  createdAt: string;
+  updatedAt: string;
+  page: {
+    id: number;
+    slug: string;
+    title: string;
+  };
+  heroSection?: HeroSectionDB;
+  featureGroup?: FeatureGroupDB;
+  mediaSection?: MediaSectionDB;
+  pricingSection?: PricingSection;
+}
+
+// Feature Group Types
+export interface FeatureGroupDB {
+  id: number;
+  name: string;
+  description?: string;
+  layoutType: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  _count?: {
+    items: number;
+  };
+}
+
 // Hero Section Database Types
 export interface HeroSectionDB {
   id: number;
@@ -504,4 +546,164 @@ export interface HeaderCTA {
   createdAt: Date;
   updatedAt: Date;
   cta: CTA;
-} 
+}
+
+// Pricing Section Types (NEW)
+export interface PricingSection {
+  id: number;
+  name: string;
+  heading: string;
+  subheading?: string;
+  layoutType: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  sectionPlans: PricingSectionPlan[];
+  pageAssignments?: PagePricingSection[];
+  _count?: {
+    sectionPlans: number;
+    pageAssignments: number;
+  };
+}
+
+export interface PricingSectionPlan {
+  id: number;
+  pricingSectionId: number;
+  planId: string;
+  sortOrder: number;
+  isVisible: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  plan: PlanDB;
+  pricingSection?: PricingSection;
+}
+
+export interface PagePricingSection {
+  id: number;
+  pageId: number;
+  pricingSectionId: number;
+  sortOrder: number;
+  isVisible: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  page: Page;
+  pricingSection: PricingSection;
+}
+
+// Pricing System Types (Database Models)
+export interface PlanDB {
+  id: string;
+  name: string;
+  description?: string;
+  position: number;
+  isActive: boolean;
+  isPopular: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  pricing: PlanPricing[];
+  features: PlanFeature[];
+  featureLimits: PlanFeatureLimit[];
+  basicFeatures: PlanBasicFeature[];
+  sectionPlans?: PricingSectionPlan[];
+}
+
+export interface BillingCycle {
+  id: string;
+  label: string;
+  multiplier: number;
+  isDefault: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  pricing: PlanPricing[];
+}
+
+export interface PlanPricing {
+  id: string;
+  planId: string;
+  billingCycleId: string;
+  priceCents: number;
+  stripePriceId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  plan: PlanDB;
+  billingCycle: BillingCycle;
+}
+
+export interface PlanFeatureType {
+  id: string;
+  name: string;
+  unit?: string;
+  description?: string;
+  icon?: string;
+  iconUrl?: string;
+  dataType: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  limits: PlanFeatureLimit[];
+}
+
+export interface PlanFeatureLimit {
+  id: string;
+  planId: string;
+  featureTypeId: string;
+  value: string;
+  isUnlimited: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  plan: PlanDB;
+  featureType: PlanFeatureType;
+}
+
+export interface SharedFeature {
+  id: string;
+  name: string;
+  icon?: string;
+  category?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  usedIn: PlanFeature[];
+}
+
+export interface PlanFeature {
+  id: string;
+  planId: string;
+  featureId?: string;
+  available: boolean;
+  label?: string;
+  icon?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  plan: PlanDB;
+  feature?: SharedFeature;
+}
+
+export interface BasicFeature {
+  id: string;
+  name: string;
+  description?: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  planAssignments: PlanBasicFeature[];
+}
+
+export interface PlanBasicFeature {
+  id: string;
+  planId: string;
+  basicFeatureId: string;
+  createdAt: Date;
+  plan: PlanDB;
+  basicFeature: BasicFeature;
+}
+
+// Layout Type Options for Pricing Sections
+export type PricingSectionLayout = 
+  | 'standard'      // Traditional 3-column layout
+  | 'comparison'    // Feature comparison table
+  | 'cards'         // Card-based layout with shadows
+  | 'grid'          // Grid layout for many plans
+  | 'list'          // Vertical list layout
+  | 'slider';       // Carousel/slider layout 

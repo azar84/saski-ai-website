@@ -11,13 +11,12 @@ export async function GET() {
       select: {
         id: true,
         name: true,
-        heading: true,
-        subheading: true,
+        description: true,
         layoutType: true,
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        groupItems: {
+        items: {
           include: {
             feature: true
           },
@@ -25,7 +24,7 @@ export async function GET() {
             sortOrder: 'asc'
           }
         },
-        pageAssignments: {
+        pageGroups: {
           include: {
             page: {
               select: {
@@ -38,8 +37,8 @@ export async function GET() {
         },
         _count: {
           select: {
-            groupItems: true,
-            pageAssignments: true
+            items: true,
+            pageGroups: true
           }
         }
       },
@@ -55,16 +54,40 @@ export async function GET() {
       console.log(`Group "${group.name}": layoutType = ${group.layoutType}`);
     });
 
+    // Transform data to match component expectations
+    const transformedFeatureGroups = featureGroups.map(group => ({
+      id: group.id,
+      heading: group.name,          // Map name -> heading for component
+      subheading: group.description, // Map description -> subheading for component
+      name: group.name,             // Keep name for backward compatibility
+      description: group.description, // Keep description for backward compatibility
+      layoutType: group.layoutType,
+      isActive: group.isActive,
+      createdAt: group.createdAt,
+      updatedAt: group.updatedAt,
+      groupItems: group.items.map(item => ({
+        ...item,
+        feature: {
+          ...item.feature,
+          title: item.feature.name,           // Map name -> title
+          iconName: item.feature.iconUrl,     // Map iconUrl -> iconName
+          isVisible: item.feature.isActive    // Map isActive -> isVisible
+        }
+      })),
+      pageAssignments: group.pageGroups,      // Map pageGroups -> pageAssignments
+      _count: {
+        groupItems: group._count.items,       // Map items -> groupItems
+        pageAssignments: group._count.pageGroups  // Map pageGroups -> pageAssignments
+      }
+    }));
+
     const response: ApiResponse = {
       success: true,
-      data: featureGroups
+      data: transformedFeatureGroups
     };
     return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to fetch feature groups:', error);
-    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    
     const response: ApiResponse = {
       success: false,
       message: 'Failed to fetch feature groups'
@@ -78,19 +101,25 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
+    // Transform component data to match validation schema
+    const transformedBody = {
+      ...body,
+      heading: body.heading || body.name, // Use heading if provided, otherwise use name
+      name: body.name || body.heading,     // Ensure name is available
+    };
+    
     // Validate input using Zod schema
-    const validatedData = validateAndTransform(CreateFeatureGroupSchema, body);
+    const validatedData = validateAndTransform(CreateFeatureGroupSchema, transformedBody);
 
     const featureGroup = await prisma.featureGroup.create({
       data: {
         name: validatedData.name,
-        heading: validatedData.heading,
-        subheading: validatedData.subheading || null,
+        description: validatedData.subheading || null,  // Map subheading -> description
         layoutType: validatedData.layoutType,
         isActive: validatedData.isActive
       } as any,
       include: {
-        groupItems: {
+        items: {
           include: {
             feature: true
           },
@@ -98,7 +127,7 @@ export async function POST(request: NextRequest) {
             sortOrder: 'asc'
           }
         },
-        pageAssignments: {
+        pageGroups: {
           include: {
             page: {
               select: {
@@ -111,16 +140,43 @@ export async function POST(request: NextRequest) {
         },
         _count: {
           select: {
-            groupItems: true,
-            pageAssignments: true
+            items: true,
+            pageGroups: true
           }
         }
       }
     });
 
+    // Transform response to match component expectations
+    const transformedFeatureGroup = {
+      id: featureGroup.id,
+      heading: featureGroup.name,          // Map name -> heading for component
+      subheading: featureGroup.description, // Map description -> subheading for component
+      name: featureGroup.name,             // Keep name for backward compatibility
+      description: featureGroup.description, // Keep description for backward compatibility
+      layoutType: featureGroup.layoutType,
+      isActive: featureGroup.isActive,
+      createdAt: featureGroup.createdAt,
+      updatedAt: featureGroup.updatedAt,
+      groupItems: featureGroup.items.map(item => ({
+        ...item,
+        feature: {
+          ...item.feature,
+          title: item.feature.name,
+          iconName: item.feature.iconUrl,
+          isVisible: item.feature.isActive
+        }
+      })),
+      pageAssignments: featureGroup.pageGroups,
+      _count: {
+        groupItems: featureGroup._count.items,
+        pageAssignments: featureGroup._count.pageGroups
+      }
+    };
+
     const response: ApiResponse = {
       success: true,
-      data: featureGroup
+      data: transformedFeatureGroup
     };
     return NextResponse.json(response);
   } catch (error) {
@@ -141,21 +197,27 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     
+    // Transform component data to match validation schema
+    const transformedBody = {
+      ...body,
+      heading: body.heading || body.name,
+      name: body.name || body.heading,
+    };
+    
     // Validate input using Zod schema
-    const validatedData = validateAndTransform(UpdateFeatureGroupSchema, body);
+    const validatedData = validateAndTransform(UpdateFeatureGroupSchema, transformedBody);
 
     const featureGroup = await prisma.featureGroup.update({
       where: { id: validatedData.id },
       data: {
         ...(validatedData.name !== undefined && { name: validatedData.name }),
-        ...(validatedData.heading !== undefined && { heading: validatedData.heading }),
-        ...(validatedData.subheading !== undefined && { subheading: validatedData.subheading }),
+        ...(validatedData.subheading !== undefined && { description: validatedData.subheading }),  // Map subheading -> description
         ...(validatedData.layoutType !== undefined && { layoutType: validatedData.layoutType }),
         ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
         updatedAt: new Date()
       } as any,
       include: {
-        groupItems: {
+        items: {
           include: {
             feature: true
           },
@@ -163,7 +225,7 @@ export async function PUT(request: NextRequest) {
             sortOrder: 'asc'
           }
         },
-        pageAssignments: {
+        pageGroups: {
           include: {
             page: {
               select: {
@@ -176,16 +238,43 @@ export async function PUT(request: NextRequest) {
         },
         _count: {
           select: {
-            groupItems: true,
-            pageAssignments: true
+            items: true,
+            pageGroups: true
           }
         }
       }
     });
 
+    // Transform response to match component expectations
+    const transformedFeatureGroup = {
+      id: featureGroup.id,
+      heading: featureGroup.name,          // Map name -> heading for component
+      subheading: featureGroup.description, // Map description -> subheading for component
+      name: featureGroup.name,             // Keep name for backward compatibility
+      description: featureGroup.description, // Keep description for backward compatibility
+      layoutType: featureGroup.layoutType,
+      isActive: featureGroup.isActive,
+      createdAt: featureGroup.createdAt,
+      updatedAt: featureGroup.updatedAt,
+      groupItems: featureGroup.items.map(item => ({
+        ...item,
+        feature: {
+          ...item.feature,
+          title: item.feature.name,
+          iconName: item.feature.iconUrl,
+          isVisible: item.feature.isActive
+        }
+      })),
+      pageAssignments: featureGroup.pageGroups,
+      _count: {
+        groupItems: featureGroup._count.items,
+        pageAssignments: featureGroup._count.pageGroups
+      }
+    };
+
     const response: ApiResponse = {
       success: true,
-      data: featureGroup
+      data: transformedFeatureGroup
     };
     return NextResponse.json(response);
   } catch (error) {

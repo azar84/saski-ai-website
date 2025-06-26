@@ -11,9 +11,22 @@ export async function GET() {
       }
     });
 
+    // Transform data to match component expectations
+    const transformedFeatures = features.map(feature => ({
+      id: feature.id,
+      title: feature.name,           // Map name -> title
+      description: feature.description,
+      iconName: feature.iconUrl,     // Map iconUrl -> iconName
+      category: feature.category,
+      isVisible: feature.isActive,   // Map isActive -> isVisible
+      sortOrder: feature.sortOrder,
+      createdAt: feature.createdAt,
+      updatedAt: feature.updatedAt
+    }));
+
     const response: ApiResponse = {
       success: true,
-      data: features
+      data: transformedFeatures
     };
     return NextResponse.json(response);
   } catch (error) {
@@ -46,12 +59,12 @@ export async function POST(request: NextRequest) {
 
     const feature = await prisma.globalFeature.create({
       data: {
-        title: validatedData.title,
+        name: validatedData.title,
         description: validatedData.description,
-        iconName: validatedData.iconName,
+        iconUrl: validatedData.iconName,
         category: validatedData.category,
         sortOrder: finalSortOrder,
-        isVisible: validatedData.isVisible
+        isActive: validatedData.isVisible
       }
     });
 
@@ -84,12 +97,12 @@ export async function PUT(request: NextRequest) {
     const feature = await prisma.globalFeature.update({
       where: { id: validatedData.id },
       data: {
-        ...(validatedData.title !== undefined && { title: validatedData.title }),
+        ...(validatedData.title !== undefined && { name: validatedData.title }),
         ...(validatedData.description !== undefined && { description: validatedData.description }),
-        ...(validatedData.iconName !== undefined && { iconName: validatedData.iconName }),
+        ...(validatedData.iconName !== undefined && { iconUrl: validatedData.iconName }),
         ...(validatedData.category !== undefined && { category: validatedData.category }),
         ...(validatedData.sortOrder !== undefined && { sortOrder: validatedData.sortOrder }),
-        ...(validatedData.isVisible !== undefined && { isVisible: validatedData.isVisible }),
+        ...(validatedData.isVisible !== undefined && { isActive: validatedData.isVisible }),
         updatedAt: new Date()
       }
     });

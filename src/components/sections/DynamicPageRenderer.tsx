@@ -5,6 +5,8 @@ import FeaturesSection from './FeaturesSection';
 import MediaSection from './MediaSection';
 import FAQSection from './FAQSection';
 import DynamicHeroSection from './DynamicHeroSection';
+import PricingSection from './PricingSection';
+import ConfigurablePricingSection from './ConfigurablePricingSection';
 
 interface PageSection {
   id: number;
@@ -66,7 +68,7 @@ interface PageSection {
     subheading?: string;
     layoutType?: 'grid' | 'list';
     isActive: boolean;
-    groupItems: Array<{
+    items: Array<{
       id: number;
       sortOrder: number;
       isVisible: boolean;
@@ -114,6 +116,14 @@ interface PageSection {
       color: string;
       sortOrder: number;
     }>;
+  };
+  pricingSection?: {
+    id: number;
+    name: string;
+    heading: string;
+    subheading?: string;
+    layoutType: string;
+    isActive: boolean;
   };
 }
 
@@ -198,7 +208,7 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
       case 'features':
         if (section.featureGroup) {
-          const features = section.featureGroup.groupItems
+          const features = section.featureGroup.items
             .filter(item => item.isVisible)
             .map(item => item.feature)
             .sort((a, b) => a.sortOrder - b.sortOrder);
@@ -268,6 +278,17 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         );
 
       case 'pricing':
+        if (section.pricingSection) {
+          return (
+            <ConfigurablePricingSection
+              key={sectionKey}
+              heading={section.title || section.pricingSection.heading}
+              subheading={section.subtitle || section.pricingSection.subheading}
+              pricingSectionId={section.pricingSection.id}
+              layoutType={section.pricingSection.layoutType}
+            />
+          );
+        }
         return (
           <section key={sectionKey} className="bg-gray-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">

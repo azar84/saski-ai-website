@@ -39,12 +39,12 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           name: true,
-          heading: true,
-          subheading: true,
+          description: true,
+          layoutType: true,
           isActive: true,
           _count: {
             select: {
-              groupItems: true
+              items: true
             }
           }
         },
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     if (contentType === 'media-sections') {
       // Fetch all media sections
       const mediaSections = await prisma.mediaSection.findMany({
-        where: { isActive: true },
+        where: { isVisible: true },
         select: {
           id: true,
           headline: true,
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
           mediaType: true,
           layoutType: true,
           badgeText: true,
-          isActive: true,
+          isVisible: true,
           position: true,
           _count: {
             select: {
@@ -91,8 +91,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response);
     }
 
+    if (contentType === 'pricing-sections') {
+      // Fetch all pricing sections
+      const pricingSections = await prisma.pricingSection.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          heading: true,
+          subheading: true,
+          layoutType: true,
+          isActive: true,
+          _count: {
+            select: {
+              sectionPlans: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: pricingSections
+      };
+      return NextResponse.json(response);
+    }
+
     // If no specific type, return all content types
-    const [heroSections, featureGroups, mediaSections] = await Promise.all([
+    const [heroSections, featureGroups, mediaSections, pricingSections] = await Promise.all([
       (prisma.heroSection as any).findMany({
         where: { visible: true },
         select: {
@@ -112,19 +139,19 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           name: true,
-          heading: true,
-          subheading: true,
+          description: true,
+          layoutType: true,
           isActive: true,
           _count: {
             select: {
-              groupItems: true
+              items: true
             }
           }
         },
         orderBy: { createdAt: 'desc' }
       }),
       prisma.mediaSection.findMany({
-        where: { isActive: true },
+        where: { isVisible: true },
         select: {
           id: true,
           headline: true,
@@ -133,7 +160,7 @@ export async function GET(request: NextRequest) {
           mediaType: true,
           layoutType: true,
           badgeText: true,
-          isActive: true,
+          isVisible: true,
           position: true,
           _count: {
             select: {
@@ -145,6 +172,23 @@ export async function GET(request: NextRequest) {
           { position: 'asc' },
           { createdAt: 'desc' }
         ]
+      }),
+      prisma.pricingSection.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          heading: true,
+          subheading: true,
+          layoutType: true,
+          isActive: true,
+          _count: {
+            select: {
+              sectionPlans: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
       })
     ]);
 
@@ -153,7 +197,8 @@ export async function GET(request: NextRequest) {
       data: {
         heroSections,
         featureGroups,
-        mediaSections
+        mediaSections,
+        pricingSections
       }
     };
     return NextResponse.json(response);

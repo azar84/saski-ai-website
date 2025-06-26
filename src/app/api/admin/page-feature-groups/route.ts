@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         },
         featureGroup: {
           include: {
-            groupItems: {
+            items: {
               include: {
                 feature: true
               },
@@ -40,9 +40,36 @@ export async function GET(request: NextRequest) {
       ]
     });
 
+    // Transform data to match component expectations
+    const transformedPageFeatureGroups = pageFeatureGroups.map(pfg => ({
+      ...pfg,
+      featureGroup: {
+        ...pfg.featureGroup,
+        // Map database fields to component fields
+        heading: pfg.featureGroup.name,          // Map name -> heading for component
+        subheading: pfg.featureGroup.description, // Map description -> subheading for component
+        name: pfg.featureGroup.name,             // Keep name for backward compatibility
+        description: pfg.featureGroup.description, // Keep description for backward compatibility
+        groupItems: pfg.featureGroup.items.map(item => ({
+          ...item,
+          feature: {
+            ...item.feature,
+            title: item.feature.name,           // Map name -> title
+            iconName: item.feature.iconUrl,     // Map iconUrl -> iconName
+            isVisible: item.feature.isActive    // Map isActive -> isVisible
+          }
+        })),
+        pageAssignments: [], // Not needed for this context
+        _count: {
+          groupItems: pfg.featureGroup.items.length,
+          pageAssignments: 0
+        }
+      }
+    }));
+
     const response: ApiResponse = {
       success: true,
-      data: pageFeatureGroups
+      data: transformedPageFeatureGroups
     };
     return NextResponse.json(response);
   } catch (error) {
@@ -107,7 +134,7 @@ export async function POST(request: NextRequest) {
         },
         featureGroup: {
           include: {
-            groupItems: {
+            items: {
               include: {
                 feature: true
               },
@@ -123,9 +150,36 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // Transform response data to match component expectations
+    const transformedPageFeatureGroup = {
+      ...pageFeatureGroup,
+      featureGroup: {
+        ...pageFeatureGroup.featureGroup,
+        // Map database fields to component fields
+        heading: pageFeatureGroup.featureGroup.name,          // Map name -> heading for component
+        subheading: pageFeatureGroup.featureGroup.description, // Map description -> subheading for component
+        name: pageFeatureGroup.featureGroup.name,             // Keep name for backward compatibility
+        description: pageFeatureGroup.featureGroup.description, // Keep description for backward compatibility
+        groupItems: pageFeatureGroup.featureGroup.items.map(item => ({
+          ...item,
+          feature: {
+            ...item.feature,
+            title: item.feature.name,           // Map name -> title
+            iconName: item.feature.iconUrl,     // Map iconUrl -> iconName
+            isVisible: item.feature.isActive    // Map isActive -> isVisible
+          }
+        })),
+        pageAssignments: [], // Not needed for this context
+        _count: {
+          groupItems: pageFeatureGroup.featureGroup.items.length,
+          pageAssignments: 0
+        }
+      }
+    };
+
     const response: ApiResponse = {
       success: true,
-      data: pageFeatureGroup
+      data: transformedPageFeatureGroup
     };
     return NextResponse.json(response);
   } catch (error) {
@@ -166,7 +220,7 @@ export async function PUT(request: NextRequest) {
         },
         featureGroup: {
           include: {
-            groupItems: {
+            items: {
               include: {
                 feature: true
               },
@@ -182,9 +236,36 @@ export async function PUT(request: NextRequest) {
       }
     });
 
+    // Transform response data to match component expectations
+    const transformedPageFeatureGroup = {
+      ...pageFeatureGroup,
+      featureGroup: {
+        ...pageFeatureGroup.featureGroup,
+        // Map database fields to component fields
+        heading: pageFeatureGroup.featureGroup.name,          // Map name -> heading for component
+        subheading: pageFeatureGroup.featureGroup.description, // Map description -> subheading for component
+        name: pageFeatureGroup.featureGroup.name,             // Keep name for backward compatibility
+        description: pageFeatureGroup.featureGroup.description, // Keep description for backward compatibility
+        groupItems: pageFeatureGroup.featureGroup.items.map(item => ({
+          ...item,
+          feature: {
+            ...item.feature,
+            title: item.feature.name,           // Map name -> title
+            iconName: item.feature.iconUrl,     // Map iconUrl -> iconName
+            isVisible: item.feature.isActive    // Map isActive -> isVisible
+          }
+        })),
+        pageAssignments: [], // Not needed for this context
+        _count: {
+          groupItems: pageFeatureGroup.featureGroup.items.length,
+          pageAssignments: 0
+        }
+      }
+    };
+
     const response: ApiResponse = {
       success: true,
-      data: pageFeatureGroup
+      data: transformedPageFeatureGroup
     };
     return NextResponse.json(response);
   } catch (error) {

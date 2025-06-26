@@ -86,6 +86,10 @@ interface PageSection {
     slug: string;
     title: string;
   };
+  heroSectionId?: number;
+  featureGroupId?: number;
+  mediaSectionId?: number;
+  pricingSectionId?: number;
 }
 
 interface Page {
@@ -165,16 +169,17 @@ const SortableItem: React.FC<SortableItemProps> = ({
                    <h4 className="font-medium text-gray-900">
                      {section.title || 
                       (section as any).heroSection?.heading || 
-                      (section as any).featureGroup?.heading || 
+                      (section as any).featureGroup?.heading ||
+                      (section as any).pricingSection?.heading ||
                       sectionLabels[section.sectionType as keyof typeof sectionLabels]}
                    </h4>
                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                      {section.sectionType}
                    </span>
                  </div>
-                 {(section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading) && (
+                 {(section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading || (section as any).pricingSection?.subheading) && (
                    <p className="text-sm text-gray-500 mt-1">
-                     {section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading}
+                     {section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading || (section as any).pricingSection?.subheading}
                    </p>
                  )}
                  {(section as any).featureGroup && (
@@ -185,6 +190,11 @@ const SortableItem: React.FC<SortableItemProps> = ({
                  {(section as any).heroSection && (
                    <p className="text-xs text-purple-600 mt-1">
                      Linked to: Hero Section "{(section as any).heroSection.name || (section as any).heroSection.headline || 'Untitled'}"
+                   </p>
+                 )}
+                 {(section as any).pricingSection && (
+                   <p className="text-xs text-green-600 mt-1">
+                     Linked to: Pricing Section "{(section as any).pricingSection.name}" ({(section as any).pricingSection._count?.sectionPlans || 0} plans)
                    </p>
                  )}
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
@@ -248,6 +258,25 @@ interface PageBuilderProps {
   selectedPageId?: number;
 }
 
+interface FormData {
+  sectionType: string;
+  title: string;
+  subtitle: string;
+  content: string;
+  isVisible: boolean;
+  heroSectionId?: number;
+  featureGroupId?: number;
+  mediaSectionId?: number;
+  pricingSectionId?: number;
+}
+
+interface AvailableContent {
+  heroSections: any[];
+  featureGroups: any[];
+  mediaSections: any[];
+  pricingSections: any[];
+}
+
 const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
   const [pages, setPages] = useState<Page[]>([]);
   const [sections, setSections] = useState<PageSection[]>([]);
@@ -258,26 +287,24 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
   const [editingSection, setEditingSection] = useState<PageSection | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  const [formData, setFormData] = useState({
-    sectionType: 'hero' as string,
+  const [formData, setFormData] = useState<FormData>({
+    sectionType: '',
     title: '',
     subtitle: '',
     content: '',
     isVisible: true,
-    heroSectionId: null as number | null,
-    featureGroupId: null as number | null,
-    mediaSectionId: null as number | null
+    heroSectionId: undefined,
+    featureGroupId: undefined,
+    mediaSectionId: undefined,
+    pricingSectionId: undefined
   });
 
   // Available content for selection
-  const [availableContent, setAvailableContent] = useState<{
-    heroSections: any[];
-    featureGroups: any[];
-    mediaSections: any[];
-  }>({
+  const [availableContent, setAvailableContent] = useState<AvailableContent>({
     heroSections: [],
     featureGroups: [],
-    mediaSections: []
+    mediaSections: [],
+    pricingSections: []
   });
 
   // Track which hero sections are in use by other pages
@@ -438,6 +465,11 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       return;
     }
 
+    if (formData.sectionType === 'pricing' && !formData.pricingSectionId) {
+      setMessage({ type: 'error', text: 'Please select a pricing section' });
+      return;
+    }
+
     setSaving(true);
     try {
       const requestData = {
@@ -578,28 +610,30 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
   const startEdit = (section: PageSection) => {
     setEditingSection(section);
     setFormData({
-      sectionType: section.sectionType as any,
+      sectionType: section.sectionType,
       title: section.title || '',
       subtitle: section.subtitle || '',
       content: section.content || '',
       isVisible: section.isVisible,
-      heroSectionId: (section as any).heroSectionId || null,
-      featureGroupId: (section as any).featureGroupId || null,
-      mediaSectionId: (section as any).mediaSectionId || null
+      heroSectionId: section.heroSectionId,
+      featureGroupId: section.featureGroupId,
+      mediaSectionId: section.mediaSectionId,
+      pricingSectionId: section.pricingSectionId
     });
     setShowAddSection(true);
   };
 
   const resetForm = () => {
     setFormData({
-      sectionType: 'hero',
+      sectionType: '',
       title: '',
       subtitle: '',
       content: '',
       isVisible: true,
-      heroSectionId: null,
-      featureGroupId: null,
-      mediaSectionId: null
+      heroSectionId: undefined,
+      featureGroupId: undefined,
+      mediaSectionId: undefined,
+      pricingSectionId: undefined
     });
     setEditingSection(null);
     setShowAddSection(false);
@@ -1015,6 +1049,53 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                 </div>
               )}
 
+              {formData.sectionType === 'pricing' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Select Pricing Section *
+                    {formData.pricingSectionId && (
+                      <span className="ml-2 text-sm text-green-600">✓ Selected</span>
+                    )}
+                  </label>
+                  <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
+                    {availableContent.pricingSections.map((pricing) => (
+                      <button
+                        key={pricing.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, pricingSectionId: pricing.id })}
+                        className={`p-3 rounded-lg border-2 text-left transition-all duration-200 ${
+                          formData.pricingSectionId === pricing.id
+                            ? 'border-green-500 bg-green-50 text-green-900'
+                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{pricing.name}</div>
+                          {formData.pricingSectionId === pricing.id && (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600 mt-1">{pricing.heading}</div>
+                        {pricing.subheading && (
+                          <div className="text-sm text-gray-500 mt-1">{pricing.subheading}</div>
+                        )}
+                        <div className="text-xs text-gray-400 mt-1 flex items-center space-x-3">
+                          <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-md font-medium capitalize">
+                            {pricing.layoutType}
+                          </span>
+                          <span>{pricing._count.sectionPlans} plans</span>
+                        </div>
+                      </button>
+                    ))}
+                    {availableContent.pricingSections.length === 0 && (
+                      <p className="text-gray-500 text-center py-4">
+                        No pricing sections available. Create one first in Pricing Sections manager.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1077,7 +1158,7 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
               {/* Actions */}
               <div className="flex space-x-4 pt-4 border-t border-gray-200">
                 {/* Validation Status */}
-                {(formData.sectionType === 'hero' || formData.sectionType === 'features' || formData.sectionType === 'media') && (
+                {(formData.sectionType === 'hero' || formData.sectionType === 'features' || formData.sectionType === 'media' || formData.sectionType === 'pricing') && (
                   <div className="flex-1 text-sm">
                     {formData.sectionType === 'hero' && !formData.heroSectionId && (
                       <div className="text-amber-600 flex items-center">
@@ -1097,9 +1178,16 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                         Please select a media section
                       </div>
                     )}
+                    {formData.sectionType === 'pricing' && !formData.pricingSectionId && (
+                      <div className="text-amber-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        Please select a pricing section
+                      </div>
+                    )}
                     {((formData.sectionType === 'hero' && formData.heroSectionId) || 
                       (formData.sectionType === 'features' && formData.featureGroupId) ||
-                      (formData.sectionType === 'media' && formData.mediaSectionId)) && (
+                      (formData.sectionType === 'media' && formData.mediaSectionId) ||
+                      (formData.sectionType === 'pricing' && formData.pricingSectionId)) && (
                       <div className="text-green-600 flex items-center">
                         <CheckCircle className="w-4 h-4 mr-1" />
                         Ready to save

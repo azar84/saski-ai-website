@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import IconPicker, { iconLibrary } from '@/components/ui/IconPicker';
+import PricingSectionsManager from './PricingSectionsManager';
 import {
   Users,
   Database,
@@ -25,7 +26,9 @@ import {
   Eye,
   DollarSign,
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  Layout,
+  Grid
   } from 'lucide-react';
 
 const IconDisplay = ({ iconName, iconUrl, className = "w-5 h-5 text-gray-600" }: { 
@@ -327,7 +330,7 @@ export default function ConfigurablePricingManager() {
       setNewFeatureType({ name: '', unit: '', description: '', icon: 'Settings', iconUrl: '', isActive: true, sortOrder: 0 });
       setIconFile(null);
       setIconPreview('');
-      showSuccess(`Feature type "${createdType.name}" created successfully!`);
+      showSuccess(`Feature type "${(createdType as any).name}" created successfully!`);
     } catch (error) {
       console.error('Failed to create feature type:', error);
       showError('Failed to create feature type. Please try again.');
@@ -466,7 +469,7 @@ export default function ConfigurablePricingManager() {
       const createdFeature = await post('/api/admin/basic-features', newBasicFeature);
       setBasicFeatures([...basicFeatures, createdFeature]);
       setNewBasicFeature({ name: '', description: '', isActive: true, sortOrder: 0 });
-      showSuccess(`Basic feature "${createdFeature.name}" created successfully!`);
+      showSuccess(`Basic feature "${(createdFeature as any).name}" created successfully!`);
     } catch (error) {
       console.error('Failed to create basic feature:', error);
       showError('Failed to create basic feature. Please try again.');
@@ -602,6 +605,7 @@ export default function ConfigurablePricingManager() {
           <nav className="flex space-x-2">
             {[
               { id: 'plans', label: 'Plans', icon: Users, color: 'bg-blue-500' },
+              { id: 'pricing-sections', label: 'Pricing Sections', icon: Layout, color: 'bg-pink-500' },
               { id: 'feature-pool', label: 'Feature Pool', icon: Database, color: 'bg-emerald-500' },
               { id: 'basic-features', label: 'Basic Features', icon: CheckCircle, color: 'bg-green-500' },
               { id: 'plan-limits', label: 'Plan Limits', icon: ArrowUpDown, color: 'bg-purple-500' },
@@ -904,6 +908,13 @@ export default function ConfigurablePricingManager() {
               ))}
             </div>
           </div>
+        )}
+
+        {activeTab === 'pricing-sections' && (
+          <PricingSectionsManager 
+            onSuccess={showSuccess}
+            onError={showError}
+          />
         )}
 
         {activeTab === 'feature-pool' && (

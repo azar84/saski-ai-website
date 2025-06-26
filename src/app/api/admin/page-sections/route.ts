@@ -110,11 +110,10 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            heading: true,
-            subheading: true,
+            description: true,
             layoutType: true,
             isActive: true,
-            groupItems: {
+            items: {
               where: { isVisible: true },
               include: {
                 feature: true
@@ -123,7 +122,7 @@ export async function GET(request: NextRequest) {
             },
             _count: {
               select: {
-                groupItems: true
+                items: true
               }
             }
           }
@@ -137,26 +136,43 @@ export async function GET(request: NextRequest) {
             mediaType: true,
             layoutType: true,
             badgeText: true,
-            isActive: true,
+            isVisible: true,
             position: true,
-            alignment: true,
-            mediaSize: true,
-            mediaPosition: true,
-            showBadge: true,
-            showCtaButton: true,
-            ctaText: true,
-            ctaUrl: true,
-            ctaStyle: true,
-            enableScrollAnimations: true,
-            animationType: true,
-            backgroundStyle: true,
-            backgroundColor: true,
-            textColor: true,
-            paddingTop: true,
-            paddingBottom: true,
-            containerMaxWidth: true,
             features: {
+              orderBy: { position: 'asc' }
+            }
+          }
+        },
+        pricingSection: {
+          select: {
+            id: true,
+            name: true,
+            heading: true,
+            subheading: true,
+            layoutType: true,
+            isActive: true,
+            sectionPlans: {
+              where: { isVisible: true },
+              include: {
+                plan: {
+                  include: {
+                    pricing: {
+                      include: {
+                        billingCycle: true
+                      }
+                    },
+                    features: true,
+                    featureLimits: true,
+                    basicFeatures: true
+                  }
+                }
+              },
               orderBy: { sortOrder: 'asc' }
+            },
+            _count: {
+              select: {
+                sectionPlans: true
+              }
             }
           }
         }
@@ -205,14 +221,15 @@ export async function POST(request: NextRequest) {
       data: {
         pageId: validatedData.pageId,
         sectionType: validatedData.sectionType,
-        title: validatedData.title || null,
-        subtitle: validatedData.subtitle || null,
-        content: validatedData.content || null,
+        title: validatedData.title,
+        subtitle: validatedData.subtitle,
+        content: validatedData.content,
         sortOrder: finalSortOrder,
         isVisible: validatedData.isVisible,
-        heroSectionId: validatedData.heroSectionId || null,
-        featureGroupId: validatedData.featureGroupId || null,
-        mediaSectionId: validatedData.mediaSectionId || null
+        heroSectionId: validatedData.heroSectionId,
+        featureGroupId: validatedData.featureGroupId,
+        mediaSectionId: validatedData.mediaSectionId,
+        pricingSectionId: validatedData.pricingSectionId
       },
       include: {
         page: {
@@ -241,11 +258,9 @@ export async function POST(request: NextRequest) {
             mediaPosition: true,
             backgroundType: true,
             backgroundValue: true,
-            // Text Colors
             taglineColor: true,
             headlineColor: true,
             subheadingColor: true,
-            // CTA Styling
             ctaPrimaryBgColor: true,
             ctaPrimaryTextColor: true,
             ctaSecondaryBgColor: true,
@@ -285,9 +300,21 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            heading: true,
-            subheading: true,
-            isActive: true
+            description: true,
+            layoutType: true,
+            isActive: true,
+            items: {
+              where: { isVisible: true },
+              include: {
+                feature: true
+              },
+              orderBy: { sortOrder: 'asc' }
+            },
+            _count: {
+              select: {
+                items: true
+              }
+            }
           }
         },
         mediaSection: {
@@ -299,8 +326,44 @@ export async function POST(request: NextRequest) {
             mediaType: true,
             layoutType: true,
             badgeText: true,
+            isVisible: true,
+            position: true,
+            features: {
+              orderBy: { position: 'asc' }
+            }
+          }
+        },
+        pricingSection: {
+          select: {
+            id: true,
+            name: true,
+            heading: true,
+            subheading: true,
+            layoutType: true,
             isActive: true,
-            position: true
+            sectionPlans: {
+              where: { isVisible: true },
+              include: {
+                plan: {
+                  include: {
+                    pricing: {
+                      include: {
+                        billingCycle: true
+                      }
+                    },
+                    features: true,
+                    featureLimits: true,
+                    basicFeatures: true
+                  }
+                }
+              },
+              orderBy: { sortOrder: 'asc' }
+            },
+            _count: {
+              select: {
+                sectionPlans: true
+              }
+            }
           }
         }
       }
@@ -344,6 +407,7 @@ export async function PUT(request: NextRequest) {
         ...(validatedData.heroSectionId !== undefined && { heroSectionId: validatedData.heroSectionId }),
         ...(validatedData.featureGroupId !== undefined && { featureGroupId: validatedData.featureGroupId }),
         ...(validatedData.mediaSectionId !== undefined && { mediaSectionId: validatedData.mediaSectionId }),
+        ...(validatedData.pricingSectionId !== undefined && { pricingSectionId: validatedData.pricingSectionId }),
         updatedAt: new Date()
       },
       include: {
@@ -415,10 +479,10 @@ export async function PUT(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            heading: true,
-            subheading: true,
+            description: true,
+            layoutType: true,
             isActive: true,
-            groupItems: {
+            items: {
               select: {
                 id: true,
                 sortOrder: true,
@@ -426,16 +490,21 @@ export async function PUT(request: NextRequest) {
                 feature: {
                   select: {
                     id: true,
-                    title: true,
+                    name: true,
                     description: true,
-                    iconName: true,
+                    iconUrl: true,
                     category: true,
                     sortOrder: true,
-                    isVisible: true
+                    isActive: true
                   }
                 }
               },
               orderBy: { sortOrder: 'asc' }
+            },
+            _count: {
+              select: {
+                items: true
+              }
             }
           }
         },
@@ -448,34 +517,50 @@ export async function PUT(request: NextRequest) {
             mediaType: true,
             layoutType: true,
             badgeText: true,
-            badgeColor: true,
-            isActive: true,
+            isVisible: true,
             position: true,
-            alignment: true,
-            mediaSize: true,
-            mediaPosition: true,
-            showBadge: true,
-            showCtaButton: true,
-            ctaText: true,
-            ctaUrl: true,
-            ctaStyle: true,
-            enableScrollAnimations: true,
-            animationType: true,
-            backgroundStyle: true,
-            backgroundColor: true,
-            textColor: true,
-            paddingTop: true,
-            paddingBottom: true,
-            containerMaxWidth: true,
             features: {
               select: {
                 id: true,
-                icon: true,
-                label: true,
-                color: true,
-                sortOrder: true
+                iconUrl: true,
+                title: true,
+                description: true,
+                position: true
+              },
+              orderBy: { position: 'asc' }
+            }
+          }
+        },
+        pricingSection: {
+          select: {
+            id: true,
+            name: true,
+            heading: true,
+            subheading: true,
+            layoutType: true,
+            isActive: true,
+            sectionPlans: {
+              where: { isVisible: true },
+              include: {
+                plan: {
+                  include: {
+                    pricing: {
+                      include: {
+                        billingCycle: true
+                      }
+                    },
+                    features: true,
+                    featureLimits: true,
+                    basicFeatures: true
+                  }
+                }
               },
               orderBy: { sortOrder: 'asc' }
+            },
+            _count: {
+              select: {
+                sectionPlans: true
+              }
             }
           }
         }

@@ -119,6 +119,7 @@ model Page {
   headerNavItems   HeaderNavItem[]
   featureGroups    PageFeatureGroup[]
   pageSections     PageSection[]
+  pricingSections  PagePricingSection[]
 
   @@map("pages")
 }
@@ -278,6 +279,8 @@ model CTA {
   headerCTAs       HeaderCTA[]
   heroPrimary      HeroSection[] @relation("HeroPrimaryCTA")
   heroSecondary    HeroSection[] @relation("HeroSecondaryCTA")
+  homeHeroPrimary  HomePageHero[] @relation("HomeHeroPrimaryCTA")
+  homeHeroSecondary HomePageHero[] @relation("HomeHeroSecondaryCTA")
 
   @@map("ctas")
 }
@@ -301,14 +304,20 @@ model HomePageHero {
   tagline         String?   // Optional badge text
   headline        String    // Main hero title
   subheading      String?   // Supporting text
-  ctaPrimaryText  String?   // Primary button text
-  ctaPrimaryUrl   String?   // Primary button URL
-  ctaSecondaryText String?  // Secondary button text
-  ctaSecondaryUrl String?   // Secondary button URL
+  ctaPrimaryId    Int?      // Reference to primary CTA
+  ctaSecondaryId  Int?      // Reference to secondary CTA
+  ctaPrimaryText  String?   // Primary button text (legacy)
+  ctaPrimaryUrl   String?   // Primary button URL (legacy)
+  ctaSecondaryText String?  // Secondary button text (legacy)
+  ctaSecondaryUrl String?   // Secondary button URL (legacy)
   mediaUrl        String?   // Hero image/video
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  // Relations
+  ctaPrimary      CTA?      @relation("HomeHeroPrimaryCTA", fields: [ctaPrimaryId], references: [id], onDelete: SetNull)
+  ctaSecondary    CTA?      @relation("HomeHeroSecondaryCTA", fields: [ctaSecondaryId], references: [id], onDelete: SetNull)
 
   @@map("home_page_hero")
 }
@@ -401,12 +410,14 @@ model PageSection {
   heroSectionId   Int?          // Reference to HeroSection
   featureGroupId  Int?          // Reference to FeatureGroup
   mediaSectionId  Int?          // Reference to MediaSection
+  pricingSectionId Int?         // Reference to PricingSection
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   page            Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
   heroSection     HeroSection?  @relation(fields: [heroSectionId], references: [id], onDelete: SetNull)
   featureGroup    FeatureGroup? @relation(fields: [featureGroupId], references: [id], onDelete: SetNull)
   mediaSection    MediaSection? @relation(fields: [mediaSectionId], references: [id], onDelete: SetNull)
+  pricingSection  PricingSection? @relation(fields: [pricingSectionId], references: [id], onDelete: SetNull)
 
   @@map("page_sections")
 }
@@ -475,6 +486,7 @@ model Plan {
   features       PlanFeature[]
   featureLimits  PlanFeatureLimit[] // Configurable limits (assistants, tokens, etc.)
   basicFeatures  PlanBasicFeature[] // Basic features assigned to this plan
+  sectionPlans   PricingSectionPlan[] // Pricing sections using this plan
 
   @@map("plans")
 }
@@ -687,4 +699,59 @@ model PlanBasicFeature {
   
   @@unique([planId, basicFeatureId])
   @@map("plan_basic_features")
+}
+
+// Pricing Sections (configurable pricing displays)
+model PricingSection {
+  id          Int      @id @default(autoincrement())
+  name        String   // Internal name (e.g., "Home Page Pricing")
+  heading     String   // Display heading (e.g., "Choose Your Plan")
+  subheading  String?  // Display subheading (optional)
+  layoutType  String   @default("standard") // standard, comparison, cards, grid, list
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  sectionPlans        PricingSectionPlan[]
+  pageAssignments     PagePricingSection[]
+  pageSections        PageSection[]
+
+  @@map("pricing_sections")
+}
+
+// Pricing Section Plans (which plans to include in each section)
+model PricingSectionPlan {
+  id               Int            @id @default(autoincrement())
+  pricingSectionId Int
+  planId           String
+  sortOrder        Int            @default(0)
+  isVisible        Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  // Relations
+  pricingSection   PricingSection @relation(fields: [pricingSectionId], references: [id], onDelete: Cascade)
+  plan             Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  
+  @@unique([pricingSectionId, planId])
+  @@map("pricing_section_plans")
+}
+
+// Page Pricing Section assignments (optional, for future use)
+model PagePricingSection {
+  id               Int            @id @default(autoincrement())
+  pageId           Int
+  pricingSectionId Int
+  sortOrder        Int            @default(0)
+  isVisible        Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  // Relations
+  page             Page           @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pricingSection   PricingSection @relation(fields: [pricingSectionId], references: [id], onDelete: Cascade)
+  
+  @@unique([pageId, pricingSectionId])
+  @@map("page_pricing_sections")
 }
