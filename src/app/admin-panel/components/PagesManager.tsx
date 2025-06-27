@@ -468,26 +468,58 @@ export default function PagesManager() {
                 <h3 className="text-sm font-medium text-gray-700">Navigation Visibility</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id="showInHeader"
-                      checked={formData.showInHeader}
-                      onChange={(e) => handleInputChange('showInHeader', e.target.checked)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                    />
-                    <label htmlFor="showInHeader" className="text-sm text-gray-700">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        id="showInHeader"
+                        checked={formData.showInHeader}
+                        onChange={(e) => handleInputChange('showInHeader', e.target.checked)}
+                        className="w-4 h-4 appearance-none bg-white border border-gray-300 rounded cursor-pointer focus:ring-2 focus:ring-blue-500 focus:border-blue-500 checked:bg-blue-600 checked:border-blue-600"
+                        style={{ appearance: 'none' }}
+                      />
+                      {formData.showInHeader && (
+                        <svg
+                          className="absolute top-0 left-0 w-4 h-4 text-white pointer-events-none"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <label htmlFor="showInHeader" className="text-sm text-gray-700 cursor-pointer">
                       Show in Header Navigation
                     </label>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id="showInFooter"
-                      checked={formData.showInFooter}
-                      onChange={(e) => handleInputChange('showInFooter', e.target.checked)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                    />
-                    <label htmlFor="showInFooter" className="text-sm text-gray-700">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        id="showInFooter"
+                        checked={formData.showInFooter}
+                        onChange={(e) => handleInputChange('showInFooter', e.target.checked)}
+                        className="w-4 h-4 appearance-none bg-white border border-gray-300 rounded cursor-pointer focus:ring-2 focus:ring-blue-500 focus:border-blue-500 checked:bg-blue-600 checked:border-blue-600"
+                        style={{ appearance: 'none' }}
+                      />
+                      {formData.showInFooter && (
+                        <svg
+                          className="absolute top-0 left-0 w-4 h-4 text-white pointer-events-none"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <label htmlFor="showInFooter" className="text-sm text-gray-700 cursor-pointer">
                       Show in Footer Navigation
                     </label>
                   </div>

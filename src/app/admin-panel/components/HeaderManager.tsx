@@ -361,12 +361,28 @@ const HeaderManager = () => {
 
                 <div className="flex items-center justify-between">
                   <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={item.isVisible}
-                      onChange={(e) => updateNavItem(index, { isVisible: e.target.checked })}
-                      className="mr-2"
-                    />
+                    <div className="relative mr-2">
+                      <input
+                        type="checkbox"
+                        checked={item.isVisible}
+                        onChange={(e) => updateNavItem(index, { isVisible: e.target.checked })}
+                        className="w-4 h-4 appearance-none bg-white border border-gray-300 rounded cursor-pointer focus:ring-2 focus:ring-blue-500 focus:border-blue-500 checked:bg-blue-600 checked:border-blue-600"
+                        style={{ appearance: 'none' }}
+                      />
+                      {item.isVisible && (
+                        <svg
+                          className="absolute top-0 left-0 w-4 h-4 text-white pointer-events-none"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
+                    </div>
                     <span className="text-sm text-gray-700">Visible</span>
                   </label>
                   <button
