@@ -31,7 +31,8 @@ import {
   Twitter,
   Linkedin,
   Instagram,
-  Youtube
+  Youtube,
+  Type
 } from 'lucide-react';
 import FormFieldTypes, { FormFieldType } from '@/components/form-builder/FormFieldTypes';
   import IconPicker from '@/components/ui/IconPicker';
@@ -106,6 +107,7 @@ interface Form {
   
   // Contact Information
   showContactInfo?: boolean;
+  contactPosition?: string;
   contactPhone?: string;
   contactEmail?: string;
   contactAddress?: string;
@@ -116,6 +118,14 @@ interface Form {
   socialLinkedin?: string;
   socialInstagram?: string;
   socialYoutube?: string;
+  
+  // Contact Text Customization
+  contactHeading?: string;
+  contactSubheading?: string;
+  contactPhoneLabel?: string;
+  contactEmailLabel?: string;
+  contactAddressLabel?: string;
+  contactSocialLabel?: string;
   
   // Form Styling
   ctaPosition?: string;
@@ -440,6 +450,13 @@ export default function FormBuilder() {
     enableCaptcha: true,
     captchaType: 'math',
     captchaDifficulty: 'medium',
+    contactPosition: 'right',
+    contactHeading: 'Get in Touch',
+    contactSubheading: "We'd love to hear from you. Here's how you can reach us.",
+    contactPhoneLabel: 'Phone',
+    contactEmailLabel: 'Email',
+    contactAddressLabel: 'Address',
+    contactSocialLabel: 'Follow Us',
     formBorderColor: 'transparent' // Default to no border for new forms
   });
   const [fieldData, setFieldData] = useState<FormField>({
@@ -1335,6 +1352,77 @@ export default function FormBuilder() {
               {/* Contact Information Fields */}
               {formData.showContactInfo && (
                 <div className="space-y-4 border-t pt-4">
+                  {/* Contact Text Customization */}
+                  <div className="space-y-4 border-b pb-4">
+                    <h5 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                      <Type className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                      Contact Section Text
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Section Heading
+                        </label>
+                        <Input
+                          value={formData.contactHeading || ''}
+                          onChange={(e) => handleInputChange('contactHeading', e.target.value)}
+                          placeholder="Get in Touch"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Section Description
+                        </label>
+                        <Input
+                          value={formData.contactSubheading || ''}
+                          onChange={(e) => handleInputChange('contactSubheading', e.target.value)}
+                          placeholder="We'd love to hear from you..."
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Phone Label
+                        </label>
+                        <Input
+                          value={formData.contactPhoneLabel || ''}
+                          onChange={(e) => handleInputChange('contactPhoneLabel', e.target.value)}
+                          placeholder="Phone"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email Label
+                        </label>
+                        <Input
+                          value={formData.contactEmailLabel || ''}
+                          onChange={(e) => handleInputChange('contactEmailLabel', e.target.value)}
+                          placeholder="Email"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Address Label
+                        </label>
+                        <Input
+                          value={formData.contactAddressLabel || ''}
+                          onChange={(e) => handleInputChange('contactAddressLabel', e.target.value)}
+                          placeholder="Address"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Social Media Label
+                        </label>
+                        <Input
+                          value={formData.contactSocialLabel || ''}
+                          onChange={(e) => handleInputChange('contactSocialLabel', e.target.value)}
+                          placeholder="Follow Us"
+                        />
+                      </div>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
@@ -2085,6 +2173,110 @@ export default function FormBuilder() {
               {/* Contact Information Fields */}
               {selectedForm.showContactInfo && (
                 <div className="space-y-4 border-t pt-4">
+                  {/* Contact Position */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Contact Information Position
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { value: 'left', label: 'Left', description: 'Left of form' },
+                        { value: 'right', label: 'Right', description: 'Right of form' },
+                        { value: 'top', label: 'Top', description: 'Above form' },
+                        { value: 'bottom', label: 'Bottom', description: 'Below form' }
+                      ].map((position) => (
+                        <div
+                          key={position.value}
+                          className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${
+                            selectedForm.contactPosition === position.value
+                              ? 'border-gray-200 hover:border-gray-300'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          style={selectedForm.contactPosition === position.value ? { 
+                            borderColor: getPrimaryColor(), 
+                            backgroundColor: `${getPrimaryColor()}08` 
+                          } : {}}
+                          onClick={() => setSelectedForm({...selectedForm, contactPosition: position.value})}
+                        >
+                          <div className="text-sm font-medium text-gray-900">{position.label}</div>
+                          <div className="text-xs text-gray-500 mt-1">{position.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Contact Text Customization */}
+                  <div className="space-y-4 border-b pb-4">
+                    <h5 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                      <Type className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                      Contact Section Text
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Section Heading
+                        </label>
+                        <Input
+                          value={selectedForm.contactHeading || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, contactHeading: e.target.value})}
+                          placeholder="Get in Touch"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Section Description
+                        </label>
+                        <Input
+                          value={selectedForm.contactSubheading || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, contactSubheading: e.target.value})}
+                          placeholder="We'd love to hear from you..."
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Phone Label
+                        </label>
+                        <Input
+                          value={selectedForm.contactPhoneLabel || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, contactPhoneLabel: e.target.value})}
+                          placeholder="Phone"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Email Label
+                        </label>
+                        <Input
+                          value={selectedForm.contactEmailLabel || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, contactEmailLabel: e.target.value})}
+                          placeholder="Email"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Address Label
+                        </label>
+                        <Input
+                          value={selectedForm.contactAddressLabel || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, contactAddressLabel: e.target.value})}
+                          placeholder="Address"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Social Media Label
+                        </label>
+                        <Input
+                          value={selectedForm.contactSocialLabel || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, contactSocialLabel: e.target.value})}
+                          placeholder="Follow Us"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">

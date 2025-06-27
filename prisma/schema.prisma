@@ -982,6 +982,7 @@ model Form {
   
   // Contact Information Settings
   showContactInfo Boolean  @default(false)               // Show company contact info
+  contactPosition String   @default("right")             // Position: left, right, top, bottom
   contactPhone    String?                                // Company phone number
   contactEmail    String?                                // Company email
   contactAddress  String?                                // Company address
@@ -990,6 +991,14 @@ model Form {
   socialLinkedin  String?                                // LinkedIn URL
   socialInstagram String?                                // Instagram URL
   socialYoutube   String?                                // YouTube URL
+  
+  // Contact Section Text Customization
+  contactHeading     String   @default("Get in Touch")   // Contact section heading
+  contactSubheading  String   @default("We'd love to hear from you. Here's how you can reach us.") // Contact section description
+  contactPhoneLabel  String   @default("Phone")          // Phone label
+  contactEmailLabel  String   @default("Email")          // Email label
+  contactAddressLabel String  @default("Address")        // Address label
+  contactSocialLabel String   @default("Follow Us")      // Social media label
   
   // Form Styling
   formBackgroundColor String?                            // Form container background color

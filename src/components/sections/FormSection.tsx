@@ -82,6 +82,7 @@ interface Form {
   
   // Contact Information Settings
   showContactInfo?: boolean;
+  contactPosition?: string;
   contactPhone?: string;
   contactEmail?: string;
   contactAddress?: string;
@@ -90,6 +91,14 @@ interface Form {
   socialLinkedin?: string;
   socialInstagram?: string;
   socialYoutube?: string;
+  
+  // Contact Text Customization
+  contactHeading?: string;
+  contactSubheading?: string;
+  contactPhoneLabel?: string;
+  contactEmailLabel?: string;
+  contactAddressLabel?: string;
+  contactSocialLabel?: string;
   
   // Form Styling & Colors
   formBackgroundColor?: string;
@@ -346,7 +355,9 @@ export default function FormSection({
             boxShadow: 'none !important',
             filter: 'none !important',
             WebkitBoxShadow: 'none !important',
-            MozBoxShadow: 'none !important'
+            MozBoxShadow: 'none !important',
+            fontFamily: designSystem?.fontFamily || 'Manrope, system-ui, sans-serif',
+            fontWeight: designSystem?.fontWeightBold || '700'
           }}
           onMouseEnter={(e) => {
             if (form.ctaHoverBackgroundColor) {
@@ -406,9 +417,44 @@ export default function FormSection({
     if (!activeContactInfo) return null;
 
     const primaryColor = designSystem?.primaryColor || '#3B82F6';
-    const textPrimary = designSystem?.textPrimary || '#1F2937';
-    const textSecondary = designSystem?.textSecondary || '#6B7280';
     const backgroundPrimary = designSystem?.backgroundPrimary || '#FFFFFF';
+    
+    // Get the section background color for contrast calculation
+    const sectionBg = backgroundColor || form?.sectionBackgroundColor || backgroundPrimary;
+    
+    // Determine if text should be light or dark based on section background - same logic as hero section
+    const getTextColor = () => {
+      if (!sectionBg) return 'text-gray-900'; // Default to dark text
+      
+      // Handle hex colors
+      const hex = sectionBg.replace('#', '');
+      if (hex.length === 6) {
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness > 128 ? 'text-gray-900' : 'text-white';
+      }
+      
+      // For other color formats, assume dark text
+      return 'text-gray-900';
+    };
+
+    // Get smart colors based on section background
+    const getSmartColors = () => {
+      const textColor = getTextColor();
+      const isDarkBackground = textColor === 'text-white';
+      
+      return {
+        textPrimary: isDarkBackground ? '#FFFFFF' : '#1F2937',
+        textSecondary: isDarkBackground ? '#E5E7EB' : '#6B7280',
+        textMuted: isDarkBackground ? '#9CA3AF' : '#9CA3AF',
+        iconBg: isDarkBackground ? 'rgba(255, 255, 255, 0.5)' : `${primaryColor}15`,
+        iconColor: isDarkBackground ? '#FFFFFF' : primaryColor
+      };
+    };
+
+    const smartColors = getSmartColors();
 
     const socialIcons = {
       facebook: Facebook,
@@ -422,11 +468,24 @@ export default function FormSection({
       <div className="space-y-8">
         {/* Contact Header */}
         <div className="text-center">
-          <h3 className="text-2xl font-bold mb-2" style={{ color: textPrimary }}>
-            Get in Touch
+          <h3 
+            className="text-2xl font-bold mb-2" 
+            style={{ 
+              color: smartColors.textPrimary,
+              fontWeight: designSystem?.fontWeightBold || '700'
+            }}
+          >
+            {form?.contactHeading || 'Get in Touch'}
           </h3>
-          <p className="text-base" style={{ color: textSecondary }}>
-            We'd love to hear from you. Here's how you can reach us.
+          <p 
+            className="text-base" 
+            style={{ 
+              color: smartColors.textSecondary,
+              fontSize: designSystem?.fontSizeBase || '16px',
+              lineHeight: designSystem?.lineHeightBase || '1.5'
+            }}
+          >
+            {form?.contactSubheading || "We'd love to hear from you. Here's how you can reach us."}
           </p>
         </div>
 
@@ -437,18 +496,18 @@ export default function FormSection({
             <div className="flex items-center space-x-4 group">
               <div 
                 className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                style={{ backgroundColor: `${primaryColor}15` }}
+                style={{ backgroundColor: smartColors.iconBg }}
               >
-                <Phone className="w-5 h-5" style={{ color: primaryColor }} />
+                <Phone className="w-5 h-5" style={{ color: smartColors.iconColor }} />
               </div>
               <div>
-                <p className="text-sm font-medium" style={{ color: textSecondary }}>
-                  Phone
+                <p className="text-sm font-medium" style={{ color: smartColors.textSecondary }}>
+                  {form?.contactPhoneLabel || 'Phone'}
                 </p>
                 <a 
                   href={`tel:${activeContactInfo.phone}`}
                   className="text-lg font-semibold hover:underline transition-colors duration-200"
-                  style={{ color: textPrimary }}
+                  style={{ color: smartColors.textPrimary }}
                 >
                   {activeContactInfo.phone}
                 </a>
@@ -461,18 +520,18 @@ export default function FormSection({
             <div className="flex items-center space-x-4 group">
               <div 
                 className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                style={{ backgroundColor: `${primaryColor}15` }}
+                style={{ backgroundColor: smartColors.iconBg }}
               >
-                <Mail className="w-5 h-5" style={{ color: primaryColor }} />
+                <Mail className="w-5 h-5" style={{ color: smartColors.iconColor }} />
               </div>
               <div>
-                <p className="text-sm font-medium" style={{ color: textSecondary }}>
-                  Email
+                <p className="text-sm font-medium" style={{ color: smartColors.textSecondary }}>
+                  {form?.contactEmailLabel || 'Email'}
                 </p>
                 <a 
                   href={`mailto:${activeContactInfo.email}`}
                   className="text-lg font-semibold hover:underline transition-colors duration-200"
-                  style={{ color: textPrimary }}
+                  style={{ color: smartColors.textPrimary }}
                 >
                   {activeContactInfo.email}
                 </a>
@@ -485,15 +544,15 @@ export default function FormSection({
             <div className="flex items-start space-x-4 group">
               <div 
                 className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                style={{ backgroundColor: `${primaryColor}15` }}
+                style={{ backgroundColor: smartColors.iconBg }}
               >
-                <MapPin className="w-5 h-5" style={{ color: primaryColor }} />
+                <MapPin className="w-5 h-5" style={{ color: smartColors.iconColor }} />
               </div>
               <div>
-                <p className="text-sm font-medium" style={{ color: textSecondary }}>
-                  Address
+                <p className="text-sm font-medium" style={{ color: smartColors.textSecondary }}>
+                  {form?.contactAddressLabel || 'Address'}
                 </p>
-                <p className="text-lg font-semibold leading-relaxed" style={{ color: textPrimary }}>
+                <p className="text-lg font-semibold leading-relaxed" style={{ color: smartColors.textPrimary }}>
                   {activeContactInfo.address}
                 </p>
               </div>
@@ -503,8 +562,8 @@ export default function FormSection({
           {/* Social Media */}
           {activeContactInfo.socialMedia && Object.keys(activeContactInfo.socialMedia).length > 0 && (
             <div className="pt-4">
-              <p className="text-sm font-medium mb-4" style={{ color: textSecondary }}>
-                Follow Us
+              <p className="text-sm font-medium mb-4" style={{ color: smartColors.textSecondary }}>
+                {form?.contactSocialLabel || 'Follow Us'}
               </p>
               <div className="flex space-x-4">
                 {Object.entries(activeContactInfo.socialMedia).map(([platform, url]) => {
@@ -519,11 +578,11 @@ export default function FormSection({
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 hover:scale-110"
-                      style={{ backgroundColor: `${primaryColor}15` }}
+                      style={{ backgroundColor: smartColors.iconBg }}
                     >
                       <IconComponent 
                         className="w-5 h-5 transition-colors duration-300 group-hover:scale-110" 
-                        style={{ color: primaryColor }} 
+                        style={{ color: smartColors.iconColor }} 
                       />
                     </a>
                   );
@@ -649,7 +708,7 @@ export default function FormSection({
       absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 z-10
     `;
 
-    // Label styles using design system colors
+    // Label styles using design system colors and typography
     const labelClasses = `
       block text-sm font-medium mb-1.5 transition-colors duration-200
     `;
@@ -703,7 +762,10 @@ export default function FormSection({
                 backgroundColor: form?.fieldBackgroundColor || 'white',
                 color: form?.fieldTextColor || textPrimary,
                 borderColor: form?.fieldBorderColor || (isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'),
-                boxShadow: 'none !important'
+                boxShadow: 'none !important',
+                fontSize: designSystem?.fontSizeBase || '16px',
+                fontFamily: designSystem?.fontFamily || 'Manrope, system-ui, sans-serif',
+                lineHeight: designSystem?.lineHeightBase || '1.5'
               }}
             />
           </div>
@@ -768,7 +830,9 @@ export default function FormSection({
                 backgroundColor: form?.fieldBackgroundColor || 'white',
                 color: form?.fieldTextColor || textPrimary,
                 borderColor: form?.fieldBorderColor || (isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'),
-                boxShadow: 'none !important'
+                boxShadow: 'none !important',
+                fontSize: designSystem?.fontSizeBase || '16px',
+                fontFamily: designSystem?.fontFamily || 'Manrope, system-ui, sans-serif'
               }}
             >
               <option value="">{field.placeholder}</option>
@@ -1046,7 +1110,9 @@ export default function FormSection({
               style={{ 
                 backgroundColor: form?.fieldBackgroundColor || 'white',
                 color: form?.fieldTextColor || textPrimary,
-                borderColor: form?.fieldBorderColor || (isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB')
+                borderColor: form?.fieldBorderColor || (isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'),
+                fontSize: designSystem?.fontSizeBase || '16px',
+                fontFamily: designSystem?.fontFamily || 'Manrope, system-ui, sans-serif'
               }}
             />
             <button
@@ -1122,7 +1188,9 @@ export default function FormSection({
               backgroundColor: form?.fieldBackgroundColor || 'white',
               color: form?.fieldTextColor || textPrimary,
               borderColor: form?.fieldBorderColor || (isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'),
-              boxShadow: 'none !important'
+              boxShadow: 'none !important',
+              fontSize: designSystem?.fontSizeBase || '16px',
+              fontFamily: designSystem?.fontFamily || 'Manrope, system-ui, sans-serif'
             }}
           />
         </div>
@@ -1145,10 +1213,44 @@ export default function FormSection({
   const secondaryColor = designSystem?.secondaryColor || '#7C3AED';
   const accentColor = designSystem?.accentColor || '#10B981';
   const successColor = designSystem?.successColor || '#10B981';
-  const textPrimary = designSystem?.textPrimary || '#1F2937';
-  const textSecondary = designSystem?.textSecondary || '#6B7280';
   const backgroundPrimary = designSystem?.backgroundPrimary || '#FFFFFF';
   const backgroundSecondary = designSystem?.backgroundSecondary || '#F6F8FC';
+
+  // Get the section background color for contrast calculation
+  const sectionBg = backgroundColor || form?.sectionBackgroundColor || backgroundSecondary;
+  
+  // Determine if text should be light or dark based on section background - same logic as hero section
+  const getSectionTextColor = () => {
+    if (!sectionBg) return 'text-gray-900'; // Default to dark text
+    
+    // Handle hex colors
+    const hex = sectionBg.replace('#', '');
+    if (hex.length === 6) {
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness > 128 ? 'text-gray-900' : 'text-white';
+    }
+    
+    // For other color formats, assume dark text
+    return 'text-gray-900';
+  };
+
+  // Get smart colors based on section background
+  const getSectionSmartColors = () => {
+    const textColor = getSectionTextColor();
+    const isDarkBackground = textColor === 'text-white';
+    
+    return {
+      textPrimary: isDarkBackground ? '#FFFFFF' : '#1F2937',
+      textSecondary: isDarkBackground ? '#E5E7EB' : '#6B7280'
+    };
+  };
+
+  const sectionSmartColors = getSectionSmartColors();
+  const textPrimary = sectionSmartColors.textPrimary;
+  const textSecondary = sectionSmartColors.textSecondary;
 
   // Create company contact from form data if enabled
   const formContactInfo: CompanyContact | undefined = form?.showContactInfo ? {
@@ -1228,19 +1330,38 @@ export default function FormSection({
   }
 
   return (
-    <div className={`form-section min-h-screen ${className}`} style={{ backgroundColor: backgroundColor || form?.sectionBackgroundColor || backgroundSecondary }}>
+    <div 
+      className={`form-section min-h-screen ${className}`} 
+      style={{ 
+        backgroundColor: backgroundColor || form?.sectionBackgroundColor || backgroundSecondary,
+        fontFamily: designSystem?.fontFamily || 'Manrope, system-ui, sans-serif'
+      }}
+    >
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-7xl mx-auto">
           {/* Header - Only show if title or subtitle are provided */}
           {((title || form.title) || (subtitle || form.subheading)) && (
             <div className="text-center mb-12">
               {(title || form.title) && (
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight" style={{ color: textPrimary }}>
+                <h1 
+                  className="text-4xl md:text-5xl font-bold mb-4 leading-tight" 
+                  style={{ 
+                    color: textPrimary,
+                    fontWeight: designSystem?.fontWeightBold || '700'
+                  }}
+                >
             {title || form.title}
                 </h1>
               )}
           {(subtitle || form.subheading) && (
-                <p className="text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: textSecondary }}>
+                <p 
+                  className="text-lg max-w-2xl mx-auto leading-relaxed" 
+                  style={{ 
+                    color: textSecondary,
+                    fontSize: designSystem?.fontSizeBase || '16px',
+                    lineHeight: designSystem?.lineHeightBase || '1.5'
+                  }}
+                >
               {subtitle || form.subheading}
             </p>
           )}
@@ -1249,27 +1370,29 @@ export default function FormSection({
 
           {/* Main Content Container */}
           <div className={`
-            ${layout === 'side-by-side' ? 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start' : 
-              layout === 'contact-first' ? 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start' : 
+            ${(form.contactPosition === 'left' || form.contactPosition === 'right') && activeContactInfo ? 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start' : 
               'max-w-4xl mx-auto'}
           `}>
-            {/* Contact Information - Show first if contact-first layout */}
-            {layout === 'contact-first' && activeContactInfo && (
+            {/* Contact Information - Top Position */}
+            {form.contactPosition === 'top' && activeContactInfo && (
+              <div className="mb-12">
+                <div className="rounded-2xl p-8">
+                  {renderCompanyContact()}
+                </div>
+              </div>
+            )}
+
+            {/* Contact Information - Left Position */}
+            {form.contactPosition === 'left' && activeContactInfo && (
               <div className="lg:order-1">
-                <div 
-                  className="rounded-2xl p-8 h-full"
-                  style={{ 
-                    backgroundColor: `${primaryColor}08`,
-                    border: `1px solid ${primaryColor}20`
-                  }}
-                >
+                <div className="rounded-2xl p-8 h-full">
                   {renderCompanyContact()}
                 </div>
               </div>
             )}
 
             {/* Form Container */}
-            <div className={`${layout === 'contact-first' ? 'lg:order-2' : ''}`}>
+            <div className={`${form.contactPosition === 'left' ? 'lg:order-2' : ''}`}>
               <div className="relative">
                 {/* Main form */}
                 <div 
@@ -1306,7 +1429,7 @@ export default function FormSection({
 
                       {/* Captcha Section */}
                       {form.enableCaptcha && (
-                        <div className="pt-4">
+                        <div className="pt-2">
                           <CreativeCaptcha
                             type={form.captchaType as 'math' | 'puzzle' | 'drag' | 'image'}
                             difficulty={form.captchaDifficulty as 'easy' | 'medium' | 'hard'}
@@ -1314,13 +1437,14 @@ export default function FormSection({
                             primaryColor={primaryColor}
                             accentColor={accentColor}
                             errorColor={designSystem?.errorColor || '#EF4444'}
+                            backgroundColor={form.formBackgroundColor || backgroundPrimary}
                           />
                         </div>
                       )}
 
                       {/* Submit Button - Bottom Position (default) */}
                       {(!form.ctaPosition || form.ctaPosition === 'bottom') && (!form.enableCaptcha || captchaVerified) && (
-                        <div className={`${form.enableCaptcha ? 'pt-2' : 'pt-4'} flex justify-center`}>
+                        <div className={`${form.enableCaptcha ? 'pt-1' : 'pt-4'} flex justify-center`}>
                           {renderCTAButton()}
               </div>
                       )}
@@ -1337,31 +1461,19 @@ export default function FormSection({
               </div>
             </div>
 
-            {/* Contact Information - Show after form for side-by-side layout */}
-            {layout === 'side-by-side' && activeContactInfo && (
+            {/* Contact Information - Right Position */}
+            {form.contactPosition === 'right' && activeContactInfo && (
               <div className="lg:order-2">
-                <div 
-                  className="rounded-2xl p-8 h-full"
-                  style={{ 
-                    backgroundColor: `${primaryColor}08`,
-                    border: `1px solid ${primaryColor}20`
-                  }}
-                >
+                <div className="rounded-2xl p-8 h-full">
                   {renderCompanyContact()}
                 </div>
               </div>
             )}
 
-            {/* Contact Information - Show below form for default layout */}
-            {layout === 'default' && activeContactInfo && (
+            {/* Contact Information - Bottom Position */}
+            {form.contactPosition === 'bottom' && activeContactInfo && (
               <div className="mt-12">
-                <div 
-                  className="rounded-2xl p-8"
-                  style={{ 
-                    backgroundColor: `${primaryColor}08`,
-                    border: `1px solid ${primaryColor}20`
-                  }}
-                >
+                <div className="rounded-2xl p-8">
                   {renderCompanyContact()}
                 </div>
               </div>

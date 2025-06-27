@@ -19,6 +19,7 @@ interface CreativeCaptchaProps {
   primaryColor?: string;
   accentColor?: string;
   errorColor?: string;
+  backgroundColor?: string;
 }
 
 interface MathProblem {
@@ -47,7 +48,8 @@ export default function CreativeCaptcha({
   onVerify,
   primaryColor = '#5243E9',
   accentColor = '#10B981',
-  errorColor = '#EF4444'
+  errorColor = '#EF4444',
+  backgroundColor = '#FFFFFF'
 }: CreativeCaptchaProps) {
   const [isVerified, setIsVerified] = useState(false);
   const [attempts, setAttempts] = useState(0);
@@ -308,53 +310,130 @@ export default function CreativeCaptcha({
     }
   };
 
+  // Determine if text should be light or dark based on background - same logic as hero section
+  const getTextColor = () => {
+    if (!backgroundColor) return 'text-gray-900'; // Default to dark text
+    
+    // Handle hex colors
+    const hex = backgroundColor.replace('#', '');
+    if (hex.length === 6) {
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness > 128 ? 'text-gray-900' : 'text-white';
+    }
+    
+    // For other color formats, assume light text for safety
+    return 'text-gray-900';
+  };
+
+  // Get smart colors based on background
+  const getSmartColors = () => {
+    const textColor = getTextColor();
+    const isDarkBackground = textColor === 'text-white';
+    
+    return {
+      textPrimary: isDarkBackground ? '#FFFFFF' : '#1F2937',
+      textSecondary: isDarkBackground ? '#E5E7EB' : '#6B7280',
+      textMuted: isDarkBackground ? '#9CA3AF' : '#9CA3AF',
+      borderColor: isDarkBackground ? '#374151' : '#E5E7EB',
+      hoverBg: isDarkBackground ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+      successBg: isDarkBackground ? 'rgba(16, 185, 129, 0.2)' : '#F0FDF4',
+      successBorder: isDarkBackground ? 'rgba(16, 185, 129, 0.4)' : '#BBF7D0',
+      errorBg: isDarkBackground ? 'rgba(239, 68, 68, 0.2)' : '#FEF2F2',
+      errorBorder: isDarkBackground ? 'rgba(239, 68, 68, 0.4)' : '#FECACA',
+      cardBg: isDarkBackground ? 'rgba(255, 255, 255, 0.05)' : '#FFFFFF',
+      cardBorder: isDarkBackground ? 'rgba(255, 255, 255, 0.1)' : '#E5E7EB'
+    };
+  };
+
   if (isVerified) {
+    const smartColors = getSmartColors();
     return (
-      <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
-        <div className="flex items-center justify-center gap-3 text-green-700">
+      <div 
+        className="border rounded-lg p-3"
+        style={{ 
+          backgroundColor: smartColors.successBg,
+          borderColor: smartColors.successBorder
+        }}
+      >
+        <div className="flex items-center justify-center gap-2">
           <div 
-            className="w-8 h-8 rounded-full flex items-center justify-center"
+            className="w-5 h-5 rounded-full flex items-center justify-center"
             style={{ backgroundColor: accentColor }}
           >
-            <Check className="w-5 h-5 text-white" />
+            <Check className="w-3 h-3 text-white" />
           </div>
-          <span className="font-semibold">Verification Complete!</span>
+          <span 
+            className="font-medium text-sm"
+            style={{ color: smartColors.textPrimary }}
+          >
+            Verification Complete!
+          </span>
         </div>
       </div>
     );
   }
 
+  const smartColors = getSmartColors();
+  
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-xl p-6 space-y-4">
+    <div 
+      className="border rounded-lg p-4 space-y-3"
+      style={{ 
+        backgroundColor: smartColors.cardBg,
+        borderColor: smartColors.cardBorder
+      }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div 
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+            className="w-6 h-6 rounded-lg flex items-center justify-center text-white"
             style={{ backgroundColor: primaryColor }}
           >
             {getCaptchaIcon()}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{getCaptchaTitle()}</h3>
-            <p className="text-sm text-gray-500">Verify you're human to continue</p>
+            <h3 
+              className="font-medium text-sm"
+              style={{ color: smartColors.textPrimary }}
+            >
+              {getCaptchaTitle()}
+            </h3>
+            <p 
+              className="text-xs"
+              style={{ color: smartColors.textSecondary }}
+            >
+              Verify you're human
+            </p>
           </div>
         </div>
         <button
           onClick={resetCaptcha}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-1 rounded transition-colors"
+          style={{ backgroundColor: 'transparent' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = smartColors.hoverBg}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           title="Refresh captcha"
         >
-          <RefreshCw className="w-4 h-4 text-gray-500" />
+          <RefreshCw 
+            className="w-3 h-3"
+            style={{ color: smartColors.textMuted }}
+          />
         </button>
       </div>
 
       {/* Captcha Content */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {type === 'math' && mathProblem && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900 mb-4">
+              <div 
+                className="text-lg font-bold mb-3"
+                style={{ color: smartColors.textPrimary }}
+              >
                 {mathProblem.question}
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -362,11 +441,22 @@ export default function CreativeCaptcha({
                   <button
                     key={index}
                     onClick={() => setSelectedAnswer(option)}
-                    className={`p-3 rounded-lg border-2 font-semibold transition-all ${
-                      selectedAnswer === option
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
+                    className="p-2 rounded border font-medium text-sm transition-all"
+                    style={{
+                      borderColor: selectedAnswer === option ? primaryColor : smartColors.borderColor,
+                      backgroundColor: selectedAnswer === option ? `${primaryColor}20` : 'transparent',
+                      color: selectedAnswer === option ? primaryColor : smartColors.textPrimary
+                    }}
+                    onMouseEnter={(e) => {
+                      if (selectedAnswer !== option) {
+                        e.currentTarget.style.backgroundColor = smartColors.hoverBg;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedAnswer !== option) {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }
+                    }}
                   >
                     {option}
                   </button>
@@ -377,17 +467,26 @@ export default function CreativeCaptcha({
         )}
 
         {type === 'puzzle' && puzzlePieces.length > 0 && (
-          <div className="space-y-4">
-            <div className="text-center text-sm text-gray-600 mb-2">
-              Target word: <span className="font-semibold">{puzzleTarget}</span>
+          <div className="space-y-2">
+            <div className="text-center text-xs mb-2">
+              <span style={{ color: smartColors.textSecondary }}>
+                Target word: <span className="font-medium" style={{ color: smartColors.textPrimary }}>{puzzleTarget}</span>
+              </span>
             </div>
-            <div className="flex justify-center gap-2 flex-wrap">
+            <div className="flex justify-center gap-1 flex-wrap">
               {Array.from({ length: puzzlePieces.length }, (_, index) => {
                 const piece = puzzlePieces.find(p => p.currentPosition === index);
                 return (
                   <div
                     key={index}
-                    className="w-12 h-12 border-2 border-gray-300 rounded-lg flex items-center justify-center font-bold text-lg bg-white cursor-move hover:bg-gray-50 transition-colors"
+                    className="w-8 h-8 border rounded flex items-center justify-center font-bold text-sm cursor-move transition-colors"
+                    style={{
+                      borderColor: smartColors.borderColor,
+                      backgroundColor: smartColors.cardBg,
+                      color: smartColors.textPrimary
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = smartColors.hoverBg}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = smartColors.cardBg}
                     draggable
                     onDragStart={() => setDraggedItem(index)}
                     onDragOver={(e) => e.preventDefault()}
@@ -402,30 +501,27 @@ export default function CreativeCaptcha({
         )}
 
         {type === 'drag' && dragTargets.length > 0 && (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <div className="text-sm text-gray-600">
-                Drag the <span className="font-semibold" style={{ color: primaryColor }}>circle</span> to the correct <span className="font-semibold" style={{ color: accentColor }}>target zone</span>
-              </div>
-              <div className="text-xs text-gray-500">
-                Look for the zone that highlights when you hover over it
+          <div className="space-y-3">
+            <div className="text-center">
+              <div className="text-xs" style={{ color: smartColors.textSecondary }}>
+                Drag the <span className="font-medium" style={{ color: primaryColor }}>circle</span> to the correct zone
               </div>
             </div>
             
             {/* Draggable Item */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-3">
               <div 
-                className="p-4 border-2 rounded-xl"
+                className="p-2 border rounded"
                 style={{ 
                   backgroundColor: `${primaryColor}10`, 
                   borderColor: `${primaryColor}30` 
                 }}
               >
-                <div className="text-xs font-medium mb-2 text-center" style={{ color: primaryColor }}>
+                <div className="text-xs font-medium mb-1 text-center" style={{ color: primaryColor }}>
                   Drag me!
                 </div>
                 <div 
-                  className="w-12 h-12 rounded-full cursor-move shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border-2 border-white"
+                  className="w-8 h-8 rounded-full cursor-move shadow hover:shadow-md transition-all transform hover:scale-105 border border-white"
                   style={{ backgroundColor: primaryColor }}
                   draggable
                   onDragStart={(e) => {
@@ -437,16 +533,16 @@ export default function CreativeCaptcha({
             </div>
 
             {/* Drop Zones */}
-            <div className="space-y-2 mb-8">
-              <div className="text-center text-xs text-gray-500 font-medium mb-8">DROP ZONES</div>
-              <div className="flex justify-center gap-6">
+            <div className="space-y-1 mb-3">
+              <div className="text-center text-xs font-medium mb-2" style={{ color: smartColors.textMuted }}>DROP ZONES</div>
+              <div className="flex justify-center gap-3">
                 {dragTargets.map((target) => (
                   <div
                     key={target.id}
-                    className={`relative w-20 h-20 border-3 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                    className={`relative w-12 h-12 border-2 rounded-lg flex items-center justify-center transition-all duration-200 ${
                       completedTargets.includes(target.id) 
-                        ? 'shadow-lg' 
-                        : 'border-dashed hover:shadow-md'
+                        ? 'shadow' 
+                        : 'border-dashed hover:shadow-sm'
                     }`}
                     style={{
                       backgroundColor: completedTargets.includes(target.id) 
@@ -492,32 +588,32 @@ export default function CreativeCaptcha({
                     }}
                   >
                     {/* Target Zone Label */}
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                       <div 
-                        className="text-xs font-medium px-2 py-1 rounded"
+                        className="text-xs font-medium px-1 py-0.5 rounded"
                         style={{
                           color: target.isCorrect ? accentColor : '#6B7280',
                           backgroundColor: target.isCorrect ? `${accentColor}20` : '#F3F4F6'
                         }}
                       >
-                        Zone {target.id + 1}
+                        {target.id + 1}
                       </div>
                     </div>
                     
                     {/* Success checkmark */}
                     {completedTargets.includes(target.id) && (
                       <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                        className="w-5 h-5 rounded-full flex items-center justify-center"
                         style={{ backgroundColor: accentColor }}
                       >
-                        <Check className="w-5 h-5 text-white" />
+                        <Check className="w-3 h-3 text-white" />
                       </div>
                     )}
                     
                     {/* Drop zone indicator */}
                     {!completedTargets.includes(target.id) && (
                       <div 
-                        className="w-6 h-6 rounded-full border-2 border-dashed"
+                        className="w-4 h-4 rounded-full border border-dashed"
                         style={{ 
                           borderColor: target.isCorrect ? `${accentColor}60` : '#9CA3AF' 
                         }}
@@ -531,44 +627,44 @@ export default function CreativeCaptcha({
             {/* Hint */}
             {attempts > 0 && !completedTargets.length && (
               <div 
-                className="text-center text-xs p-2 rounded-lg"
+                className="text-center text-xs p-1 rounded"
                 style={{ 
-                  color: `${primaryColor}90`, 
-                  backgroundColor: `${primaryColor}10` 
+                  color: primaryColor, 
+                  backgroundColor: `${primaryColor}20` 
                 }}
               >
-                Hint: The correct zone will highlight when you hover over it with the circle
+                Hint: The correct zone will highlight when you hover
               </div>
             )}
           </div>
         )}
 
         {type === 'image' && imagePattern.length > 0 && (
-          <div className="space-y-4">
-            <div className="text-center text-sm text-gray-600 mb-4">
-              Select the squares that match the <span className="font-semibold" style={{ color: primaryColor }}>highlighted pattern</span>
+          <div className="space-y-2">
+            <div className="text-center text-xs mb-2" style={{ color: smartColors.textSecondary }}>
+              Select the squares that match the <span className="font-medium" style={{ color: primaryColor }}>highlighted pattern</span>
             </div>
-            <div className={`grid gap-2 mx-auto ${
-              difficulty === 'easy' ? 'grid-cols-2 max-w-32' : 
-              difficulty === 'medium' ? 'grid-cols-3 max-w-48' : 
-              'grid-cols-3 max-w-48'
+            <div className={`grid gap-1 mx-auto ${
+              difficulty === 'easy' ? 'grid-cols-2 max-w-20' : 
+              difficulty === 'medium' ? 'grid-cols-3 max-w-32' : 
+              'grid-cols-3 max-w-32'
             }`}>
               {Array.from({ length: difficulty === 'easy' ? 4 : difficulty === 'medium' ? 6 : 9 }, (_, index) => (
                 <button
                   key={index}
                   onClick={() => handleImagePatternClick(index)}
-                  className="w-12 h-12 border-2 rounded-lg transition-all"
+                  className="w-8 h-8 border rounded transition-all"
                   style={{
                     borderColor: selectedPattern.includes(index) 
                       ? primaryColor 
                       : imagePattern.includes(index) 
                         ? accentColor 
-                        : '#D1D5DB',
+                        : smartColors.borderColor,
                     backgroundColor: selectedPattern.includes(index) 
                       ? `${primaryColor}20` 
                       : imagePattern.includes(index) 
                         ? `${accentColor}20` 
-                        : '#FFFFFF'
+                        : smartColors.cardBg
                   }}
                 >
                   {imagePattern.includes(index) && (
@@ -580,8 +676,8 @@ export default function CreativeCaptcha({
                 </button>
               ))}
             </div>
-            <div className="text-center text-xs text-gray-500">
-              Click the squares that have the highlighted pattern
+            <div className="text-center text-xs" style={{ color: smartColors.textMuted }}>
+              Click the highlighted squares
             </div>
           </div>
         )}
@@ -589,10 +685,17 @@ export default function CreativeCaptcha({
 
       {/* Error Message */}
       {showError && (
-        <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg">
-          <X className="w-4 h-4" />
-          <span className="text-sm">
-            Incorrect answer. {attempts >= 2 ? 'Generating new challenge...' : 'Please try again.'}
+        <div 
+          className="flex items-center gap-2 p-2 rounded"
+          style={{ 
+            backgroundColor: smartColors.errorBg,
+            borderColor: smartColors.errorBorder,
+            color: smartColors.textPrimary
+          }}
+        >
+          <X className="w-3 h-3" style={{ color: errorColor }} />
+          <span className="text-xs">
+            Incorrect. {attempts >= 2 ? 'Generating new challenge...' : 'Try again.'}
           </span>
         </div>
       )}
@@ -606,12 +709,15 @@ export default function CreativeCaptcha({
           (type === 'puzzle' && puzzlePieces.length === 0) ||
           (type === 'image' && selectedPattern.length === 0)
         }
-        className="w-full py-3 px-4 rounded-lg font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg"
-        style={{ backgroundColor: primaryColor }}
+        className="w-full py-2 px-3 rounded font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow"
+        style={{ 
+          backgroundColor: primaryColor,
+          color: 'white'
+        }}
       >
         {loading ? (
-          <div className="flex items-center justify-center gap-2">
-            <RefreshCw className="w-4 h-4 animate-spin" />
+          <div className="flex items-center justify-center gap-1">
+            <RefreshCw className="w-3 h-3 animate-spin" />
             <span>Verifying...</span>
           </div>
         ) : (
@@ -621,7 +727,7 @@ export default function CreativeCaptcha({
 
       {/* Attempts Counter */}
       {attempts > 0 && (
-        <div className="text-xs text-gray-500 text-center">
+        <div className="text-xs text-center" style={{ color: smartColors.textMuted }}>
           Attempt {attempts + 1} of 3
         </div>
       )}
