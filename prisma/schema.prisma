@@ -154,6 +154,7 @@ model Page {
   featureGroups    PageFeatureGroup[]
   pageSections     PageSection[]
   pricingSections  PagePricingSection[]
+  htmlSections     PageHtmlSection[]
 
   @@map("pages")
 }
@@ -434,7 +435,7 @@ model PageFeatureGroup {
 model PageSection {
   id              Int           @id @default(autoincrement())
   pageId          Int
-  sectionType     String        // hero, features, media, testimonials, pricing, faq, contact, form, cta, custom
+  sectionType     String        // hero, features, media, testimonials, pricing, faq, contact, form, cta, html, custom
   title           String?       // Section title/heading (optional override)
   subtitle        String?       // Section subtitle/subheading (optional override)
   content         String?       // JSON content for the section
@@ -449,6 +450,7 @@ model PageSection {
   faqCategoryId   Int?          // Reference to FAQCategory (for FAQ sections)
   contactSectionId Int?         // Reference to ContactSection
   formId          Int?          // Reference to Form (for form builder)
+  htmlSectionId   Int?          // Reference to HtmlSection
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   page            Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
@@ -460,6 +462,7 @@ model PageSection {
   faqCategory     FAQCategory?  @relation(fields: [faqCategoryId], references: [id], onDelete: SetNull)
   contactSection  ContactSection? @relation(fields: [contactSectionId], references: [id], onDelete: SetNull)
   form            Form?         @relation(fields: [formId], references: [id], onDelete: SetNull)
+  htmlSection     HtmlSection?  @relation(fields: [htmlSectionId], references: [id], onDelete: SetNull)
 
   @@map("page_sections")
 }
@@ -1128,4 +1131,42 @@ model FormSubmission {
   form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
 
   @@map("form_submissions")
+}
+
+// HTML Code Sections
+model HtmlSection {
+  id               Int               @id @default(autoincrement())
+  name             String            // Display name for the HTML section
+  description      String?           // Optional description
+  htmlContent      String            // The actual HTML content
+  cssContent       String?           // Optional CSS styles
+  jsContent        String?           // Optional JavaScript code
+  isActive         Boolean           @default(true)
+  sortOrder        Int               @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  
+  // Relations
+  pageHtmlSections PageHtmlSection[]
+  pageSections     PageSection[]
+
+  @@map("html_sections")
+}
+
+// Page HTML Section assignments
+model PageHtmlSection {
+  id            Int         @id @default(autoincrement())
+  pageId        Int
+  htmlSectionId Int
+  sortOrder     Int         @default(0)
+  isVisible     Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  page          Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  htmlSection   HtmlSection @relation(fields: [htmlSectionId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, htmlSectionId])
+  @@map("page_html_sections")
 }

@@ -2827,15 +2827,35 @@ export default function FormBuilder() {
                 />
               </div>
               
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="required"
-                  checked={fieldData.isRequired}
-                  onChange={(e) => handleFieldInputChange('isRequired', e.target.checked)}
-                  className="mr-2"
-                />
-                <label htmlFor="required" className="text-sm font-medium text-gray-700">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="required"
+                    checked={fieldData.isRequired}
+                    onChange={(e) => handleFieldInputChange('isRequired', e.target.checked)}
+                    className="h-4 w-4 border-2 border-gray-300 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer relative"
+                    style={{
+                      appearance: 'none',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none'
+                    }}
+                  />
+                  {fieldData.isRequired && (
+                    <svg
+                      className="absolute inset-0 h-4 w-4 text-white pointer-events-none"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <label htmlFor="required" className="text-sm font-medium text-gray-700 cursor-pointer">
                   Required field
                 </label>
               </div>

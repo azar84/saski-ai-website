@@ -8,6 +8,7 @@ import DynamicHeroSection from './DynamicHeroSection';
 import PricingSection from './PricingSection';
 import ConfigurablePricingSection from './ConfigurablePricingSection';
 import FormSection from './FormSection';
+import HtmlSection from './HtmlSection';
 
 interface PageSection {
   id: number;
@@ -171,6 +172,15 @@ interface PageSection {
     };
   };
   formId?: number;
+  htmlSection?: {
+    id: number;
+    name: string;
+    description?: string;
+    htmlContent: string;
+    cssContent?: string;
+    jsContent?: string;
+    isActive: boolean;
+  };
 }
 
 interface DynamicPageRendererProps {
@@ -306,6 +316,18 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               formId={section.form?.id || section.formId!}
               title={section.title || section.form?.title}
               subtitle={section.subtitle || section.form?.subheading}
+              className={className}
+            />
+          );
+        }
+        break;
+
+      case 'html':
+        if (section.htmlSection) {
+          return (
+            <HtmlSection
+              key={sectionKey}
+              htmlSection={section.htmlSection}
               className={className}
             />
           );

@@ -230,6 +230,17 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        },
+        htmlSection: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            htmlContent: true,
+            cssContent: true,
+            jsContent: true,
+            isActive: true
+          }
         }
       },
       orderBy: [
@@ -288,7 +299,8 @@ export async function POST(request: NextRequest) {
         faqSectionId: validatedData.faqSectionId,
         faqCategoryId: validatedData.faqCategoryId,
         contactSectionId: validatedData.contactSectionId,
-        formId: validatedData.formId
+        formId: validatedData.formId,
+        htmlSectionId: validatedData.htmlSectionId
       },
       include: {
         page: {
@@ -439,6 +451,17 @@ export async function POST(request: NextRequest) {
               }
             }
           }
+        },
+        htmlSection: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            htmlContent: true,
+            cssContent: true,
+            jsContent: true,
+            isActive: true
+          }
         }
       }
     });
@@ -486,6 +509,7 @@ export async function PUT(request: NextRequest) {
         ...(validatedData.faqCategoryId !== undefined && { faqCategoryId: validatedData.faqCategoryId }),
         ...(validatedData.contactSectionId !== undefined && { contactSectionId: validatedData.contactSectionId }),
         ...(validatedData.formId !== undefined && { formId: validatedData.formId }),
+        ...(validatedData.htmlSectionId !== undefined && { htmlSectionId: validatedData.htmlSectionId }),
         updatedAt: new Date()
       },
       include: {
@@ -679,6 +703,32 @@ export async function PUT(request: NextRequest) {
                   sortOrder: 'asc'
                 }
               }
+            }
+          },
+          form: {
+            select: {
+              id: true,
+              name: true,
+              title: true,
+              subheading: true,
+              isActive: true,
+              _count: {
+                select: {
+                  fields: true,
+                  submissions: true
+                }
+              }
+            }
+          },
+          htmlSection: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              htmlContent: true,
+              cssContent: true,
+              jsContent: true,
+              isActive: true
             }
           }
         }

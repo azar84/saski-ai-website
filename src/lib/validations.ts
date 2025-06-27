@@ -5,11 +5,61 @@ export const IdSchema = z.number().int().positive();
 export const SlugSchema = z.string().min(1).max(100).regex(/^[a-zA-Z0-9-_]+$/, 'Invalid slug format');
 export const UrlSchema = z.string().url('Invalid URL format');
 
+// Helper for optional string fields that can be empty
+const optionalString = z.string().optional().nullable().transform(val => val === '' ? null : val);
+const optionalUrl = z.string().optional().nullable().transform(val => val === '' ? null : val).refine(val => {
+  if (val === null || val === undefined) return true;
+  // Allow data URIs for base64 encoded images
+  if (val.startsWith('data:')) return true;
+  // Allow regular URLs
+  return z.string().url().safeParse(val).success;
+}, { message: "Invalid URL format" });
+const optionalEmail = z.string().optional().nullable().transform(val => val === '' ? null : val).refine(val => {
+  if (val === null || val === undefined) return true;
+  return z.string().email().safeParse(val).success;
+}, { message: "Invalid email format" });
+
 // Site Settings Schema
 export const SiteSettingsSchema = z.object({
-  logoUrl: z.string().url().nullable(),
-  faviconUrl: z.string().url().nullable(),
+  logoUrl: optionalUrl,
+  faviconUrl: optionalUrl,
+  
+  // Email Configuration
+  smtpEnabled: z.boolean().optional(),
+  smtpHost: optionalString,
+  smtpPort: z.number().int().min(1).max(65535).optional().nullable(),
+  smtpSecure: z.boolean().optional(),
+  smtpUsername: optionalString,
+  smtpPassword: optionalString,
+  smtpFromEmail: optionalEmail,
+  smtpFromName: optionalString,
+  smtpReplyTo: optionalEmail,
+  
+  // Email Templates Configuration
+  emailSignature: optionalString,
+  emailFooterText: optionalString,
+  emailBrandingEnabled: z.boolean().optional(),
+  
+  // Email Notification Settings
+  adminNotificationEmail: optionalEmail,
+  emailLoggingEnabled: z.boolean().optional(),
+  emailRateLimitPerHour: z.number().int().min(1).max(1000).optional().nullable(),
+  
+  // Company Contact Information
+  companyPhone: optionalString,
+  companyEmail: optionalEmail,
+  companyAddress: optionalString,
+  
+  // Social Media Links
+  socialFacebook: optionalUrl,
+  socialTwitter: optionalUrl,
+  socialLinkedin: optionalUrl,
+  socialInstagram: optionalUrl,
+  socialYoutube: optionalUrl,
 });
+
+// Partial schema for updates - all fields are optional
+export const SiteSettingsUpdateSchema = SiteSettingsSchema.partial();
 
 // Page Schema
 export const CreatePageSchema = z.object({
@@ -414,7 +464,7 @@ export const MediaSearchSchema = z.object({
 });
 
 // Page Builder Validation Schemas
-export const SectionTypeEnum = z.enum(['hero', 'features', 'media', 'testimonials', 'pricing', 'faq', 'form', 'cta', 'custom']);
+export const SectionTypeEnum = z.enum(['hero', 'features', 'media', 'testimonials', 'pricing', 'faq', 'form', 'cta', 'html', 'custom']);
 
 export const CreatePageSectionSchema = z.object({
   pageId: IdSchema,
@@ -432,7 +482,8 @@ export const CreatePageSectionSchema = z.object({
   faqSectionId: z.number().int().positive().nullable().optional(),
   faqCategoryId: z.number().int().positive().nullable().optional(),
   contactSectionId: z.number().int().positive().nullable().optional(),
-  formId: z.number().int().positive().nullable().optional()
+  formId: z.number().int().positive().nullable().optional(),
+  htmlSectionId: z.number().int().positive().nullable().optional()
 });
 
 export const UpdatePageSectionSchema = CreatePageSectionSchema.extend({

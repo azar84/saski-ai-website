@@ -42,7 +42,8 @@ import {
   ArrowUp,
   ArrowDown,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Code
 } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 
@@ -56,6 +57,7 @@ const sectionIcons = {
   faq: HelpCircle,
   form: MessageSquare,
   cta: MousePointer,
+  html: Code,
   custom: Settings
 };
 
@@ -69,6 +71,7 @@ const sectionLabels = {
   faq: 'FAQ',
   form: 'Form',
   cta: 'Call to Action',
+  html: 'HTML Section',
   custom: 'Custom'
 };
 
@@ -94,6 +97,7 @@ interface PageSection {
   pricingSectionId?: number;
   faqSectionId?: number;
   formId?: number;
+  htmlSectionId?: number;
 }
 
 interface Page {
@@ -176,15 +180,16 @@ const SortableItem: React.FC<SortableItemProps> = ({
                       (section as any).featureGroup?.heading ||
                       (section as any).pricingSection?.heading ||
                       (section as any).form?.title ||
+                      (section as any).htmlSection?.name ||
                       sectionLabels[section.sectionType as keyof typeof sectionLabels]}
                    </h4>
                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                      {section.sectionType}
                    </span>
                  </div>
-                 {(section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading || (section as any).pricingSection?.subheading || (section as any).form?.subheading) && (
+                 {(section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading || (section as any).pricingSection?.subheading || (section as any).form?.subheading || (section as any).htmlSection?.description) && (
                    <p className="text-sm text-gray-500 mt-1">
-                     {section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading || (section as any).pricingSection?.subheading || (section as any).form?.subheading}
+                     {section.subtitle || (section as any).heroSection?.subheading || (section as any).featureGroup?.subheading || (section as any).pricingSection?.subheading || (section as any).form?.subheading || (section as any).htmlSection?.description}
                    </p>
                  )}
                  {(section as any).featureGroup && (
@@ -205,6 +210,11 @@ const SortableItem: React.FC<SortableItemProps> = ({
                  {(section as any).form && (
                    <p className="text-xs text-orange-600 mt-1">
                      Linked to: Form "{(section as any).form.name}" ({(section as any).form._count?.fields || 0} fields, {(section as any).form._count?.submissions || 0} submissions)
+                   </p>
+                 )}
+                 {(section as any).htmlSection && (
+                   <p className="text-xs text-red-600 mt-1">
+                     Linked to: HTML Section "{(section as any).htmlSection.name}"
                    </p>
                  )}
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
@@ -280,6 +290,7 @@ interface FormData {
   pricingSectionId?: number;
   faqSectionId?: number;
   formId?: number;
+  htmlSectionId?: number;
 }
 
 interface AvailableContent {
@@ -289,6 +300,7 @@ interface AvailableContent {
   pricingSections: any[];
   faqSections: any[];
   forms: any[];
+  htmlSections: any[];
 }
 
 const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
@@ -312,7 +324,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
     mediaSectionId: undefined,
     pricingSectionId: undefined,
     faqSectionId: undefined,
-    formId: undefined
+    formId: undefined,
+    htmlSectionId: undefined
   });
 
   // Available content for selection
@@ -322,7 +335,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
     mediaSections: [],
     pricingSections: [],
     faqSections: [],
-    forms: []
+    forms: [],
+    htmlSections: []
   });
 
   // Track which hero sections are in use by other pages
@@ -498,6 +512,11 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       return;
     }
 
+    if (formData.sectionType === 'html' && !formData.htmlSectionId) {
+      setMessage({ type: 'error', text: 'Please select an HTML section' });
+      return;
+    }
+
     setSaving(true);
     try {
       const requestData = {
@@ -648,7 +667,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       mediaSectionId: section.mediaSectionId,
       pricingSectionId: section.pricingSectionId,
       faqSectionId: section.faqSectionId,
-      formId: section.formId
+      formId: section.formId,
+      htmlSectionId: section.htmlSectionId
     });
     setShowAddSection(true);
   };
@@ -665,7 +685,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
       mediaSectionId: undefined,
       pricingSectionId: undefined,
       faqSectionId: undefined,
-      formId: undefined
+      formId: undefined,
+      htmlSectionId: undefined
     });
     setEditingSection(null);
     setShowAddSection(false);
@@ -1231,6 +1252,54 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                 </div>
               )}
 
+              {formData.sectionType === 'html' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Select HTML Section *
+                    {formData.htmlSectionId && (
+                      <span className="ml-2 text-sm text-green-600">✓ Selected</span>
+                    )}
+                  </label>
+                  <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto">
+                    {availableContent.htmlSections.map((htmlSection) => (
+                      <button
+                        key={htmlSection.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, htmlSectionId: htmlSection.id })}
+                        className={`p-3 rounded-lg border-2 text-left transition-all duration-200 ${
+                          formData.htmlSectionId === htmlSection.id
+                            ? 'border-green-500 bg-green-50 text-green-900'
+                            : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{htmlSection.name}</div>
+                          {formData.htmlSectionId === htmlSection.id && (
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                          )}
+                        </div>
+                        {htmlSection.description && (
+                          <div className="text-sm text-gray-600 mt-1">{htmlSection.description}</div>
+                        )}
+                        <div className="text-xs text-gray-400 mt-1 flex items-center space-x-3">
+                          <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-md font-medium">
+                            HTML Section
+                          </span>
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-medium">
+                            {htmlSection._count.pageSections} page uses
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                    {availableContent.htmlSections.length === 0 && (
+                      <p className="text-gray-500 text-center py-4">
+                        No HTML sections available. Create one first in HTML Sections manager.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1293,7 +1362,7 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
               {/* Actions */}
               <div className="flex space-x-4 pt-4 border-t border-gray-200">
                 {/* Validation Status */}
-                {(formData.sectionType === 'hero' || formData.sectionType === 'features' || formData.sectionType === 'media' || formData.sectionType === 'pricing' || formData.sectionType === 'faq' || formData.sectionType === 'form') && (
+                {(formData.sectionType === 'hero' || formData.sectionType === 'features' || formData.sectionType === 'media' || formData.sectionType === 'pricing' || formData.sectionType === 'faq' || formData.sectionType === 'form' || formData.sectionType === 'html') && (
                   <div className="flex-1 text-sm">
                     {formData.sectionType === 'hero' && !formData.heroSectionId && (
                       <div className="text-amber-600 flex items-center">
@@ -1331,12 +1400,19 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                         Please select a form
                       </div>
                     )}
+                    {formData.sectionType === 'html' && !formData.htmlSectionId && (
+                      <div className="text-amber-600 flex items-center">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        Please select an HTML section
+                      </div>
+                    )}
                     {((formData.sectionType === 'hero' && formData.heroSectionId) || 
                       (formData.sectionType === 'features' && formData.featureGroupId) ||
                       (formData.sectionType === 'media' && formData.mediaSectionId) ||
                       (formData.sectionType === 'pricing' && formData.pricingSectionId) ||
                       (formData.sectionType === 'faq' && formData.faqSectionId) ||
-                      (formData.sectionType === 'form' && formData.formId)) && (
+                      (formData.sectionType === 'form' && formData.formId) ||
+                      (formData.sectionType === 'html' && formData.htmlSectionId)) && (
                       <div className="text-green-600 flex items-center">
                         <CheckCircle className="w-4 h-4 mr-1" />
                         Ready to save

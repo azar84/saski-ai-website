@@ -23,7 +23,8 @@ import {
   Linkedin,
   Instagram,
   Youtube,
-  ExternalLink
+  ExternalLink,
+  AlertCircle
 } from 'lucide-react';
 import { useDesignSystem } from '@/hooks/useDesignSystem';
 import CreativeCaptcha from '@/components/ui/CreativeCaptcha';
@@ -154,6 +155,7 @@ export default function FormSection({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [currentTermsContent, setCurrentTermsContent] = useState('');
   const [captchaVerified, setCaptchaVerified] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (formId && !isNaN(formId)) {
@@ -269,6 +271,8 @@ export default function FormSection({
     }
 
     setSubmitting(true);
+    setSubmitError(null); // Clear any previous errors
+    
     try {
       const response = await fetch('/api/forms/submit', {
         method: 'POST',
@@ -296,10 +300,13 @@ export default function FormSection({
           window.location.href = result.redirectUrl;
         }
       } else {
-        throw new Error('Failed to submit form');
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || form?.errorMessage || 'Failed to submit form. Please try again.';
+        setSubmitError(errorMessage);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
+      setSubmitError(form?.errorMessage || 'Network error. Please check your connection and try again.');
     } finally {
       setSubmitting(false);
     }
@@ -1224,6 +1231,7 @@ export default function FormSection({
   const secondaryColor = designSystem?.secondaryColor || '#7C3AED';
   const accentColor = designSystem?.accentColor || '#10B981';
   const successColor = designSystem?.successColor || '#10B981';
+  const errorColor = designSystem?.errorColor || '#EF4444';
   const backgroundPrimary = designSystem?.backgroundPrimary || '#FFFFFF';
   const backgroundSecondary = designSystem?.backgroundSecondary || '#F6F8FC';
 
@@ -1324,7 +1332,7 @@ export default function FormSection({
 
   if (submitted) {
   return (
-      <div className={`min-h-screen flex items-center justify-center ${className}`} style={{ backgroundColor: `${successColor}10` }}>
+      <div className={`min-h-screen flex items-center justify-center ${className}`} style={{ backgroundColor: backgroundColor || form?.sectionBackgroundColor || backgroundSecondary }}>
         <div className="max-w-lg mx-auto text-center py-16 px-8">
           <div className="relative mb-8">
             <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: successColor }}>
@@ -1335,6 +1343,35 @@ export default function FormSection({
           <p className="text-lg leading-relaxed" style={{ color: textSecondary }}>
             {form.successMessage}
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (submitError) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${className}`} style={{ backgroundColor: backgroundColor || form?.sectionBackgroundColor || backgroundSecondary }}>
+        <div className="max-w-lg mx-auto text-center py-16 px-8">
+          <div className="relative mb-8">
+            <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: errorColor }}>
+              <AlertCircle className="w-12 h-12 text-white" />
+            </div>
+          </div>
+          <h3 className="text-3xl font-bold mb-4" style={{ color: textPrimary }}>Submission Failed</h3>
+          <p className="text-lg leading-relaxed mb-6" style={{ color: textSecondary }}>
+            {submitError}
+          </p>
+          <button
+            onClick={() => setSubmitError(null)}
+            className="px-6 py-3 rounded-xl font-semibold transition-colors duration-300"
+            style={{
+              backgroundColor: primaryColor,
+              color: 'white',
+              border: 'none'
+            }}
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
