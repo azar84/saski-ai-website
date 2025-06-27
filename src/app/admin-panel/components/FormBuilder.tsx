@@ -98,6 +98,19 @@ interface Form {
   redirectUrl?: string;
   emailNotification?: boolean;
   emailRecipients?: string;
+  
+  // Dynamic Email Recipients
+  dynamicEmailRecipients?: boolean;
+  emailFieldRecipients?: string;
+  sendToSubmitterEmail?: boolean;
+  submitterEmailField?: string;
+  
+  // Email Templates
+  adminEmailSubject?: string;
+  adminEmailTemplate?: string;
+  submitterEmailSubject?: string;
+  submitterEmailTemplate?: string;
+  
   webhookUrl?: string;
   
   // Captcha Settings
@@ -596,6 +609,13 @@ export default function FormBuilder() {
     
     if (!currentForm) return;
 
+    // Check for duplicate field names
+    const existingFieldNames = currentForm.fields.map(field => field.fieldName.toLowerCase());
+    if (fieldData.fieldName && existingFieldNames.includes(fieldData.fieldName.toLowerCase())) {
+      alert(`A field with the name "${fieldData.fieldName}" already exists. Please use a different field name.`);
+      return;
+    }
+
     // Prepare field options based on field type
     let processedOptions = null;
     if (fieldData.fieldType === 'select' || fieldData.fieldType === 'radio') {
@@ -677,6 +697,17 @@ export default function FormBuilder() {
     
     if (!currentForm || editingFieldIndex === null) return;
 
+    // Check for duplicate field names (excluding the current field being edited)
+    const existingFieldNames = currentForm.fields
+      .map((field, index) => ({ name: field.fieldName.toLowerCase(), index }))
+      .filter(({ index }) => index !== editingFieldIndex)
+      .map(({ name }) => name);
+    
+    if (fieldData.fieldName && existingFieldNames.includes(fieldData.fieldName.toLowerCase())) {
+      alert(`A field with the name "${fieldData.fieldName}" already exists. Please use a different field name.`);
+      return;
+    }
+
     // Prepare field options based on field type
     let processedOptions = null;
     if (fieldData.fieldType === 'select' || fieldData.fieldType === 'radio') {
@@ -749,11 +780,15 @@ export default function FormBuilder() {
     setTermsContent('');
   };
 
-  const handleDeleteField = (index: number) => {
+  const handleDeleteField = async (index: number) => {
     // During form creation, use formData; during editing, use selectedForm
     const currentForm = selectedForm || formData;
     
     if (!currentForm) return;
+
+    if (!confirm('Are you sure you want to delete this field?')) {
+      return;
+    }
 
     const updatedFields = currentForm.fields.filter((_, i) => i !== index);
     // Update sortOrder for remaining fields
@@ -763,11 +798,30 @@ export default function FormBuilder() {
     }));
     
     if (selectedForm) {
-      // Editing existing form
-      setSelectedForm({
-        ...selectedForm,
-        fields: reorderedFields
-      });
+      // Auto-save for existing forms
+      try {
+        const response = await fetch('/api/admin/forms', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: selectedForm.id,
+            ...selectedForm,
+            fields: reorderedFields
+          }),
+        });
+
+        if (response.ok) {
+          setSelectedForm({ ...selectedForm, fields: reorderedFields });
+          await fetchForms(); // Refresh the forms list
+        } else {
+          alert('Failed to delete field');
+          return;
+        }
+      } catch (error) {
+        console.error('Error deleting field:', error);
+        alert('Failed to delete field');
+        return;
+      }
     } else {
       // Creating new form
       setFormData({
@@ -1268,20 +1322,12 @@ export default function FormBuilder() {
                     Send email notifications
                   </span>
                 </label>
-                {formData.emailNotification && (
+                                {formData.emailNotification && (
                   <div className="mt-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email Recipients (comma-separated)
-                    </label>
-                    <Input
-                      value={formData.emailRecipients || ''}
-                      onChange={(e) => setFormData({...formData, emailRecipients: e.target.value})}
-                      placeholder="admin@example.com, sales@example.com"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Enter email addresses separated by commas
+                    <p className="text-sm text-gray-500">
+                      Email notification settings can be configured after creating the form.
                     </p>
-                      </div>
+                  </div>
                 )}
                     </div>
 
@@ -1347,7 +1393,7 @@ export default function FormBuilder() {
                     }`}
                   />
                 </button>
-              </div>
+                    </div>
 
               {/* Contact Information Fields */}
               {formData.showContactInfo && (
@@ -1368,7 +1414,7 @@ export default function FormBuilder() {
                           onChange={(e) => handleInputChange('contactHeading', e.target.value)}
                           placeholder="Get in Touch"
                         />
-                      </div>
+                  </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Section Description
@@ -1523,8 +1569,8 @@ export default function FormBuilder() {
                   </div>
                 </div>
               )}
-            </div>
-          </Card>
+              </div>
+            </Card>
 
           {/* Captcha Configuration */}
           <Card className="p-6">
@@ -1973,22 +2019,175 @@ export default function FormBuilder() {
                     Send email notifications
                   </span>
                 </label>
-                {selectedForm.emailNotification && (
-                  <div className="mt-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email Recipients (comma-separated)
-                    </label>
-                    <Input
-                      value={selectedForm.emailRecipients || ''}
-                      onChange={(e) => setSelectedForm({...selectedForm, emailRecipients: e.target.value})}
-                      placeholder="admin@example.com, sales@example.com"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Enter email addresses separated by commas
-                    </p>
+                                {selectedForm.emailNotification && (
+                  <div className="mt-2 space-y-4">
+                    {/* Static Email Recipients */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Static Email Recipients (comma-separated)
+                      </label>
+                      <Input
+                        value={selectedForm.emailRecipients || ''}
+                        onChange={(e) => setSelectedForm({...selectedForm, emailRecipients: e.target.value})}
+                        placeholder="admin@example.com, sales@example.com"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Enter email addresses separated by commas
+                      </p>
                       </div>
+
+                    {/* Email Recipients Configuration */}
+                    <div className="border-t pt-4">
+                      <h5 className="text-sm font-medium text-gray-900 mb-4 flex items-center">
+                        <Mail className="w-4 h-4 mr-2" style={{ color: getPrimaryColor() }} />
+                        Email Recipients
+                      </h5>
+                      
+                      <div className="space-y-4">
+                        
+
+                        {/* Submitter Confirmation */}
+                        <div className="bg-green-50 rounded-lg p-4">
+                          <label className="flex items-center space-x-2 mb-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedForm.sendToSubmitterEmail || false}
+                              onChange={(e) => setSelectedForm({...selectedForm, sendToSubmitterEmail: e.target.checked})}
+                              className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                              ✅ Send confirmation email back to the person who submitted the form
+                            </span>
+                          </label>
+                          
+                          {selectedForm.sendToSubmitterEmail && (
+                            <div className="ml-6">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Submitter's Email Field
+                              </label>
+                              <select
+                                value={selectedForm.submitterEmailField || ''}
+                                onChange={(e) => setSelectedForm({...selectedForm, submitterEmailField: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                              >
+                                <option value="">Select the field containing submitter's email...</option>
+                                {selectedForm.fields?.filter(field => field.fieldType === 'email').map((field, index) => (
+                                  <option key={index} value={field.fieldName}>
+                                    {field.label} ({field.fieldName})
+                                  </option>
+                                ))}
+                              </select>
+                              <p className="text-xs text-gray-500 mt-1">
+                                <strong>Purpose:</strong> Send a "thank you" confirmation email to the person who filled out the form
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
                     </div>
+
+              {/* Email Templates Configuration */}
+              {selectedForm.emailNotification && (
+                <div className="border-t pt-6">
+                  <h4 className="text-base font-medium text-gray-900 mb-4 flex items-center">
+                    <Type className="w-4 h-4 mr-2" style={{ color: getPrimaryColor() }} />
+                    Email Templates
+                  </h4>
+                  
+                  <div className="space-y-6">
+                    {/* Admin Email Template */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h5 className="text-sm font-medium text-gray-900 mb-3">Admin Notification Email</h5>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Subject Line
+                          </label>
+                          <Input
+                            value={selectedForm.adminEmailSubject || 'New Form Submission'}
+                            onChange={(e) => setSelectedForm({...selectedForm, adminEmailSubject: e.target.value})}
+                            placeholder="e.g., New Contact Form Submission"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Email Template
+                          </label>
+                          <textarea
+                            value={selectedForm.adminEmailTemplate || 'You have received a new form submission.\n\n{{FORM_DATA}}\n\nSubmitted at: {{SUBMITTED_AT}}'}
+                            onChange={(e) => setSelectedForm({...selectedForm, adminEmailTemplate: e.target.value})}
+                            rows={6}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                            placeholder="Enter your email template..."
+                          />
+                                                     <div className="mt-2 text-xs text-gray-500">
+                             <p className="font-medium mb-1">Available variables:</p>
+                             <div className="flex flex-wrap gap-2">
+                               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{'{{FORM_DATA}}'}</span>
+                               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{'{{SUBMITTED_AT}}'}</span>
+                               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{'{{FORM_NAME}}'}</span>
+                               <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{'{{SUBMITTER_EMAIL}}'}</span>
+                             </div>
+                           </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Submitter Confirmation Email Template */}
+                    {selectedForm.sendToSubmitterEmail && (
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <h5 className="text-sm font-medium text-gray-900 mb-3">Submitter Confirmation Email</h5>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Subject Line
+                            </label>
+                            <Input
+                              value={selectedForm.submitterEmailSubject || 'Thank you for your submission'}
+                              onChange={(e) => setSelectedForm({...selectedForm, submitterEmailSubject: e.target.value})}
+                              placeholder="e.g., Thank you for contacting us!"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Email Template
+                            </label>
+                            <textarea
+                              value={selectedForm.submitterEmailTemplate || 'Dear {{SUBMITTER_NAME}},\n\nThank you for contacting us! We have received your message and will get back to you soon.\n\nBest regards,\nThe Team'}
+                              onChange={(e) => setSelectedForm({...selectedForm, submitterEmailTemplate: e.target.value})}
+                              rows={6}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                              placeholder="Enter your email template..."
+                            />
+                                                         <div className="mt-2 text-xs text-gray-500">
+                               <p className="font-medium mb-1">Available variables:</p>
+                               <div className="flex flex-wrap gap-2">
+                                 <span className="px-2 py-1 bg-green-100 text-green-800 rounded">{'{{SUBMITTER_NAME}}'}</span>
+                                 <span className="px-2 py-1 bg-green-100 text-green-800 rounded">{'{{SUBMITTER_EMAIL}}'}</span>
+                                 <span className="px-2 py-1 bg-green-100 text-green-800 rounded">{'{{FORM_NAME}}'}</span>
+                                 <span className="px-2 py-1 bg-green-100 text-green-800 rounded">{'{{SUBMITTED_AT}}'}</span>
+                                 <span className="px-2 py-1 bg-green-100 text-green-800 rounded">{'{{FORM_DATA}}'}</span>
+                               </div>
+                             </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Template Preview */}
+                    <div className="border-t pt-4">
+                      <h5 className="text-sm font-medium text-gray-700 mb-2">Template Preview</h5>
+                      <div className="bg-white border border-gray-200 rounded-lg p-3 text-xs text-gray-600">
+                        <p>Templates will be processed with actual form data when emails are sent.</p>
+                                                 <p className="mt-1">Variables like {'{{FORM_DATA}}'} will be replaced with the actual submitted information.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Webhook Integration */}
               <div>
@@ -2052,7 +2251,7 @@ export default function FormBuilder() {
                     }`}
                   />
                 </button>
-              </div>
+                    </div>
 
               {/* Captcha Configuration Options */}
               {selectedForm.enableCaptcha && (

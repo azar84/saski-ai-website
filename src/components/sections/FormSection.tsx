@@ -270,7 +270,7 @@ export default function FormSection({
 
     setSubmitting(true);
     try {
-      const response = await fetch('/api/contact/submit', {
+      const response = await fetch('/api/forms/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -278,12 +278,23 @@ export default function FormSection({
         body: JSON.stringify({
           formId,
           formData,
+          metadata: {
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString(),
+            url: window.location.href
+          }
         }),
       });
 
       if (response.ok) {
+        const result = await response.json();
         setSubmitted(true);
         setFormData({});
+        
+        // Handle redirect if configured
+        if (result.redirectUrl) {
+          window.location.href = result.redirectUrl;
+        }
       } else {
         throw new Error('Failed to submit form');
       }
@@ -780,7 +791,7 @@ export default function FormSection({
             </p>
           )}
         </div>
-      );
+        );
     }
 
     if (field.fieldType === 'select' || field.fieldType === 'country') {
@@ -1114,7 +1125,7 @@ export default function FormSection({
                 fontSize: designSystem?.fontSizeBase || '16px',
                 fontFamily: designSystem?.fontFamily || 'Manrope, system-ui, sans-serif'
               }}
-            />
+          />
             <button
               type="button"
               onClick={() => setShowPassword(prev => ({ ...prev, [field.fieldName]: !showPasswordForField }))}
@@ -1440,15 +1451,15 @@ export default function FormSection({
                             backgroundColor={form.formBackgroundColor || backgroundPrimary}
                           />
                         </div>
-                      )}
-
+                )}
+                
                       {/* Submit Button - Bottom Position (default) */}
                       {(!form.ctaPosition || form.ctaPosition === 'bottom') && (!form.enableCaptcha || captchaVerified) && (
                         <div className={`${form.enableCaptcha ? 'pt-1' : 'pt-4'} flex justify-center`}>
                           {renderCTAButton()}
               </div>
-                      )}
-          </div>
+                )}
+              </div>
 
                     {/* CTA Button - Right Position */}
                     {form.ctaPosition === 'right' && (!form.enableCaptcha || captchaVerified) && (
@@ -1459,7 +1470,7 @@ export default function FormSection({
                   </form>
                 </div>
               </div>
-            </div>
+          </div>
 
             {/* Contact Information - Right Position */}
             {form.contactPosition === 'right' && activeContactInfo && (
@@ -1477,7 +1488,7 @@ export default function FormSection({
                   {renderCompanyContact()}
                 </div>
               </div>
-            )}
+              )}
           </div>
         </div>
           </div>

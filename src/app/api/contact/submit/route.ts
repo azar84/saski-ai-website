@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { emailService } from '@/lib/emailService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,20 +53,29 @@ export async function POST(request: NextRequest) {
     const submission = await prisma.contactSubmission.create({
       data: {
         contactSectionId,
-        formData,
-        metadata: metadata || {},
-        status: 'new',
+        formData: JSON.stringify(formData),
         ipAddress: request.headers.get('x-forwarded-for') || 
                   request.headers.get('x-real-ip') || 
-                  'unknown'
+                  'unknown',
+        userAgent: request.headers.get('user-agent') || undefined,
+        referrer: request.headers.get('referer') || undefined
       },
     });
 
-    // TODO: Send email notification if email settings are configured
-    // This would involve:
-    // 1. Fetch email settings for this contact section
-    // 2. Send notification email to admin
-    // 3. Send auto-responder email to user (if configured)
+    // Send email notification if email settings are configured
+    try {
+      const formName = contactSection.heading || 'Contact Form';
+      await emailService.sendFormSubmissionNotification(formData, formName);
+      
+      // Send auto-responder email to user if they provided an email
+      const userEmail = formData.email || formData.Email;
+      if (userEmail) {
+        await emailService.sendWelcomeEmail(userEmail, formData.name || formData.firstName);
+      }
+    } catch (emailError) {
+      console.error('Failed to send email notifications:', emailError);
+      // Don't fail the form submission if email fails
+    }
 
     return NextResponse.json(
       { 

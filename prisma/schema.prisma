@@ -11,6 +11,28 @@ model SiteSettings {
   id         Int      @id @default(autoincrement())
   logoUrl    String?
   faviconUrl String?
+  
+  // Email Configuration
+  smtpEnabled           Boolean  @default(false)        // Enable SMTP email sending
+  smtpHost              String?                         // SMTP server host (e.g., smtp.gmail.com)
+  smtpPort              Int?     @default(587)          // SMTP port (587 for TLS, 465 for SSL, 25 for unencrypted)
+  smtpSecure            Boolean  @default(true)         // Use TLS/SSL encryption
+  smtpUsername          String?                         // SMTP username/email
+  smtpPassword          String?                         // SMTP password (encrypted)
+  smtpFromEmail         String?                         // Default "from" email address
+  smtpFromName          String?                         // Default "from" name
+  smtpReplyTo           String?                         // Default reply-to email
+  
+  // Email Templates Configuration
+  emailSignature        String?                         // Default email signature
+  emailFooterText       String?                         // Footer text for all emails
+  emailBrandingEnabled  Boolean  @default(true)         // Include company branding in emails
+  
+  // Email Notification Settings
+  adminNotificationEmail String?                        // Admin email for system notifications
+  emailLoggingEnabled   Boolean  @default(true)         // Log email sending attempts
+  emailRateLimitPerHour Int?     @default(100)          // Rate limit for emails per hour
+  
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -947,76 +969,95 @@ model PagePricingSection {
 // Form Builder System
 model Form {
   id              Int      @id @default(autoincrement())
-  name            String   // Internal name (e.g., "Contact Form", "Lead Capture")
+  name            String   // Internal name (e.g., "Contact Form")
   title           String   // Display title (e.g., "Get In Touch")
   subheading      String?  // Display subheading (optional)
   successMessage  String   @default("Thank you! Your message has been sent successfully.")
   errorMessage    String   @default("Sorry, there was an error. Please try again.")
   
-  // CTA Customization
-  ctaText         String   @default("Send Message")      // Submit button text
-  ctaIcon         String?                                // Lucide icon name (optional)
-  ctaStyle        String   @default("primary")           // primary, secondary, outline, ghost
-  ctaSize         String   @default("large")             // small, medium, large
-  ctaWidth        String   @default("auto")              // auto, full, fixed
-  ctaLoadingText  String   @default("Sending...")        // Loading state text
-  ctaPosition     String   @default("bottom")            // top, bottom, left, right
+  // CTA Button Customization
+  ctaText         String   @default("Send Message")          // Button text
+  ctaIcon         String?                                     // Icon name from Lucide
+  ctaStyle        String   @default("primary")               // primary, secondary, outline
+  ctaSize         String   @default("large")                 // small, medium, large
+  ctaWidth        String   @default("auto")                  // auto, full
+  ctaLoadingText  String   @default("Sending...")            // Loading state text
   
-  // Enhanced CTA Colors
-  ctaBackgroundColor      String?                        // Custom background color
-  ctaTextColor            String?                        // Custom text color
-  ctaBorderColor          String?                        // Custom border color
-  ctaHoverBackgroundColor String?                        // Hover background color
-  ctaHoverTextColor       String?                        // Hover text color
+  // CTA Button Colors
+  ctaBackgroundColor      String?  // Custom background color
+  ctaTextColor           String?  // Custom text color
+  ctaBorderColor         String?  // Custom border color
+  ctaHoverBackgroundColor String?  // Custom hover background color
+  ctaHoverTextColor      String?  // Custom hover text color
   
   // Submission Actions
-  redirectUrl       String?                              // Redirect URL after submission
-  emailNotification Boolean @default(false)              // Send email notifications
-  emailRecipients   String?                              // Email recipients (comma-separated)
-  webhookUrl        String?                              // Webhook URL for form data
+  redirectUrl     String?  // URL to redirect after submission
+  emailNotification Boolean @default(false)  // Enable email notifications
+  emailRecipients String?  // Comma-separated static email addresses
+  
+  // Dynamic Email Recipients
+  dynamicEmailRecipients Boolean @default(false)  // Enable dynamic recipients
+  emailFieldRecipients   String?                  // Comma-separated field names for recipients
+  sendToSubmitterEmail   Boolean @default(false)  // Send confirmation to submitter
+  submitterEmailField    String?                  // Field name containing submitter email
+  
+  // Email Templates
+  adminEmailSubject      String   @default("New Form Submission")
+  adminEmailTemplate     String   @default("You have received a new form submission.\n\n{{FORM_DATA}}\n\nSubmitted at: {{SUBMITTED_AT}}")
+  submitterEmailSubject  String   @default("Thank you for your submission")
+  submitterEmailTemplate String   @default("Dear {{SUBMITTER_NAME}},\n\nThank you for contacting us! We have received your message and will get back to you soon.\n\nBest regards,\nThe Team")
+  
+  webhookUrl      String?  // Webhook URL for external integrations
   
   // Captcha Settings
-  enableCaptcha   Boolean  @default(true)                // Enable/disable captcha
-  captchaType     String   @default("math")              // math, puzzle, image, drag
-  captchaDifficulty String @default("medium")            // easy, medium, hard
+  enableCaptcha   Boolean  @default(true)
+  captchaType     String   @default("math")     // math, image, recaptcha
+  captchaDifficulty String @default("medium")   // easy, medium, hard
   
-  // Contact Information Settings
-  showContactInfo Boolean  @default(false)               // Show company contact info
-  contactPosition String   @default("right")             // Position: left, right, top, bottom
-  contactPhone    String?                                // Company phone number
-  contactEmail    String?                                // Company email
-  contactAddress  String?                                // Company address
-  socialFacebook  String?                                // Facebook URL
-  socialTwitter   String?                                // Twitter URL
-  socialLinkedin  String?                                // LinkedIn URL
-  socialInstagram String?                                // Instagram URL
-  socialYoutube   String?                                // YouTube URL
+  // Contact Information Display
+  showContactInfo Boolean  @default(false)
+  contactPosition String   @default("right")    // left, right, bottom
+  contactPhone    String?
+  contactEmail    String?
+  contactAddress  String?
+  
+  // Social Media Links
+  socialFacebook  String?
+  socialTwitter   String?
+  socialLinkedin  String?
+  socialInstagram String?
+  socialYoutube   String?
   
   // Contact Section Text Customization
-  contactHeading     String   @default("Get in Touch")   // Contact section heading
-  contactSubheading  String   @default("We'd love to hear from you. Here's how you can reach us.") // Contact section description
-  contactPhoneLabel  String   @default("Phone")          // Phone label
-  contactEmailLabel  String   @default("Email")          // Email label
-  contactAddressLabel String  @default("Address")        // Address label
-  contactSocialLabel String   @default("Follow Us")      // Social media label
+  contactHeading        String @default("Get in Touch")
+  contactSubheading     String @default("We'd love to hear from you. Here's how you can reach us.")
+  contactPhoneLabel     String @default("Phone")
+  contactEmailLabel     String @default("Email")
+  contactAddressLabel   String @default("Address")
+  contactSocialLabel    String @default("Follow Us")
   
   // Form Styling
-  formBackgroundColor String?                            // Form container background color
-  formBorderColor     String?                            // Form container border color
-  formTextColor       String?                            // Form container text color
-  fieldBackgroundColor String?                           // Form fields background color
-  fieldBorderColor    String?                            // Form fields border color
-  fieldTextColor      String?                            // Form fields text color
-  sectionBackgroundColor String?                         // Section background color
+  formBackgroundColor   String?  // Form container background
+  formBorderColor      String   @default("transparent")  // Form container border
+  formTextColor        String?  // Form text color
   
+  // Field Styling
+  fieldBackgroundColor String?  // Input field background
+  fieldBorderColor     String?  // Input field border
+  fieldTextColor       String?  // Input field text
+  
+  // Section Styling
+  sectionBackgroundColor String?  // Section background color
+  
+  // Status & Timestamps
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
   // Relations
-  fields          FormField[]      // Form fields
-  submissions     FormSubmission[] // Form submissions
-  pageSections    PageSection[]    // Page builder references
+  fields          FormField[]
+  submissions     FormSubmission[]
+  pageSections    PageSection[]
 
   @@map("forms")
 }
@@ -1053,24 +1094,25 @@ model FormField {
 model FormSubmission {
   id              Int      @id @default(autoincrement())
   formId          Int
-  
-  // Submission data (JSON string of field values)
-  formData        String   // JSON: {"first_name": "John", "email": "john@example.com", ...}
-  
-  // Metadata
-  ipAddress       String?  // Submitter's IP address
-  userAgent       String?  // Submitter's user agent
-  referrer        String?  // Referring page
-  
-  // Status
+  formData        String   // JSON string of form data
+  ipAddress       String?
+  userAgent       String?
+  referrer        String?
   isRead          Boolean  @default(false)
   isSpam          Boolean  @default(false)
-  notes           String?  // Admin notes
+  notes           String?
+  
+  // Email tracking fields
+  emailStatus     String   @default("not_configured") // pending, sent, failed, not_configured
+  emailMessageId  String?  // SMTP message ID
+  emailRecipients String?  // Comma-separated list of recipients
+  emailSubject    String?  // Email subject
+  emailSentAt     DateTime? // When email was sent
+  emailError      String?  // Error message if email failed
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
-  // Relations
   form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
 
   @@map("form_submissions")

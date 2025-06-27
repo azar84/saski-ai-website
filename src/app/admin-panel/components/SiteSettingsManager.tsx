@@ -4,12 +4,34 @@ import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Upload, Image, Globe, Save, RotateCcw, X } from 'lucide-react';
+import { Upload, Image, Globe, Save, RotateCcw, X, Mail, Settings, Send, Shield, User, Server } from 'lucide-react';
 
 interface SiteSettings {
   id?: number;
   logoUrl: string | null;
   faviconUrl: string | null;
+  
+  // Email Configuration
+  smtpEnabled?: boolean;
+  smtpHost?: string | null;
+  smtpPort?: number | null;
+  smtpSecure?: boolean;
+  smtpUsername?: string | null;
+  smtpPassword?: string | null;
+  smtpFromEmail?: string | null;
+  smtpFromName?: string | null;
+  smtpReplyTo?: string | null;
+  
+  // Email Templates Configuration
+  emailSignature?: string | null;
+  emailFooterText?: string | null;
+  emailBrandingEnabled?: boolean;
+  
+  // Email Notification Settings
+  adminNotificationEmail?: string | null;
+  emailLoggingEnabled?: boolean;
+  emailRateLimitPerHour?: number | null;
+  
   createdAt?: string;
   updatedAt?: string;
 }
@@ -17,13 +39,29 @@ interface SiteSettings {
 export default function SiteSettingsManager() {
   const [settings, setSettings] = useState<SiteSettings>({
     logoUrl: null,
-    faviconUrl: null
+    faviconUrl: null,
+    smtpEnabled: false,
+    smtpPort: 587,
+    smtpSecure: true,
+    emailBrandingEnabled: true,
+    emailLoggingEnabled: true,
+    emailRateLimitPerHour: 100,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [activeTab, setActiveTab] = useState<'general' | 'email'>('general');
+  const [testingEmail, setTestingEmail] = useState(false);
+  const [testEmail, setTestEmail] = useState('');
+  const [emailTestResult, setEmailTestResult] = useState<{
+    success: boolean;
+    message?: string;
+    error?: string;
+    suggestion?: string;
+    details?: any;
+  } | null>(null);
   
   const logoFileRef = useRef<HTMLInputElement>(null);
   const faviconFileRef = useRef<HTMLInputElement>(null);
@@ -38,8 +76,10 @@ export default function SiteSettingsManager() {
       const response = await fetch('/api/admin/site-settings');
       const result = await response.json();
       
-      if (result.success) {
-        setSettings(result.data);
+      if (response.ok) {
+        setSettings(result);
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Failed to load settings' });
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -135,7 +175,7 @@ export default function SiteSettingsManager() {
 
     try {
       const response = await fetch('/api/admin/site-settings', {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -144,11 +184,11 @@ export default function SiteSettingsManager() {
 
       const result = await response.json();
 
-      if (result.success) {
-        setSettings(result.data);
+      if (response.ok) {
+        setSettings(result);
         setMessage({ type: 'success', text: 'Settings saved successfully!' });
       } else {
-        setMessage({ type: 'error', text: result.message || 'Failed to save settings' });
+        setMessage({ type: 'error', text: result.error || 'Failed to save settings' });
       }
     } catch (error) {
       console.error('Failed to save settings:', error);
@@ -161,6 +201,61 @@ export default function SiteSettingsManager() {
   const handleReset = () => {
     fetchSettings();
     setMessage(null);
+  };
+
+  const handleEmailSettingChange = (field: keyof SiteSettings, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleTestEmail = async () => {
+    if (!testEmail) {
+      setMessage({ type: 'error', text: 'Please enter a test email address' });
+      return;
+    }
+
+    setTestingEmail(true);
+    setMessage(null);
+    setEmailTestResult(null);
+
+    try {
+      const response = await fetch('/api/admin/test-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ testEmail }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setEmailTestResult({
+          success: true,
+          message: result.message
+        });
+        setMessage({ type: 'success', text: result.message });
+      } else {
+        setEmailTestResult({
+          success: false,
+          error: result.error,
+          suggestion: result.suggestion,
+          details: result.details
+        });
+        setMessage({ type: 'error', text: result.error || 'Failed to send test email' });
+      }
+    } catch (error) {
+      console.error('Failed to test email:', error);
+      setEmailTestResult({
+        success: false,
+        error: 'Failed to test email configuration'
+      });
+      setMessage({ type: 'error', text: 'Failed to test email configuration' });
+    } finally {
+      setTestingEmail(false);
+    }
   };
 
   if (loading) {
@@ -183,7 +278,7 @@ export default function SiteSettingsManager() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Site Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your website's logo and favicon</p>
+          <p className="text-gray-600 mt-2">Manage your website configuration and email settings</p>
         </div>
         <div className="flex items-center space-x-3">
           <Button
@@ -217,7 +312,42 @@ export default function SiteSettingsManager() {
         </div>
       )}
 
-      {/* Settings Grid */}
+      {/* Tabs Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('general')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'general'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Settings className="w-4 h-4" />
+              <span>General Settings</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('email')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'email'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Mail className="w-4 h-4" />
+              <span>Email Settings</span>
+            </div>
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'general' && (
+        <div className="space-y-8">
+          {/* Settings Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Logo Settings */}
         <Card className="p-6">
@@ -396,18 +526,388 @@ export default function SiteSettingsManager() {
         </Card>
       </div>
 
-      {/* Usage Instructions */}
-      <Card className="p-6 bg-blue-50 border-blue-200">
-        <h4 className="text-lg font-semibold text-blue-900 mb-3">Usage Instructions</h4>
-        <div className="space-y-2 text-sm text-blue-800">
-          <p>• <strong>Logo:</strong> Will be displayed in the website header and other prominent locations</p>
-          <p>• <strong>Favicon:</strong> Small icon that appears in browser tabs and bookmarks</p>
-          <p>• <strong>Upload:</strong> Click the upload area or drag and drop files directly</p>
-          <p>• <strong>Recommended sizes:</strong> Logo: 200x60px or similar aspect ratio, Favicon: 32x32px</p>
-          <p>• <strong>Formats:</strong> PNG with transparency recommended for logo, ICO or PNG for favicon</p>
-          <p>• <strong>Note:</strong> Uploaded files are stored as data URLs for demo purposes. In production, use a proper file storage service.</p>
+          {/* Usage Instructions */}
+          <Card className="p-6 bg-blue-50 border-blue-200">
+            <h4 className="text-lg font-semibold text-blue-900 mb-3">Usage Instructions</h4>
+            <div className="space-y-2 text-sm text-blue-800">
+              <p>• <strong>Logo:</strong> Will be displayed in the website header and other prominent locations</p>
+              <p>• <strong>Favicon:</strong> Small icon that appears in browser tabs and bookmarks</p>
+              <p>• <strong>Upload:</strong> Click the upload area or drag and drop files directly</p>
+              <p>• <strong>Recommended sizes:</strong> Logo: 200x60px or similar aspect ratio, Favicon: 32x32px</p>
+              <p>• <strong>Formats:</strong> PNG with transparency recommended for logo, ICO or PNG for favicon</p>
+              <p>• <strong>Note:</strong> Uploaded files are stored as data URLs for demo purposes. In production, use a proper file storage service.</p>
+            </div>
+          </Card>
         </div>
-      </Card>
+      )}
+
+      {/* Email Settings Tab */}
+      {activeTab === 'email' && (
+        <div className="space-y-8">
+          {/* SMTP Configuration */}
+          <Card className="p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Server className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">SMTP Configuration</h3>
+                <p className="text-gray-600 text-sm">Configure your email server settings</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {/* Enable SMTP */}
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="smtpEnabled"
+                  checked={settings.smtpEnabled || false}
+                  onChange={(e) => handleEmailSettingChange('smtpEnabled', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="smtpEnabled" className="text-sm font-medium text-gray-700">
+                  Enable SMTP Email Sending
+                </label>
+              </div>
+
+              {settings.smtpEnabled && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      SMTP Host
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="smtp.gmail.com"
+                      value={settings.smtpHost || ''}
+                      onChange={(e) => handleEmailSettingChange('smtpHost', e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      SMTP Port
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="587"
+                      value={settings.smtpPort || ''}
+                      onChange={(e) => handleEmailSettingChange('smtpPort', parseInt(e.target.value) || null)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Username/Email
+                    </label>
+                    <Input
+                      type="email"
+                      placeholder="your-email@gmail.com"
+                      value={settings.smtpUsername || ''}
+                      onChange={(e) => handleEmailSettingChange('smtpUsername', e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      value={settings.smtpPassword || ''}
+                      onChange={(e) => handleEmailSettingChange('smtpPassword', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="smtpSecure"
+                      checked={settings.smtpSecure || false}
+                      onChange={(e) => handleEmailSettingChange('smtpSecure', e.target.checked)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="smtpSecure" className="text-sm font-medium text-gray-700">
+                      Use TLS/SSL Encryption
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Email Sender Configuration */}
+          <Card className="p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <User className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">Email Sender Configuration</h3>
+                <p className="text-gray-600 text-sm">Configure how emails appear to recipients</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  From Email Address
+                </label>
+                <Input
+                  type="email"
+                  placeholder="noreply@yoursite.com"
+                  value={settings.smtpFromEmail || ''}
+                  onChange={(e) => handleEmailSettingChange('smtpFromEmail', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  From Name
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Your Company Name"
+                  value={settings.smtpFromName || ''}
+                  onChange={(e) => handleEmailSettingChange('smtpFromName', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reply-To Email
+                </label>
+                <Input
+                  type="email"
+                  placeholder="support@yoursite.com"
+                  value={settings.smtpReplyTo || ''}
+                  onChange={(e) => handleEmailSettingChange('smtpReplyTo', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Admin Notification Email
+                </label>
+                <Input
+                  type="email"
+                  placeholder="admin@yoursite.com"
+                  value={settings.adminNotificationEmail || ''}
+                  onChange={(e) => handleEmailSettingChange('adminNotificationEmail', e.target.value)}
+                />
+              </div>
+            </div>
+          </Card>
+
+          {/* Email Templates */}
+          <Card className="p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Mail className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">Email Templates</h3>
+                <p className="text-gray-600 text-sm">Customize email appearance and content</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Signature
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Best regards,&#10;Your Company Team"
+                  value={settings.emailSignature || ''}
+                  onChange={(e) => handleEmailSettingChange('emailSignature', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Footer Text
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="© 2024 Your Company. All rights reserved."
+                  value={settings.emailFooterText || ''}
+                  onChange={(e) => handleEmailSettingChange('emailFooterText', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="emailBrandingEnabled"
+                  checked={settings.emailBrandingEnabled || false}
+                  onChange={(e) => handleEmailSettingChange('emailBrandingEnabled', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="emailBrandingEnabled" className="text-sm font-medium text-gray-700">
+                  Include signature and footer in all emails
+                </label>
+              </div>
+            </div>
+          </Card>
+
+          {/* Email Settings */}
+          <Card className="p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Shield className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">Email Settings</h3>
+                <p className="text-gray-600 text-sm">Configure email logging and rate limiting</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="emailLoggingEnabled"
+                  checked={settings.emailLoggingEnabled || false}
+                  onChange={(e) => handleEmailSettingChange('emailLoggingEnabled', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="emailLoggingEnabled" className="text-sm font-medium text-gray-700">
+                  Enable email sending logs
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Rate Limit (per hour)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="100"
+                  value={settings.emailRateLimitPerHour || ''}
+                  onChange={(e) => handleEmailSettingChange('emailRateLimitPerHour', parseInt(e.target.value) || null)}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Maximum number of emails that can be sent per hour
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Test Email */}
+          <Card className="p-6 bg-green-50 border-green-200">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Send className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-green-900">Test Email Configuration</h3>
+                <p className="text-green-700 text-sm">Send a test email to verify your settings</p>
+              </div>
+            </div>
+
+            <div className="flex items-end space-x-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-green-700 mb-2">
+                  Test Email Address
+                </label>
+                <Input
+                  type="email"
+                  placeholder="test@example.com"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  className="border-green-300 focus:border-green-500 focus:ring-green-500"
+                />
+              </div>
+              <Button
+                onClick={handleTestEmail}
+                disabled={testingEmail || !settings.smtpEnabled}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {testingEmail ? 'Sending...' : 'Send Test Email'}
+              </Button>
+            </div>
+
+            {!settings.smtpEnabled && (
+              <p className="text-sm text-green-600 mt-2">
+                Please enable SMTP and configure your settings before testing.
+              </p>
+            )}
+
+            {/* Detailed Error Information */}
+            {emailTestResult && !emailTestResult.success && (
+              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h4 className="text-sm font-semibold text-red-800 mb-2">❌ Email Test Failed</h4>
+                <p className="text-sm text-red-700 mb-3">{emailTestResult.error}</p>
+                
+                {emailTestResult.suggestion && (
+                  <div className="mt-3 p-3 bg-red-100 border border-red-200 rounded">
+                    <h5 className="text-sm font-semibold text-red-800 mb-1">💡 Suggestion:</h5>
+                    <p className="text-xs text-red-700">{emailTestResult.suggestion}</p>
+                  </div>
+                )}
+
+                {emailTestResult.details && (
+                  <details className="mt-3">
+                    <summary className="text-xs text-red-600 cursor-pointer hover:text-red-800">
+                      Show Technical Details
+                    </summary>
+                    <pre className="mt-2 text-xs text-red-600 bg-red-100 p-2 rounded overflow-auto">
+                      {JSON.stringify(emailTestResult.details, null, 2)}
+                    </pre>
+                  </details>
+                )}
+
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                  <h5 className="text-sm font-semibold text-yellow-800 mb-2">Common Solutions:</h5>
+                  <ul className="text-xs text-yellow-700 space-y-1">
+                    <li>• <strong>Gmail:</strong> Use your Gmail address as "From Email" and create an App Password</li>
+                    <li>• <strong>Domain Issues:</strong> Use your actual email address, not a custom domain</li>
+                    <li>• <strong>SendGrid/Mailgun:</strong> Verify your domain in their dashboard first</li>
+                    <li>• <strong>Port Issues:</strong> Try 587 (TLS), 465 (SSL), or 25 (no encryption)</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Success Information */}
+            {emailTestResult && emailTestResult.success && (
+              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="text-sm font-semibold text-green-800 mb-2">✅ Email Test Successful!</h4>
+                <p className="text-sm text-green-700 mb-3">
+                  Your email configuration is working correctly. Form submissions will now automatically send email notifications.
+                </p>
+                
+                {(emailTestResult as any).deliverabilityTips && (
+                  <div className="mt-3 p-3 bg-green-100 border border-green-200 rounded">
+                    <h5 className="text-sm font-semibold text-green-800 mb-2">📊 Deliverability Report:</h5>
+                    <ul className="text-xs text-green-700 space-y-1">
+                      {((emailTestResult as any).deliverabilityTips as string[]).map((tip: string, index: number) => (
+                        <li key={index}>• {tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {(emailTestResult as any).domainCheck?.suggestions && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                    <h5 className="text-sm font-semibold text-blue-800 mb-2">🔍 Domain Analysis:</h5>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      {((emailTestResult as any).domainCheck.suggestions as string[]).map((suggestion: string, index: number) => (
+                        <li key={index}>{suggestion}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
     </div>
   );
 } 
