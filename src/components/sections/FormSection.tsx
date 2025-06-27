@@ -17,7 +17,13 @@ import {
   EyeOff,
   ChevronDown,
   X,
-  Lock
+  Lock,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Youtube,
+  ExternalLink
 } from 'lucide-react';
 import { useDesignSystem } from '@/hooks/useDesignSystem';
 import CreativeCaptcha from '@/components/ui/CreativeCaptcha';
@@ -54,6 +60,7 @@ interface Form {
   ctaSize: string;
   ctaWidth: string;
   ctaLoadingText: string;
+  ctaPosition?: string;
   
   // Enhanced CTA Colors
   ctaBackgroundColor?: string;
@@ -72,6 +79,39 @@ interface Form {
   enableCaptcha: boolean;
   captchaType: string;
   captchaDifficulty: string;
+  
+  // Contact Information Settings
+  showContactInfo?: boolean;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactAddress?: string;
+  socialFacebook?: string;
+  socialTwitter?: string;
+  socialLinkedin?: string;
+  socialInstagram?: string;
+  socialYoutube?: string;
+  
+  // Form Styling & Colors
+  formBackgroundColor?: string;
+  formBorderColor?: string;
+  formTextColor?: string;
+  fieldBackgroundColor?: string;
+  fieldBorderColor?: string;
+  fieldTextColor?: string;
+  sectionBackgroundColor?: string;
+}
+
+interface CompanyContact {
+  phone?: string;
+  email?: string;
+  address?: string;
+  socialMedia?: {
+    facebook?: string;
+    twitter?: string;
+    linkedin?: string;
+    instagram?: string;
+    youtube?: string;
+  };
 }
 
 interface FormSectionProps {
@@ -79,9 +119,20 @@ interface FormSectionProps {
   title?: string;
   subtitle?: string;
   className?: string;
+  companyContact?: CompanyContact;
+  layout?: 'default' | 'side-by-side' | 'contact-first';
+  backgroundColor?: string;
 }
 
-export default function FormSection({ formId, title, subtitle, className = '' }: FormSectionProps) {
+export default function FormSection({ 
+  formId, 
+  title, 
+  subtitle, 
+  className = '',
+  companyContact,
+  layout = 'default',
+  backgroundColor
+}: FormSectionProps) {
   const { designSystem, loading: dsLoading } = useDesignSystem();
   const [form, setForm] = useState<Form | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,7 +148,7 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
 
   useEffect(() => {
     if (formId && !isNaN(formId)) {
-      fetchForm();
+    fetchForm();
     } else {
       console.error('Invalid formId provided:', formId);
       setLoading(false);
@@ -163,31 +214,31 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
 
     form.fields.forEach(field => {
       if (field.isRequired && !formData[field.fieldName]?.trim()) {
-        newErrors[field.fieldName] = `${field.label} is required`;
+          newErrors[field.fieldName] = `${field.label} is required`;
       } else if (formData[field.fieldName]) {
-        // Email validation
+      // Email validation
         if (field.fieldType === 'email') {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(formData[field.fieldName])) {
-            newErrors[field.fieldName] = 'Please enter a valid email address';
-          }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData[field.fieldName])) {
+          newErrors[field.fieldName] = 'Please enter a valid email address';
         }
-        
-        // Phone validation
+      }
+
+      // Phone validation
         if (field.fieldType === 'tel') {
-          const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
           const cleanPhone = formData[field.fieldName].replace(/[\s\-\(\)]/g, '');
           if (!phoneRegex.test(cleanPhone)) {
-            newErrors[field.fieldName] = 'Please enter a valid phone number';
-          }
+          newErrors[field.fieldName] = 'Please enter a valid phone number';
         }
+      }
 
-        // URL validation
+      // URL validation
         if (field.fieldType === 'url') {
-          try {
-            new URL(formData[field.fieldName]);
-          } catch {
-            newErrors[field.fieldName] = 'Please enter a valid URL';
+        try {
+          new URL(formData[field.fieldName]);
+        } catch {
+          newErrors[field.fieldName] = 'Please enter a valid URL';
           }
         }
       }
@@ -250,6 +301,239 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
       return `(${match[1]}) ${match[2]}-${match[3]}`;
     }
     return value;
+  };
+
+  const renderCTAButton = () => {
+    if (!form) return null;
+    
+    if (!form.enableCaptcha || captchaVerified) {
+      return (
+        <button
+          type="submit"
+          disabled={submitting}
+          className={`
+            font-semibold rounded-xl 
+            transition-colors duration-300
+            focus:outline-none
+            disabled:opacity-50 disabled:cursor-not-allowed
+            ${form.ctaSize === 'small' ? 'px-6 py-2.5 text-sm' : 
+              form.ctaSize === 'medium' ? 'px-8 py-3 text-base' : 
+              'px-10 py-3.5 text-lg'}
+            ${form.ctaWidth === 'full' ? 'w-full' : 
+              form.ctaWidth === 'fixed' ? 'w-64' : 
+              'min-w-[180px]'}
+            ${form.ctaStyle === 'outline' ? 'border-2' : ''}
+          `}
+          style={{ 
+            backgroundColor: form.ctaBackgroundColor || (
+              form.ctaStyle === 'primary' ? primaryColor :
+              form.ctaStyle === 'secondary' ? secondaryColor :
+              form.ctaStyle === 'outline' ? 'transparent' :
+              'transparent'
+            ),
+            background: form.ctaBackgroundColor || (
+              form.ctaStyle === 'primary' ? primaryColor : 
+              form.ctaStyle === 'secondary' ? secondaryColor :
+              'transparent'
+            ),
+            borderColor: form.ctaBorderColor || (
+              form.ctaStyle === 'outline' ? primaryColor : 'transparent'
+            ),
+            color: form.ctaTextColor || (
+              form.ctaStyle === 'outline' ? primaryColor : 
+              form.ctaStyle === 'ghost' ? primaryColor : 'white'
+            ),
+            boxShadow: 'none !important',
+            filter: 'none !important',
+            WebkitBoxShadow: 'none !important',
+            MozBoxShadow: 'none !important'
+          }}
+          onMouseEnter={(e) => {
+            if (form.ctaHoverBackgroundColor) {
+              e.currentTarget.style.backgroundColor = form.ctaHoverBackgroundColor;
+            }
+            if (form.ctaHoverTextColor) {
+              e.currentTarget.style.color = form.ctaHoverTextColor;
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = form.ctaBackgroundColor || (
+              form.ctaStyle === 'primary' ? primaryColor :
+              form.ctaStyle === 'secondary' ? secondaryColor :
+              form.ctaStyle === 'outline' ? 'transparent' :
+              'transparent'
+            );
+            e.currentTarget.style.color = form.ctaTextColor || (
+              form.ctaStyle === 'outline' ? primaryColor : 
+              form.ctaStyle === 'ghost' ? primaryColor : 'white'
+            );
+            if (!form.ctaBackgroundColor && form.ctaStyle === 'primary') {
+              e.currentTarget.style.background = primaryColor;
+            }
+          }}
+        >
+          {/* Button content */}
+          <div className="flex items-center justify-center gap-2.5">
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>{form.ctaLoadingText || 'Sending...'}</span>
+              </>
+            ) : (
+              <>
+                {form.ctaIcon && (() => {
+                  try {
+                    const iconComponents = require('lucide-react');
+                    const IconComponent = iconComponents[form.ctaIcon];
+                    return IconComponent ? (
+                      <IconComponent className="w-4 h-4" />
+                    ) : null;
+                  } catch {
+                    return null;
+                  }
+                })()}
+                <span>{form.ctaText || 'Send Message'}</span>
+              </>
+            )}
+          </div>
+        </button>
+      );
+    }
+    return null;
+  };
+
+  const renderCompanyContact = () => {
+    if (!activeContactInfo) return null;
+
+    const primaryColor = designSystem?.primaryColor || '#3B82F6';
+    const textPrimary = designSystem?.textPrimary || '#1F2937';
+    const textSecondary = designSystem?.textSecondary || '#6B7280';
+    const backgroundPrimary = designSystem?.backgroundPrimary || '#FFFFFF';
+
+    const socialIcons = {
+      facebook: Facebook,
+      twitter: Twitter,
+      linkedin: Linkedin,
+      instagram: Instagram,
+      youtube: Youtube
+    };
+
+    return (
+      <div className="space-y-8">
+        {/* Contact Header */}
+        <div className="text-center">
+          <h3 className="text-2xl font-bold mb-2" style={{ color: textPrimary }}>
+            Get in Touch
+          </h3>
+          <p className="text-base" style={{ color: textSecondary }}>
+            We'd love to hear from you. Here's how you can reach us.
+          </p>
+        </div>
+
+        {/* Contact Information */}
+        <div className="space-y-6">
+          {/* Phone */}
+          {activeContactInfo.phone && (
+            <div className="flex items-center space-x-4 group">
+              <div 
+                className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                style={{ backgroundColor: `${primaryColor}15` }}
+              >
+                <Phone className="w-5 h-5" style={{ color: primaryColor }} />
+              </div>
+              <div>
+                <p className="text-sm font-medium" style={{ color: textSecondary }}>
+                  Phone
+                </p>
+                <a 
+                  href={`tel:${activeContactInfo.phone}`}
+                  className="text-lg font-semibold hover:underline transition-colors duration-200"
+                  style={{ color: textPrimary }}
+                >
+                  {activeContactInfo.phone}
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Email */}
+          {activeContactInfo.email && (
+            <div className="flex items-center space-x-4 group">
+              <div 
+                className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                style={{ backgroundColor: `${primaryColor}15` }}
+              >
+                <Mail className="w-5 h-5" style={{ color: primaryColor }} />
+              </div>
+              <div>
+                <p className="text-sm font-medium" style={{ color: textSecondary }}>
+                  Email
+                </p>
+                <a 
+                  href={`mailto:${activeContactInfo.email}`}
+                  className="text-lg font-semibold hover:underline transition-colors duration-200"
+                  style={{ color: textPrimary }}
+                >
+                  {activeContactInfo.email}
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Address */}
+          {activeContactInfo.address && (
+            <div className="flex items-start space-x-4 group">
+              <div 
+                className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+                style={{ backgroundColor: `${primaryColor}15` }}
+              >
+                <MapPin className="w-5 h-5" style={{ color: primaryColor }} />
+              </div>
+              <div>
+                <p className="text-sm font-medium" style={{ color: textSecondary }}>
+                  Address
+                </p>
+                <p className="text-lg font-semibold leading-relaxed" style={{ color: textPrimary }}>
+                  {activeContactInfo.address}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Social Media */}
+          {activeContactInfo.socialMedia && Object.keys(activeContactInfo.socialMedia).length > 0 && (
+            <div className="pt-4">
+              <p className="text-sm font-medium mb-4" style={{ color: textSecondary }}>
+                Follow Us
+              </p>
+              <div className="flex space-x-4">
+                {Object.entries(activeContactInfo.socialMedia).map(([platform, url]) => {
+                  if (!url) return null;
+                  const IconComponent = socialIcons[platform as keyof typeof socialIcons];
+                  if (!IconComponent) return null;
+
+                  return (
+                    <a
+                      key={platform}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 hover:scale-110"
+                      style={{ backgroundColor: `${primaryColor}15` }}
+                    >
+                      <IconComponent 
+                        className="w-5 h-5 transition-colors duration-300 group-hover:scale-110" 
+                        style={{ color: primaryColor }} 
+                      />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const getFieldIcon = (fieldType: string, fieldName: string) => {
@@ -348,28 +632,26 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
     
     // Base styles for all input fields using design system colors
     const baseFieldClasses = `
-      w-full h-14 pl-12 pr-4 rounded-xl border-2 transition-all duration-300 ease-out
-      bg-white/90 backdrop-blur-sm
-      focus:outline-none focus:ring-0 focus:bg-white
-      hover:bg-white hover:shadow-md
+      w-full h-11 pl-10 pr-4 rounded-lg border transition-all duration-200 ease-out
+      focus:outline-none focus:ring-2 focus:ring-opacity-20
       ${isError 
-        ? 'border-red-500 focus:border-red-500 shadow-red-100/50' 
+        ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
         : isFocused
-          ? 'border-blue-500 shadow-lg scale-[1.01]'
+          ? ''
           : hasValue
-            ? 'border-gray-300 shadow-sm'
+            ? 'border-gray-300'
             : 'border-gray-200'
       }
     `;
 
     // Icon container styles using design system colors
     const iconContainerClasses = `
-      absolute left-4 top-1/2 transform -translate-y-1/2 transition-colors duration-300 z-10
+      absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 z-10
     `;
 
     // Label styles using design system colors
     const labelClasses = `
-      block text-sm font-semibold mb-2 transition-colors duration-300
+      block text-sm font-medium mb-1.5 transition-colors duration-200
     `;
 
     // Determine field width - textarea, checkbox, street_address, and address_line_2 are full width
@@ -380,7 +662,7 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
     const fieldWidthClass = isFullWidth ? 'col-span-1 md:col-span-2' : 'col-span-1';
 
     if (field.fieldType === 'textarea') {
-      return (
+        return (
         <div key={field.id} className={fieldWidthClass}>
           <label 
             className={labelClasses}
@@ -401,39 +683,37 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
                 {fieldIcon}
               </div>
             )}
-            <textarea
-              name={field.fieldName}
+          <textarea
+            name={field.fieldName}
               value={formData[field.fieldName] || ''}
-              onChange={(e) => handleInputChange(field.fieldName, e.target.value)}
+            onChange={(e) => handleInputChange(field.fieldName, e.target.value)}
               onFocus={() => setFocusedField(field.fieldName)}
               onBlur={() => setFocusedField(null)}
-              placeholder={field.placeholder}
-              rows={4}
-              className={`w-full h-32 ${fieldIcon ? 'pl-12' : 'pl-4'} pr-4 pt-4 rounded-xl border-2 transition-all duration-300 ease-out bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-0 focus:bg-white hover:bg-white hover:shadow-md resize-none ${isError 
-                ? 'border-red-500 focus:border-red-500 shadow-red-100/50' 
+            placeholder={field.placeholder}
+              rows={3}
+              className={`w-full h-24 ${fieldIcon ? 'pl-10' : 'pl-4'} pr-4 pt-3 rounded-lg border transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-opacity-20 resize-none ${isError 
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                 : isFocused
-                  ? 'border-blue-500 shadow-lg scale-[1.01]'
+                  ? ''
                   : hasValue
-                    ? 'border-gray-300 shadow-sm'
+                    ? 'border-gray-300'
                     : 'border-gray-200'
               }`}
               style={{ 
-                color: textPrimary,
-                borderColor: isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'
+                backgroundColor: form?.fieldBackgroundColor || 'white',
+                color: form?.fieldTextColor || textPrimary,
+                borderColor: form?.fieldBorderColor || (isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'),
+                boxShadow: 'none !important'
               }}
             />
           </div>
           {field.helpText && !isError && (
-            <p className="mt-2 text-sm flex items-center gap-2" style={{ color: textSecondary }}>
-              <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: accentColor }}></span>
+            <p className="mt-1 text-xs" style={{ color: textSecondary }}>
               {field.helpText}
             </p>
           )}
           {isError && (
-            <p className="mt-2 text-sm flex items-center gap-2" style={{ color: errorColor }}>
-              <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center inline-flex">
-                <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: errorColor }}></span>
-              </span>
+            <p className="mt-1 text-xs" style={{ color: errorColor }}>
               {errors[field.fieldName]}
             </p>
           )}
@@ -458,7 +738,7 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
         ];
       }
       
-      return (
+        return (
         <div key={field.id} className={fieldWidthClass}>
           <label 
             className={labelClasses}
@@ -477,16 +757,18 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
             >
               {fieldIcon}
             </div>
-            <select
-              name={field.fieldName}
+          <select
+            name={field.fieldName}
               value={formData[field.fieldName] || ''}
-              onChange={(e) => handleInputChange(field.fieldName, e.target.value)}
+            onChange={(e) => handleInputChange(field.fieldName, e.target.value)}
               onFocus={() => setFocusedField(field.fieldName)}
               onBlur={() => setFocusedField(null)}
               className={`${baseFieldClasses} appearance-none cursor-pointer`}
               style={{ 
-                color: textPrimary,
-                borderColor: isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'
+                backgroundColor: form?.fieldBackgroundColor || 'white',
+                color: form?.fieldTextColor || textPrimary,
+                borderColor: form?.fieldBorderColor || (isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'),
+                boxShadow: 'none !important'
               }}
             >
               <option value="">{field.placeholder}</option>
@@ -494,21 +776,17 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
                 <option key={index} value={option.value || option}>
                   {option.label || option}
                 </option>
-              ))}
-            </select>
+            ))}
+          </select>
             <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: textSecondary }} />
           </div>
           {field.helpText && !isError && (
-            <p className="mt-2 text-sm flex items-center gap-2" style={{ color: textSecondary }}>
-              <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: accentColor }}></span>
+            <p className="mt-1 text-xs" style={{ color: textSecondary }}>
               {field.helpText}
             </p>
           )}
           {isError && (
-            <p className="mt-2 text-sm flex items-center gap-2" style={{ color: errorColor }}>
-              <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center inline-flex">
-                <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: errorColor }}></span>
-              </span>
+            <p className="mt-1 text-xs" style={{ color: errorColor }}>
               {errors[field.fieldName]}
             </p>
           )}
@@ -517,19 +795,32 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
     }
 
     if (field.fieldType === 'checkbox') {
-      return (
+        return (
         <div key={field.id} className={fieldWidthClass}>
           <label className="flex items-start gap-4 cursor-pointer group p-4 rounded-xl hover:bg-gray-50/80 transition-colors">
             <div className="relative flex-shrink-0 mt-0.5">
-              <input
-                type="checkbox"
-                name={field.fieldName}
+            <input
+              type="checkbox"
+              name={field.fieldName}
                 checked={formData[field.fieldName] === 'true'}
                 onChange={(e) => handleInputChange(field.fieldName, e.target.checked.toString())}
                 className="sr-only"
+                style={{ 
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  position: 'absolute',
+                  opacity: 0,
+                  width: 0,
+                  height: 0,
+                  margin: 0,
+                  padding: 0,
+                  border: 'none',
+                  outline: 'none'
+                }}
               />
               <div 
-                className="w-6 h-6 rounded-lg border-2 transition-all duration-300 flex items-center justify-center shadow-sm"
+                className="w-6 h-6 rounded-lg border-2 transition-all duration-300 flex items-center justify-center"
                 style={{
                   backgroundColor: formData[field.fieldName] === 'true' ? primaryColor : backgroundPrimary,
                   borderColor: formData[field.fieldName] === 'true' ? primaryColor : '#D1D5DB'
@@ -545,26 +836,23 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
                 {field.label} {field.isRequired && <span style={{ color: errorColor }}>*</span>}
               </span>
               {field.helpText && (
-                <p className="mt-1 text-sm" style={{ color: textSecondary }}>{field.helpText}</p>
+                <p className="mt-0.5 text-xs" style={{ color: textSecondary }}>{field.helpText}</p>
               )}
             </div>
-          </label>
+            </label>
           {isError && (
-            <p className="mt-2 ml-10 text-sm flex items-center gap-2" style={{ color: errorColor }}>
-              <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center inline-flex">
-                <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: errorColor }}></span>
-              </span>
+            <p className="mt-1 ml-10 text-xs" style={{ color: errorColor }}>
               {errors[field.fieldName]}
             </p>
           )}
-        </div>
-      );
+          </div>
+        );
     }
 
     if (field.fieldType === 'radio') {
       const options = Array.isArray(field.fieldOptions) ? field.fieldOptions : [];
       
-      return (
+        return (
         <div key={field.id} className={fieldWidthClass}>
           <div className="block text-sm font-semibold mb-4" style={{ color: textPrimary }}>
             {field.label} {field.isRequired && <span style={{ color: errorColor }}>*</span>}
@@ -583,13 +871,26 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
                 return (
                   <label key={index} className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-gray-50/80 transition-colors border border-gray-200 hover:border-gray-300">
                     <div className="relative flex-shrink-0">
-                      <input
-                        type="radio"
-                        name={field.fieldName}
+                <input
+                  type="radio"
+                  name={field.fieldName}
                         value={optionValue}
                         checked={formData[field.fieldName] === optionValue}
-                        onChange={(e) => handleInputChange(field.fieldName, e.target.value)}
+                  onChange={(e) => handleInputChange(field.fieldName, e.target.value)}
                         className="sr-only"
+                        style={{ 
+                          appearance: 'none',
+                          WebkitAppearance: 'none',
+                          MozAppearance: 'none',
+                          position: 'absolute',
+                          opacity: 0,
+                          width: 0,
+                          height: 0,
+                          margin: 0,
+                          padding: 0,
+                          border: 'none',
+                          outline: 'none'
+                        }}
                       />
                       <div 
                         className="w-5 h-5 rounded-full border-2 transition-all duration-300 flex items-center justify-center"
@@ -606,10 +907,10 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
                     <span className="group-hover:text-gray-700 transition-colors font-medium" style={{ color: textPrimary }}>
                       {optionLabel}
                     </span>
-                  </label>
+                </label>
                 );
               })}
-            </div>
+              </div>
           )}
           
           {field.helpText && !isError && (
@@ -626,22 +927,35 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
               {errors[field.fieldName]}
             </p>
           )}
-        </div>
-      );
+          </div>
+        );
     }
 
     // Handle terms and conditions field
     if (field.fieldType === 'terms') {
-      return (
+        return (
         <div key={field.id} className={fieldWidthClass}>
           <div className="flex items-start gap-3 p-4 rounded-xl border-2 transition-all duration-300" style={{ borderColor: isError ? errorColor : '#E5E7EB', backgroundColor: backgroundPrimary }}>
             <div className="relative flex-shrink-0 mt-1">
               <input
                 type="checkbox"
-                name={field.fieldName}
+            name={field.fieldName}
                 checked={!!formData[field.fieldName]}
                 onChange={(e) => handleInputChange(field.fieldName, e.target.checked ? 'agreed' : '')}
                 className="sr-only"
+                style={{ 
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  position: 'absolute',
+                  opacity: 0,
+                  width: 0,
+                  height: 0,
+                  margin: 0,
+                  padding: 0,
+                  border: 'none',
+                  outline: 'none'
+                }}
               />
               <div 
                 className="w-5 h-5 rounded border-2 transition-all duration-300 flex items-center justify-center cursor-pointer"
@@ -724,14 +1038,15 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
               type={showPasswordForField ? 'text' : 'password'}
               name={field.fieldName}
               value={formData[field.fieldName] || ''}
-              onChange={(e) => handleInputChange(field.fieldName, e.target.value)}
+            onChange={(e) => handleInputChange(field.fieldName, e.target.value)}
               onFocus={() => setFocusedField(field.fieldName)}
               onBlur={() => setFocusedField(null)}
-              placeholder={field.placeholder}
+            placeholder={field.placeholder}
               className={`${baseFieldClasses} pr-12`}
               style={{ 
-                color: textPrimary,
-                borderColor: isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'
+                backgroundColor: form?.fieldBackgroundColor || 'white',
+                color: form?.fieldTextColor || textPrimary,
+                borderColor: form?.fieldBorderColor || (isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB')
               }}
             />
             <button
@@ -804,22 +1119,20 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
             placeholder={field.placeholder}
             className={baseFieldClasses}
             style={{ 
-              color: textPrimary,
-              borderColor: isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'
+              backgroundColor: form?.fieldBackgroundColor || 'white',
+              color: form?.fieldTextColor || textPrimary,
+              borderColor: form?.fieldBorderColor || (isError ? errorColor : isFocused ? primaryColor : hasValue ? '#D1D5DB' : '#E5E7EB'),
+              boxShadow: 'none !important'
             }}
           />
         </div>
         {field.helpText && !isError && (
-          <p className="mt-2 text-sm flex items-center gap-2" style={{ color: textSecondary }}>
-            <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: accentColor }}></span>
+          <p className="mt-1 text-xs" style={{ color: textSecondary }}>
             {field.helpText}
           </p>
         )}
         {isError && (
-          <p className="mt-2 text-sm flex items-center gap-2" style={{ color: errorColor }}>
-            <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center inline-flex">
-              <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: errorColor }}></span>
-            </span>
+          <p className="mt-1 text-xs" style={{ color: errorColor }}>
             {errors[field.fieldName]}
           </p>
         )}
@@ -836,6 +1149,23 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
   const textSecondary = designSystem?.textSecondary || '#6B7280';
   const backgroundPrimary = designSystem?.backgroundPrimary || '#FFFFFF';
   const backgroundSecondary = designSystem?.backgroundSecondary || '#F6F8FC';
+
+  // Create company contact from form data if enabled
+  const formContactInfo: CompanyContact | undefined = form?.showContactInfo ? {
+    phone: form.contactPhone || undefined,
+    email: form.contactEmail || undefined,
+    address: form.contactAddress || undefined,
+    socialMedia: {
+      facebook: form.socialFacebook || undefined,
+      twitter: form.socialTwitter || undefined,
+      linkedin: form.socialLinkedin || undefined,
+      instagram: form.socialInstagram || undefined,
+      youtube: form.socialYoutube || undefined,
+    }
+  } : undefined;
+
+  // Use form contact info if available, otherwise use provided companyContact
+  const activeContactInfo = formContactInfo || companyContact;
 
   if (loading || dsLoading) {
     return (
@@ -871,7 +1201,7 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
         <div className="text-center py-16 px-8">
           <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: `${accentColor}20` }}>
             <MessageSquare className="w-10 h-10" style={{ color: accentColor }} />
-          </div>
+        </div>
           <h3 className="text-2xl font-bold mb-2" style={{ color: textPrimary }}>No Fields Available</h3>
           <p style={{ color: textSecondary }}>This form has no fields configured yet.</p>
         </div>
@@ -880,11 +1210,11 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
   }
 
   if (submitted) {
-    return (
+  return (
       <div className={`min-h-screen flex items-center justify-center ${className}`} style={{ backgroundColor: `${successColor}10` }}>
         <div className="max-w-lg mx-auto text-center py-16 px-8">
           <div className="relative mb-8">
-            <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto shadow-lg" style={{ backgroundColor: successColor }}>
+            <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto" style={{ backgroundColor: successColor }}>
               <Check className="w-12 h-12 text-white" />
             </div>
           </div>
@@ -898,168 +1228,152 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
   }
 
   return (
-    <div className={`min-h-screen ${className}`} style={{ backgroundColor: backgroundSecondary }}>
+    <div className={`form-section min-h-screen ${className}`} style={{ backgroundColor: backgroundColor || form?.sectionBackgroundColor || backgroundSecondary }}>
       <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Header - Only show if title or subtitle are provided */}
           {((title || form.title) || (subtitle || form.subheading)) && (
-            <div className="text-center mb-16">
+            <div className="text-center mb-12">
               {(title || form.title) && (
-                <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight" style={{ color: textPrimary }}>
-                  {title || form.title}
+                <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight" style={{ color: textPrimary }}>
+            {title || form.title}
                 </h1>
               )}
-              {(subtitle || form.subheading) && (
-                <p className="text-xl max-w-3xl mx-auto leading-relaxed" style={{ color: textSecondary }}>
-                  {subtitle || form.subheading}
-                </p>
-              )}
-            </div>
+          {(subtitle || form.subheading) && (
+                <p className="text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: textSecondary }}>
+              {subtitle || form.subheading}
+            </p>
+          )}
+        </div>
           )}
 
-          {/* Form Container */}
-          <div className="relative">
-            {/* Background decoration */}
-            <div className="absolute inset-0 rounded-3xl transform rotate-1" style={{ backgroundColor: `${primaryColor}05` }}></div>
-            <div className="absolute inset-0 rounded-3xl transform -rotate-1" style={{ backgroundColor: `${secondaryColor}05` }}></div>
-            
-            {/* Main form */}
-            <div className="relative backdrop-blur-xl rounded-3xl shadow-2xl border p-8 md:p-12" style={{ backgroundColor: `${backgroundPrimary}e6`, borderColor: `${backgroundPrimary}80` }}>
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Form Fields Grid - 2 columns on medium screens and up, except for textarea/checkbox/radio */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {form.fields?.map((field) => renderField(field))}
+          {/* Main Content Container */}
+          <div className={`
+            ${layout === 'side-by-side' ? 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start' : 
+              layout === 'contact-first' ? 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start' : 
+              'max-w-4xl mx-auto'}
+          `}>
+            {/* Contact Information - Show first if contact-first layout */}
+            {layout === 'contact-first' && activeContactInfo && (
+              <div className="lg:order-1">
+                <div 
+                  className="rounded-2xl p-8 h-full"
+                  style={{ 
+                    backgroundColor: `${primaryColor}08`,
+                    border: `1px solid ${primaryColor}20`
+                  }}
+                >
+                  {renderCompanyContact()}
                 </div>
+              </div>
+            )}
 
-                {/* Captcha Section */}
-                {form.enableCaptcha && (
-                  <div className="pt-8">
-                    <CreativeCaptcha
-                      type={form.captchaType as 'math' | 'puzzle' | 'drag' | 'image'}
-                      difficulty={form.captchaDifficulty as 'easy' | 'medium' | 'hard'}
-                      onVerify={setCaptchaVerified}
-                      primaryColor={primaryColor}
-                      accentColor={accentColor}
-                      errorColor={designSystem?.errorColor || '#EF4444'}
-                    />
-                  </div>
-                )}
-
-                {/* Submit Button - Only show if captcha is disabled or verified */}
-                {(!form.enableCaptcha || captchaVerified) && (
-                  <div className={`${form.enableCaptcha ? 'pt-4' : 'pt-8'} flex justify-center`}>
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className={`
-                        group relative font-bold rounded-2xl 
-                        transition-all duration-300 transform hover:scale-105 active:scale-95
-                        focus:outline-none focus:ring-4 
-                        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
-                        overflow-hidden
-                        ${form.ctaSize === 'small' ? 'px-6 py-2 text-sm' : 
-                          form.ctaSize === 'medium' ? 'px-6 py-3 text-base' : 
-                          'px-8 py-4 text-lg'}
-                        ${form.ctaWidth === 'full' ? 'w-full' : 
-                          form.ctaWidth === 'fixed' ? 'w-64' : 
-                          'min-w-[200px]'}
-                        ${form.ctaStyle === 'outline' ? 'border-2' : ''}
-                      `}
-                      style={{ 
-                        // Use custom colors if available, otherwise fall back to design system colors
-                        backgroundColor: form.ctaBackgroundColor || (
-                          form.ctaStyle === 'primary' ? primaryColor :
-                          form.ctaStyle === 'secondary' ? secondaryColor :
-                          form.ctaStyle === 'outline' ? 'transparent' :
-                          'transparent'
-                        ),
-                        background: form.ctaBackgroundColor ? undefined : (
-                          form.ctaStyle === 'primary' ? `linear-gradient(to right, ${primaryColor}, ${secondaryColor})` : undefined
-                        ),
-                        borderColor: form.ctaBorderColor || (
-                          form.ctaStyle === 'outline' ? primaryColor : 'transparent'
-                        ),
-                        color: form.ctaTextColor || (
-                          form.ctaStyle === 'outline' ? primaryColor : 
-                          form.ctaStyle === 'ghost' ? primaryColor : 'white'
-                        )
-                      }}
-                      onMouseEnter={(e) => {
-                        if (form.ctaHoverBackgroundColor) {
-                          e.currentTarget.style.backgroundColor = form.ctaHoverBackgroundColor;
-                        }
-                        if (form.ctaHoverTextColor) {
-                          e.currentTarget.style.color = form.ctaHoverTextColor;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        // Reset to original colors
-                        e.currentTarget.style.backgroundColor = form.ctaBackgroundColor || (
-                          form.ctaStyle === 'primary' ? primaryColor :
-                          form.ctaStyle === 'secondary' ? secondaryColor :
-                          form.ctaStyle === 'outline' ? 'transparent' :
-                          'transparent'
-                        );
-                        e.currentTarget.style.color = form.ctaTextColor || (
-                          form.ctaStyle === 'outline' ? primaryColor : 
-                          form.ctaStyle === 'ghost' ? primaryColor : 'white'
-                        );
-                        // Re-apply gradient if needed
-                        if (!form.ctaBackgroundColor && form.ctaStyle === 'primary') {
-                          e.currentTarget.style.background = `linear-gradient(to right, ${primaryColor}, ${secondaryColor})`;
-                        }
-                      }}
-                    >
-                      {/* Button background effect - only show if no custom hover colors */}
-                      {!form.ctaHoverBackgroundColor && (
-                        <div 
-                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
-                          style={{ 
-                            background: form.ctaStyle === 'primary' ? `linear-gradient(to right, ${primaryColor}dd, ${secondaryColor}dd)` :
-                                       form.ctaStyle === 'secondary' ? `${secondaryColor}dd` :
-                                       form.ctaStyle === 'outline' ? `${primaryColor}10` :
-                                       `${primaryColor}10`
-                          }}
-                        ></div>
-                      )}
-                      
-                      {/* Button content */}
-                      <div className="relative flex items-center justify-center gap-3">
-                        {submitting ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            <span>{form.ctaLoadingText || 'Sending...'}</span>
-                          </>
-                        ) : (
-                          <>
-                            {form.ctaIcon && (() => {
-                              try {
-                                const iconComponents = require('lucide-react');
-                                const IconComponent = iconComponents[form.ctaIcon];
-                                return IconComponent ? (
-                                  <IconComponent className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                                ) : null;
-                              } catch {
-                                return null;
-                              }
-                            })()}
-                            <span>{form.ctaText || 'Send Message'}</span>
-                          </>
-                        )}
+            {/* Form Container */}
+            <div className={`${layout === 'contact-first' ? 'lg:order-2' : ''}`}>
+              <div className="relative">
+                {/* Main form */}
+                <div 
+                  className={`rounded-2xl p-6 md:p-8 ${form.formBorderColor === 'transparent' ? '' : 'border'}`}
+                  style={{ 
+                    backgroundColor: form.formBackgroundColor || backgroundPrimary,
+                    borderColor: form.formBorderColor === 'transparent' ? 'transparent' : (form.formBorderColor || `${primaryColor}20`),
+                    color: form.formTextColor || textPrimary
+                  }}
+                >
+                  <form onSubmit={handleSubmit} className={`
+                    ${form.ctaPosition === 'left' || form.ctaPosition === 'right' ? 'flex gap-6' : 'space-y-6'}
+                  `}>
+                    {/* CTA Button - Top Position */}
+                    {form.ctaPosition === 'top' && (!form.enableCaptcha || captchaVerified) && (
+                      <div className="flex justify-center mb-6">
+                        {renderCTAButton()}
                       </div>
-                    </button>
-                  </div>
-                )}
-              </form>
+                    )}
+
+                    {/* CTA Button - Left Position */}
+                    {form.ctaPosition === 'left' && (!form.enableCaptcha || captchaVerified) && (
+                      <div className="flex flex-col justify-center">
+                        {renderCTAButton()}
+                      </div>
+                    )}
+
+                    {/* Main Form Content */}
+                    <div className={`${form.ctaPosition === 'left' || form.ctaPosition === 'right' ? 'flex-1' : ''}`}>
+                      {/* Form Fields Grid - Compact 2-column layout */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {form.fields?.map((field) => renderField(field))}
+                      </div>
+
+                      {/* Captcha Section */}
+                      {form.enableCaptcha && (
+                        <div className="pt-4">
+                          <CreativeCaptcha
+                            type={form.captchaType as 'math' | 'puzzle' | 'drag' | 'image'}
+                            difficulty={form.captchaDifficulty as 'easy' | 'medium' | 'hard'}
+                            onVerify={setCaptchaVerified}
+                            primaryColor={primaryColor}
+                            accentColor={accentColor}
+                            errorColor={designSystem?.errorColor || '#EF4444'}
+                          />
+                        </div>
+                      )}
+
+                      {/* Submit Button - Bottom Position (default) */}
+                      {(!form.ctaPosition || form.ctaPosition === 'bottom') && (!form.enableCaptcha || captchaVerified) && (
+                        <div className={`${form.enableCaptcha ? 'pt-2' : 'pt-4'} flex justify-center`}>
+                          {renderCTAButton()}
+              </div>
+                      )}
+          </div>
+
+                    {/* CTA Button - Right Position */}
+                    {form.ctaPosition === 'right' && (!form.enableCaptcha || captchaVerified) && (
+                      <div className="flex flex-col justify-center">
+                        {renderCTAButton()}
+                      </div>
+                    )}
+                  </form>
+                </div>
+              </div>
             </div>
+
+            {/* Contact Information - Show after form for side-by-side layout */}
+            {layout === 'side-by-side' && activeContactInfo && (
+              <div className="lg:order-2">
+                <div 
+                  className="rounded-2xl p-8 h-full"
+                  style={{ 
+                    backgroundColor: `${primaryColor}08`,
+                    border: `1px solid ${primaryColor}20`
+                  }}
+                >
+                  {renderCompanyContact()}
+                </div>
+              </div>
+            )}
+
+            {/* Contact Information - Show below form for default layout */}
+            {layout === 'default' && activeContactInfo && (
+              <div className="mt-12">
+                <div 
+                  className="rounded-2xl p-8"
+                  style={{ 
+                    backgroundColor: `${primaryColor}08`,
+                    border: `1px solid ${primaryColor}20`
+                  }}
+                >
+                  {renderCompanyContact()}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+          </div>
 
       {/* Terms Modal */}
       {showTermsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+          <div className="bg-white rounded-2xl max-w-2xl max-h-[90vh] overflow-hidden">
             <div className="p-6 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold" style={{ color: textPrimary }}>
@@ -1095,8 +1409,8 @@ export default function FormSection({ formId, title, subtitle, className = '' }:
               </button>
             </div>
           </div>
-        </div>
-      )}
+            </div>
+          )}
     </div>
   );
 } 

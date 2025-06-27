@@ -60,16 +60,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { 
       name, title, subheading, successMessage, errorMessage, fields,
-      ctaText, ctaIcon, ctaStyle, ctaSize, ctaWidth, ctaLoadingText,
+      ctaText, ctaIcon, ctaStyle, ctaSize, ctaWidth, ctaLoadingText, ctaPosition,
       ctaBackgroundColor, ctaTextColor, ctaBorderColor, ctaHoverBackgroundColor, ctaHoverTextColor,
       redirectUrl, emailNotification, emailRecipients, webhookUrl,
-      enableCaptcha, captchaType, captchaDifficulty 
+      enableCaptcha, captchaType, captchaDifficulty,
+      showContactInfo, contactPhone, contactEmail, contactAddress,
+      socialFacebook, socialTwitter, socialLinkedin, socialInstagram, socialYoutube,
+      formBackgroundColor, formBorderColor, formTextColor,
+      fieldBackgroundColor, fieldBorderColor, fieldTextColor, sectionBackgroundColor
     } = body;
 
     // Validate required fields
-    if (!name || !title) {
+    if (!name) {
       return NextResponse.json(
-        { error: 'Name and title are required' },
+        { error: 'Name is required' },
         { status: 400 }
       );
     }
@@ -88,6 +92,7 @@ export async function POST(request: NextRequest) {
         ctaSize: ctaSize || "large",
         ctaWidth: ctaWidth || "auto",
         ctaLoadingText: ctaLoadingText || "Sending...",
+        ctaPosition: ctaPosition || "bottom",
         ctaBackgroundColor: ctaBackgroundColor || null,
         ctaTextColor: ctaTextColor || null,
         ctaBorderColor: ctaBorderColor || null,
@@ -100,6 +105,22 @@ export async function POST(request: NextRequest) {
         enableCaptcha: enableCaptcha !== undefined ? enableCaptcha : true,
         captchaType: captchaType || "math",
         captchaDifficulty: captchaDifficulty || "medium",
+        showContactInfo: showContactInfo || false,
+        contactPhone: contactPhone || null,
+        contactEmail: contactEmail || null,
+        contactAddress: contactAddress || null,
+        socialFacebook: socialFacebook || null,
+        socialTwitter: socialTwitter || null,
+        socialLinkedin: socialLinkedin || null,
+        socialInstagram: socialInstagram || null,
+        socialYoutube: socialYoutube || null,
+        formBackgroundColor: formBackgroundColor || null,
+        formBorderColor: formBorderColor || null,
+        formTextColor: formTextColor || null,
+        fieldBackgroundColor: fieldBackgroundColor || null,
+        fieldBorderColor: fieldBorderColor || null,
+        fieldTextColor: fieldTextColor || null,
+        sectionBackgroundColor: sectionBackgroundColor || null,
         fields: {
           create: fields?.map((field: any, index: number) => ({
             fieldType: field.fieldType,
@@ -138,10 +159,14 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { 
       id, name, title, subheading, successMessage, errorMessage, fields,
-      ctaText, ctaIcon, ctaStyle, ctaSize, ctaWidth, ctaLoadingText,
+      ctaText, ctaIcon, ctaStyle, ctaSize, ctaWidth, ctaLoadingText, ctaPosition,
       ctaBackgroundColor, ctaTextColor, ctaBorderColor, ctaHoverBackgroundColor, ctaHoverTextColor,
       redirectUrl, emailNotification, emailRecipients, webhookUrl,
-      enableCaptcha, captchaType, captchaDifficulty 
+      enableCaptcha, captchaType, captchaDifficulty,
+      showContactInfo, contactPhone, contactEmail, contactAddress,
+      socialFacebook, socialTwitter, socialLinkedin, socialInstagram, socialYoutube,
+      formBackgroundColor, formBorderColor, formTextColor,
+      fieldBackgroundColor, fieldBorderColor, fieldTextColor, sectionBackgroundColor
     } = body;
 
     if (!id) {
@@ -166,6 +191,7 @@ export async function PUT(request: NextRequest) {
         ctaSize,
         ctaWidth,
         ctaLoadingText,
+        ctaPosition,
         ctaBackgroundColor,
         ctaTextColor,
         ctaBorderColor,
@@ -178,6 +204,22 @@ export async function PUT(request: NextRequest) {
         enableCaptcha,
         captchaType,
         captchaDifficulty,
+        showContactInfo,
+        contactPhone,
+        contactEmail,
+        contactAddress,
+        socialFacebook,
+        socialTwitter,
+        socialLinkedin,
+        socialInstagram,
+        socialYoutube,
+        formBackgroundColor,
+        formBorderColor,
+        formTextColor,
+        fieldBackgroundColor,
+        fieldBorderColor,
+        fieldTextColor,
+        sectionBackgroundColor,
         fields: {
           deleteMany: {},
           create: fields?.map((field: any, index: number) => ({

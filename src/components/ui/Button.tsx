@@ -11,20 +11,20 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: [
-          'bg-gradient-to-r from-[#5243E9] to-[#7C3AED] text-white shadow-lg shadow-[#5243E9]/25',
-          'hover:shadow-xl hover:shadow-[#5243E9]/40 hover:scale-[1.02]',
+          'bg-gradient-to-r from-[#5243E9] to-[#7C3AED] text-white',
+          'hover:scale-[1.02]',
           'active:scale-[0.98] focus-visible:ring-[#5243E9]',
           'before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 before:transition-opacity hover:before:opacity-100'
         ],
         secondary: [
-          'bg-[#E2E8F0] text-[#1E2A3B] shadow-sm',
-          'hover:bg-[#CBD4E1] hover:shadow-md hover:scale-[1.02]',
+          'bg-[#E2E8F0] text-[#1E2A3B]',
+          'hover:bg-[#CBD4E1] hover:scale-[1.02]',
           'active:scale-[0.98] focus-visible:ring-[#5243E9]',
           'dark:bg-[#27364B] dark:text-[#E2E8F0] dark:hover:bg-[#475569]'
         ],
         outline: [
           'border-2 border-[#5243E9] text-[#5243E9] bg-transparent',
-          'hover:bg-[#5243E9] hover:text-white hover:shadow-lg hover:shadow-[#5243E9]/25',
+          'hover:bg-[#5243E9] hover:text-white',
           'active:scale-[0.98] focus-visible:ring-[#5243E9]',
           'dark:border-[#6366F1] dark:text-[#6366F1] dark:hover:bg-[#6366F1]'
         ],
@@ -35,8 +35,8 @@ const buttonVariants = cva(
           'dark:text-[#94A3B8] dark:hover:bg-[#1E2A3B] dark:hover:text-[#E2E8F0]'
         ],
         destructive: [
-          'bg-[#EF4444] text-white shadow-lg shadow-red-500/25',
-          'hover:bg-red-600 hover:shadow-xl hover:shadow-red-500/40 hover:scale-[1.02]',
+          'bg-[#EF4444] text-white',
+          'hover:bg-red-600 hover:scale-[1.02]',
           'active:scale-[0.98] focus-visible:ring-red-500'
         ],
       },
@@ -86,6 +86,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, fullWidth, className }))}
         ref={ref}
         disabled={isDisabled}
+        style={{ boxShadow: 'none', ...props.style }}
         {...props}
       >
         {isLoading ? (

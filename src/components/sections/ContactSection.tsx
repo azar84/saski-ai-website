@@ -174,10 +174,13 @@ export default function ContactSection({
         return (
           <select
             {...commonProps}
-            className={`w-full p-3 border rounded-md ${commonProps.className}`}
+            className={`w-full p-3 border rounded-md appearance-none ${commonProps.className}`}
             style={{ 
               borderColor: fieldError ? '#ef4444' : designSystem?.grayLight || '#d1d5db',
-              backgroundColor: designSystem?.backgroundPrimary || '#ffffff'
+              backgroundColor: designSystem?.backgroundPrimary || '#ffffff',
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              MozAppearance: 'none'
             }}
           >
             <option value="">Select {field.label}</option>
@@ -202,6 +205,11 @@ export default function ContactSection({
                   onChange={(e) => handleInputChange(field.fieldName, e.target.value)}
                   required={field.isRequired}
                   className="text-blue-600"
+                  style={{ 
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none'
+                  }}
                 />
                 <span style={{ color: designSystem?.textPrimary || '#1f2937' }}>
                   {option}
@@ -221,6 +229,11 @@ export default function ContactSection({
               onChange={(e) => handleInputChange(field.fieldName, e.target.checked)}
               required={field.isRequired}
               className="text-blue-600"
+              style={{ 
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none'
+              }}
             />
             <span style={{ color: designSystem?.textPrimary || '#1f2937' }}>
               {field.label}
@@ -358,7 +371,9 @@ export default function ContactSection({
               className="px-8 py-3"
               style={{ 
                 backgroundColor: designSystem?.primaryColor || '#3b82f6',
-                borderColor: designSystem?.primaryColor || '#3b82f6'
+                borderColor: designSystem?.primaryColor || '#3b82f6',
+                boxShadow: 'none !important',
+                filter: 'none !important'
               }}
             >
               {isSubmitting ? 'Sending...' : 'Send Message'}

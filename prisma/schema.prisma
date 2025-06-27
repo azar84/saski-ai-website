@@ -960,6 +960,7 @@ model Form {
   ctaSize         String   @default("large")             // small, medium, large
   ctaWidth        String   @default("auto")              // auto, full, fixed
   ctaLoadingText  String   @default("Sending...")        // Loading state text
+  ctaPosition     String   @default("bottom")            // top, bottom, left, right
   
   // Enhanced CTA Colors
   ctaBackgroundColor      String?                        // Custom background color
@@ -978,6 +979,26 @@ model Form {
   enableCaptcha   Boolean  @default(true)                // Enable/disable captcha
   captchaType     String   @default("math")              // math, puzzle, image, drag
   captchaDifficulty String @default("medium")            // easy, medium, hard
+  
+  // Contact Information Settings
+  showContactInfo Boolean  @default(false)               // Show company contact info
+  contactPhone    String?                                // Company phone number
+  contactEmail    String?                                // Company email
+  contactAddress  String?                                // Company address
+  socialFacebook  String?                                // Facebook URL
+  socialTwitter   String?                                // Twitter URL
+  socialLinkedin  String?                                // LinkedIn URL
+  socialInstagram String?                                // Instagram URL
+  socialYoutube   String?                                // YouTube URL
+  
+  // Form Styling
+  formBackgroundColor String?                            // Form container background color
+  formBorderColor     String?                            // Form container border color
+  formTextColor       String?                            // Form container text color
+  fieldBackgroundColor String?                           // Form fields background color
+  fieldBorderColor    String?                            // Form fields border color
+  fieldTextColor      String?                            // Form fields text color
+  sectionBackgroundColor String?                         // Section background color
   
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())

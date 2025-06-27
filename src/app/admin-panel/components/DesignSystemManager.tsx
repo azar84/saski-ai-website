@@ -1054,6 +1054,11 @@ const DesignSystemManager: React.FC = () => {
                         checked={designSystem.themeMode === mode}
                         onChange={(e) => updateDesignSystem('themeMode', e.target.value)}
                         className="text-blue-600 focus:ring-blue-500"
+                        style={{ 
+                          appearance: 'none',
+                          WebkitAppearance: 'none',
+                          MozAppearance: 'none'
+                        }}
                       />
                       <span className="flex items-center space-x-2">
                         {mode === 'light' && <Sun className="w-4 h-4" />}

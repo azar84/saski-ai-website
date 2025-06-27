@@ -22,9 +22,18 @@ import {
   Puzzle,
   Target,
   Grid3X3,
-  Shield
-  } from 'lucide-react';
-  import FormFieldTypes, { FormFieldType } from '@/components/form-builder/FormFieldTypes';
+  Shield,
+  Building2,
+  Phone,
+  Mail,
+  MapPin,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Youtube
+} from 'lucide-react';
+import FormFieldTypes, { FormFieldType } from '@/components/form-builder/FormFieldTypes';
   import IconPicker from '@/components/ui/IconPicker';
 import {
   DndContext,
@@ -94,6 +103,29 @@ interface Form {
   enableCaptcha?: boolean;
   captchaType?: string;
   captchaDifficulty?: string;
+  
+  // Contact Information
+  showContactInfo?: boolean;
+  contactPhone?: string;
+  contactEmail?: string;
+  contactAddress?: string;
+  
+  // Social Media Links
+  socialFacebook?: string;
+  socialTwitter?: string;
+  socialLinkedin?: string;
+  socialInstagram?: string;
+  socialYoutube?: string;
+  
+  // Form Styling
+  ctaPosition?: string;
+  formBackgroundColor?: string;
+  formBorderColor?: string;
+  formTextColor?: string;
+  fieldBackgroundColor?: string;
+  fieldBorderColor?: string;
+  fieldTextColor?: string;
+  sectionBackgroundColor?: string;
 }
 
 // Sortable Field Item Component
@@ -101,12 +133,14 @@ function SortableFieldItem({
   field, 
   index, 
   onEdit, 
-  onDelete 
+  onDelete,
+  primaryColor
 }: { 
   field: FormField; 
   index: number; 
   onEdit: (index: number) => void; 
   onDelete: (index: number) => void; 
+  primaryColor: string;
 }) {
   const {
     attributes,
@@ -128,7 +162,7 @@ function SortableFieldItem({
       ref={setNodeRef}
       style={style}
       className={`flex items-center justify-between p-3 border rounded-lg bg-white ${
-        isDragging ? 'shadow-lg ring-2 ring-blue-500' : 'hover:shadow-sm'
+        isDragging ? 'ring-2 ring-blue-500' : ''
       }`}
     >
       <div className="flex items-center space-x-3">
@@ -139,8 +173,11 @@ function SortableFieldItem({
         >
           <GripVertical className="h-4 w-4 text-gray-400" />
         </div>
-        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-          <span className="text-xs font-medium text-blue-600">
+        <div 
+          className="w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: `${primaryColor}15` }}
+        >
+          <span className="text-xs font-medium" style={{ color: primaryColor }}>
             {field.fieldType.charAt(0).toUpperCase()}
           </span>
         </div>
@@ -197,7 +234,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, desig
       </label>
       <div className="flex items-center gap-2">
         <div
-          className="w-12 h-12 border-2 border-gray-300 rounded-lg shadow-sm cursor-pointer relative overflow-hidden"
+          className="w-12 h-12 border-2 border-gray-300 rounded-lg cursor-pointer relative overflow-hidden"
           style={{ backgroundColor: value }}
           title={`${label}: ${value}`}
         >
@@ -402,7 +439,8 @@ export default function FormBuilder() {
     ctaLoadingText: 'Sending...',
     enableCaptcha: true,
     captchaType: 'math',
-    captchaDifficulty: 'medium'
+    captchaDifficulty: 'medium',
+    formBorderColor: 'transparent' // Default to no border for new forms
   });
   const [fieldData, setFieldData] = useState<FormField>({
     fieldType: 'text',
@@ -421,6 +459,11 @@ export default function FormBuilder() {
 
   // Design System Integration
   const { designSystem } = useDesignSystem();
+
+  // Get primary color for icons
+  const getPrimaryColor = () => {
+    return designSystem?.primaryColor || '#5243E9'; // fallback color
+  };
 
   // Get design system colors for color picker
   const getDesignSystemColors = () => {
@@ -559,8 +602,8 @@ export default function FormBuilder() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: selectedForm.id,
-            ...selectedForm,
-            fields: updatedFields
+        ...selectedForm,
+        fields: updatedFields
           }),
         });
 
@@ -642,8 +685,8 @@ export default function FormBuilder() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: selectedForm.id,
-            ...selectedForm,
-            fields: updatedFields
+        ...selectedForm,
+        fields: updatedFields
           }),
         });
 
@@ -836,6 +879,7 @@ export default function FormBuilder() {
                   index={index}
                   onEdit={handleEditField}
                   onDelete={handleDeleteField}
+                  primaryColor={getPrimaryColor()}
                 />
               ))}
             </div>
@@ -858,7 +902,7 @@ export default function FormBuilder() {
           <p className="text-gray-600">Create and manage custom forms with predefined field types</p>
         </div>
         <Button onClick={() => setShowCreateForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
           Create New Form
         </Button>
       </div>
@@ -972,19 +1016,10 @@ export default function FormBuilder() {
             </div>
           </Card>
 
-          {/* Field Types */}
-          <Card className="p-6">
-            <h3 className="text-lg font-medium mb-4">Add Form Fields</h3>
-            <FormFieldTypes onFieldSelect={handleFieldSelect} />
-          </Card>
-
-          {/* Fields List with Drag and Drop */}
-          {renderSortableFields(formData.fields)}
-
           {/* Enhanced CTA Configuration */}
           <Card className="p-6">
             <h3 className="text-lg font-medium mb-4 flex items-center">
-              <Zap className="w-5 h-5 mr-2 text-blue-600" />
+              <Zap className="w-5 h-5 mr-2" style={{ color: getPrimaryColor() }} />
               Submit Button (CTA) Configuration
             </h3>
             
@@ -1040,9 +1075,13 @@ export default function FormBuilder() {
                       key={style.value}
                       className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                         formData.ctaStyle === style.value
-                          ? 'border-blue-500 bg-blue-50'
+                          ? 'border-gray-200 hover:border-gray-300'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
+                      style={formData.ctaStyle === style.value ? { 
+                        borderColor: getPrimaryColor(), 
+                        backgroundColor: `${getPrimaryColor()}08` 
+                      } : {}}
                       onClick={() => setFormData({...formData, ctaStyle: style.value})}
                     >
                       <div className="text-center space-y-2">
@@ -1162,9 +1201,9 @@ export default function FormBuilder() {
           </Card>
 
           {/* Submission Actions Configuration */}
-          <Card className="p-6">
+            <Card className="p-6">
             <h3 className="text-lg font-medium mb-4 flex items-center">
-              <Send className="w-5 h-5 mr-2 text-green-600" />
+              <Send className="w-5 h-5 mr-2" style={{ color: getPrimaryColor() }} />
               Submission Actions
             </h3>
             
@@ -1187,7 +1226,7 @@ export default function FormBuilder() {
                   />
                   <span className="text-sm font-medium text-gray-700">
                     Redirect after successful submission
-                  </span>
+                        </span>
                 </label>
                 {formData.redirectUrl !== undefined && (
                   <Input
@@ -1197,10 +1236,10 @@ export default function FormBuilder() {
                     className="mt-2"
                   />
                 )}
-              </div>
+                      </div>
 
               {/* Email Notifications */}
-              <div>
+                      <div>
                 <label className="flex items-center space-x-2 mb-2">
                   <input
                     type="checkbox"
@@ -1225,9 +1264,9 @@ export default function FormBuilder() {
                     <p className="text-xs text-gray-500 mt-1">
                       Enter email addresses separated by commas
                     </p>
-                  </div>
+                      </div>
                 )}
-              </div>
+                    </div>
 
               {/* Webhook Integration */}
               <div>
@@ -1265,10 +1304,260 @@ export default function FormBuilder() {
             </div>
           </Card>
 
+          {/* Contact Information Configuration */}
+          <Card className="p-6">
+            <h3 className="text-lg font-medium mb-4 flex items-center">
+              <Building2 className="h-5 w-5 mr-2" style={{ color: getPrimaryColor() }} />
+              Contact Information
+            </h3>
+            
+            <div className="space-y-6">
+              {/* Toggle Contact Info Display */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900">Show Contact Information</h4>
+                  <p className="text-sm text-gray-500">Display contact details and social links with the form</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('showContactInfo', !formData.showContactInfo)}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 cursor-pointer bg-gray-300"
+                  style={formData.showContactInfo ? { backgroundColor: getPrimaryColor() } : {}}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
+                      formData.showContactInfo ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Contact Information Fields */}
+              {formData.showContactInfo && (
+                <div className="space-y-4 border-t pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                        <Phone className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                        Phone Number
+                      </label>
+                      <Input
+                        value={formData.contactPhone || ''}
+                        onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                        placeholder="+1 (555) 123-4567"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                        <Mail className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                        Email Address
+                      </label>
+                      <Input
+                        value={formData.contactEmail || ''}
+                        onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                        placeholder="contact@example.com"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                      <MapPin className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                      Address
+                    </label>
+                    <Input
+                      value={formData.contactAddress || ''}
+                      onChange={(e) => handleInputChange('contactAddress', e.target.value)}
+                      placeholder="123 Main St, City, State 12345"
+                    />
+                  </div>
+
+                  {/* Social Media Links */}
+                  <div className="border-t pt-4">
+                    <h5 className="text-sm font-medium text-gray-900 mb-3">Social Media Links</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Facebook className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          Facebook
+                        </label>
+                        <Input
+                          value={formData.socialFacebook || ''}
+                          onChange={(e) => handleInputChange('socialFacebook', e.target.value)}
+                          placeholder="https://facebook.com/yourpage"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Twitter className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          Twitter
+                        </label>
+                        <Input
+                          value={formData.socialTwitter || ''}
+                          onChange={(e) => handleInputChange('socialTwitter', e.target.value)}
+                          placeholder="https://twitter.com/youraccount"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Linkedin className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          LinkedIn
+                        </label>
+                        <Input
+                          value={formData.socialLinkedin || ''}
+                          onChange={(e) => handleInputChange('socialLinkedin', e.target.value)}
+                          placeholder="https://linkedin.com/company/yourcompany"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Instagram className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          Instagram
+                        </label>
+                        <Input
+                          value={formData.socialInstagram || ''}
+                          onChange={(e) => handleInputChange('socialInstagram', e.target.value)}
+                          placeholder="https://instagram.com/youraccount"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Youtube className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          YouTube
+                        </label>
+                        <Input
+                          value={formData.socialYoutube || ''}
+                          onChange={(e) => handleInputChange('socialYoutube', e.target.value)}
+                          placeholder="https://youtube.com/yourchannel"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Captcha Configuration */}
+          <Card className="p-6">
+            <h3 className="text-lg font-medium mb-4 flex items-center">
+              <Shield className="w-5 h-5 mr-2" style={{ color: getPrimaryColor() }} />
+              Captcha Security
+            </h3>
+            
+            <div className="space-y-6">
+              {/* Enable Captcha */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900">Enable Captcha</h4>
+                  <p className="text-sm text-gray-500">Add security verification to prevent spam submissions</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('enableCaptcha', !formData.enableCaptcha)}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 cursor-pointer bg-gray-300"
+                  style={formData.enableCaptcha ? { backgroundColor: getPrimaryColor() } : {}}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
+                      formData.enableCaptcha ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+                    </div>
+
+              {/* Captcha Configuration Options */}
+              {formData.enableCaptcha && (
+                <div className="space-y-4 border-t pt-4">
+                  {/* Captcha Type Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Captcha Type
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { value: 'math', label: 'Math Problem', description: 'Simple arithmetic', icon: 'Calculator' },
+                        { value: 'puzzle', label: 'Word Puzzle', description: 'Unscramble letters', icon: 'Puzzle' },
+                        { value: 'drag', label: 'Drag & Drop', description: 'Interactive challenge', icon: 'Target' },
+                        { value: 'image', label: 'Pattern Match', description: 'Visual recognition', icon: 'Grid3X3' }
+                      ].map((type) => (
+                        <div
+                          key={type.value}
+                          className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${
+                            formData.captchaType === type.value
+                              ? 'border-gray-200 hover:border-gray-300'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          style={formData.captchaType === type.value ? { 
+                            borderColor: getPrimaryColor(), 
+                            backgroundColor: `${getPrimaryColor()}08` 
+                          } : {}}
+                          onClick={() => handleInputChange('captchaType', type.value)}
+                        >
+                          <div className="text-2xl mb-1 flex justify-center">
+                            {type.icon === 'Calculator' && <Calculator className="w-6 h-6" style={{ color: getPrimaryColor() }} />}
+                            {type.icon === 'Puzzle' && <Puzzle className="w-6 h-6" style={{ color: getPrimaryColor() }} />}
+                            {type.icon === 'Target' && <Target className="w-6 h-6" style={{ color: getPrimaryColor() }} />}
+                            {type.icon === 'Grid3X3' && <Grid3X3 className="w-6 h-6" style={{ color: getPrimaryColor() }} />}
+                          </div>
+                          <p className="text-sm font-medium text-gray-900">{type.label}</p>
+                          <p className="text-xs text-gray-500">{type.description}</p>
+                  </div>
+                ))}
+              </div>
+                  </div>
+
+                  {/* Difficulty Level */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Difficulty Level
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { value: 'easy', label: 'Easy', description: 'Basic challenges', color: 'green' },
+                        { value: 'medium', label: 'Medium', description: 'Moderate difficulty', color: 'yellow' },
+                        { value: 'hard', label: 'Hard', description: 'Complex challenges', color: 'red' }
+                      ].map((level) => (
+                        <div
+                          key={level.value}
+                          className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${
+                            formData.captchaDifficulty === level.value
+                              ? 'border-gray-200 hover:border-gray-300'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          style={formData.captchaDifficulty === level.value ? { 
+                            borderColor: getPrimaryColor(), 
+                            backgroundColor: `${getPrimaryColor()}08` 
+                          } : {}}
+                          onClick={() => handleInputChange('captchaDifficulty', level.value)}
+                        >
+                          <p className="text-sm font-medium text-gray-900">{level.label}</p>
+                          <p className="text-xs text-gray-500">{level.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Captcha Preview/Info */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Current Configuration</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p><strong>Type:</strong> {formData.captchaType || 'math'} captcha</p>
+                      <p><strong>Difficulty:</strong> {formData.captchaDifficulty || 'medium'}</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        The captcha will appear after form fields and must be completed before submission.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
           {/* Field Types */}
           <Card className="p-6">
             <h3 className="text-lg font-medium mb-4">Add Form Fields</h3>
-            <FormFieldTypes onFieldSelect={handleFieldSelect} />
+            <FormFieldTypes onFieldSelect={handleFieldSelect} primaryColor={getPrimaryColor()} />
           </Card>
 
           {/* Fields List with Drag and Drop */}
@@ -1364,7 +1653,7 @@ export default function FormBuilder() {
           {/* Enhanced CTA Configuration */}
           <Card className="p-6">
             <h3 className="text-lg font-medium mb-4 flex items-center">
-              <Zap className="w-5 h-5 mr-2 text-blue-600" />
+              <Zap className="w-5 h-5 mr-2" style={{ color: getPrimaryColor() }} />
               Submit Button (CTA) Configuration
             </h3>
             
@@ -1420,9 +1709,13 @@ export default function FormBuilder() {
                       key={style.value}
                       className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                         selectedForm.ctaStyle === style.value
-                          ? 'border-blue-500 bg-blue-50'
+                          ? 'border-gray-200 hover:border-gray-300'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
+                      style={selectedForm.ctaStyle === style.value ? { 
+                        borderColor: getPrimaryColor(), 
+                        backgroundColor: `${getPrimaryColor()}08` 
+                      } : {}}
                       onClick={() => setSelectedForm({...selectedForm, ctaStyle: style.value})}
                     >
                       <div className="text-center space-y-2">
@@ -1542,9 +1835,9 @@ export default function FormBuilder() {
           </Card>
 
           {/* Submission Actions Configuration */}
-          <Card className="p-6">
+            <Card className="p-6">
             <h3 className="text-lg font-medium mb-4 flex items-center">
-              <Send className="w-5 h-5 mr-2 text-green-600" />
+              <Send className="w-5 h-5 mr-2" style={{ color: getPrimaryColor() }} />
               Submission Actions
             </h3>
             
@@ -1567,7 +1860,7 @@ export default function FormBuilder() {
                   />
                   <span className="text-sm font-medium text-gray-700">
                     Redirect after successful submission
-                  </span>
+                        </span>
                 </label>
                 {selectedForm.redirectUrl !== undefined && (
                   <Input
@@ -1577,10 +1870,10 @@ export default function FormBuilder() {
                     className="mt-2"
                   />
                 )}
-              </div>
+                      </div>
 
               {/* Email Notifications */}
-              <div>
+                      <div>
                 <label className="flex items-center space-x-2 mb-2">
                   <input
                     type="checkbox"
@@ -1605,9 +1898,9 @@ export default function FormBuilder() {
                     <p className="text-xs text-gray-500 mt-1">
                       Enter email addresses separated by commas
                     </p>
-                  </div>
+                      </div>
                 )}
-              </div>
+                    </div>
 
               {/* Webhook Integration */}
               <div>
@@ -1648,32 +1941,34 @@ export default function FormBuilder() {
           {/* Captcha Configuration */}
           <Card className="p-6">
             <h3 className="text-lg font-medium mb-4 flex items-center">
-              <Shield className="w-5 h-5 mr-2 text-purple-600" />
+              <Shield className="w-5 h-5 mr-2" style={{ color: getPrimaryColor() }} />
               Captcha Security
             </h3>
             
             <div className="space-y-6">
               {/* Enable Captcha */}
-              <div>
-                <label className="flex items-center space-x-2 mb-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedForm.enableCaptcha || false}
-                    onChange={(e) => setSelectedForm({...selectedForm, enableCaptcha: e.target.checked})}
-                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900">Enable Captcha</h4>
+                  <p className="text-sm text-gray-500">Add security verification to prevent spam submissions</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedForm({...selectedForm, enableCaptcha: !selectedForm.enableCaptcha})}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 cursor-pointer bg-gray-300"
+                  style={selectedForm.enableCaptcha ? { backgroundColor: getPrimaryColor() } : {}}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
+                      selectedForm.enableCaptcha ? 'translate-x-6' : 'translate-x-1'
+                    }`}
                   />
-                  <span className="text-sm font-medium text-gray-700">
-                    Enable captcha verification
-                  </span>
-                </label>
-                <p className="text-xs text-gray-500 ml-6">
-                  Protect your form from spam and automated submissions
-                </p>
+                </button>
               </div>
 
               {/* Captcha Configuration Options */}
               {selectedForm.enableCaptcha && (
-                <div className="space-y-4 pl-6 border-l-2 border-purple-100">
+                <div className="space-y-4 border-t pt-4">
                   {/* Captcha Type Selection */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1690,21 +1985,25 @@ export default function FormBuilder() {
                           key={type.value}
                           className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${
                             selectedForm.captchaType === type.value
-                              ? 'border-purple-500 bg-purple-50'
+                              ? 'border-gray-200 hover:border-gray-300'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
+                          style={selectedForm.captchaType === type.value ? { 
+                            borderColor: getPrimaryColor(), 
+                            backgroundColor: `${getPrimaryColor()}08` 
+                          } : {}}
                           onClick={() => setSelectedForm({...selectedForm, captchaType: type.value})}
                         >
                           <div className="text-2xl mb-1 flex justify-center">
-                            {type.icon === 'Calculator' && <Calculator className="w-6 h-6 text-purple-600" />}
-                            {type.icon === 'Puzzle' && <Puzzle className="w-6 h-6 text-purple-600" />}
-                            {type.icon === 'Target' && <Target className="w-6 h-6 text-purple-600" />}
-                            {type.icon === 'Grid3X3' && <Grid3X3 className="w-6 h-6 text-purple-600" />}
-                          </div>
+                            {type.icon === 'Calculator' && <Calculator className="w-6 h-6" style={{ color: getPrimaryColor() }} />}
+                            {type.icon === 'Puzzle' && <Puzzle className="w-6 h-6" style={{ color: getPrimaryColor() }} />}
+                            {type.icon === 'Target' && <Target className="w-6 h-6" style={{ color: getPrimaryColor() }} />}
+                            {type.icon === 'Grid3X3' && <Grid3X3 className="w-6 h-6" style={{ color: getPrimaryColor() }} />}
+                    </div>
                           <p className="text-sm font-medium text-gray-900">{type.label}</p>
                           <p className="text-xs text-gray-500">{type.description}</p>
-                        </div>
-                      ))}
+                  </div>
+                ))}
                     </div>
                   </div>
 
@@ -1723,9 +2022,13 @@ export default function FormBuilder() {
                           key={level.value}
                           className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${
                             selectedForm.captchaDifficulty === level.value
-                              ? `border-${level.color}-500 bg-${level.color}-50`
+                              ? 'border-gray-200 hover:border-gray-300'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
+                          style={selectedForm.captchaDifficulty === level.value ? { 
+                            borderColor: getPrimaryColor(), 
+                            backgroundColor: `${getPrimaryColor()}08` 
+                          } : {}}
                           onClick={() => setSelectedForm({...selectedForm, captchaDifficulty: level.value})}
                         >
                           <p className="text-sm font-medium text-gray-900">{level.label}</p>
@@ -1748,13 +2051,249 @@ export default function FormBuilder() {
                   </div>
                 </div>
               )}
+              </div>
+            </Card>
+
+          {/* Contact Information Configuration */}
+          <Card className="p-6">
+            <h3 className="text-lg font-medium mb-4 flex items-center">
+              <Building2 className="h-5 w-5 mr-2" style={{ color: getPrimaryColor() }} />
+              Contact Information
+            </h3>
+            
+            <div className="space-y-6">
+              {/* Toggle Contact Info Display */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900">Show Contact Information</h4>
+                  <p className="text-sm text-gray-500">Display contact details and social links with the form</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedForm({...selectedForm, showContactInfo: !selectedForm.showContactInfo})}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 cursor-pointer bg-gray-300"
+                  style={selectedForm.showContactInfo ? { backgroundColor: getPrimaryColor() } : {}}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
+                      selectedForm.showContactInfo ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Contact Information Fields */}
+              {selectedForm.showContactInfo && (
+                <div className="space-y-4 border-t pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                        <Phone className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                        Phone Number
+                      </label>
+                      <Input
+                        value={selectedForm.contactPhone || ''}
+                        onChange={(e) => setSelectedForm({...selectedForm, contactPhone: e.target.value})}
+                        placeholder="+1 (555) 123-4567"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                        <Mail className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                        Email Address
+                      </label>
+                      <Input
+                        value={selectedForm.contactEmail || ''}
+                        onChange={(e) => setSelectedForm({...selectedForm, contactEmail: e.target.value})}
+                        placeholder="contact@example.com"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                      <MapPin className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                      Address
+                    </label>
+                    <Input
+                      value={selectedForm.contactAddress || ''}
+                      onChange={(e) => setSelectedForm({...selectedForm, contactAddress: e.target.value})}
+                      placeholder="123 Main St, City, State 12345"
+                    />
+                  </div>
+
+                  {/* Social Media Links */}
+                  <div className="border-t pt-4">
+                    <h5 className="text-sm font-medium text-gray-900 mb-3">Social Media Links</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Facebook className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          Facebook
+                        </label>
+                        <Input
+                          value={selectedForm.socialFacebook || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, socialFacebook: e.target.value})}
+                          placeholder="https://facebook.com/yourpage"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Twitter className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          Twitter
+                        </label>
+                        <Input
+                          value={selectedForm.socialTwitter || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, socialTwitter: e.target.value})}
+                          placeholder="https://twitter.com/youraccount"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Linkedin className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          LinkedIn
+                        </label>
+                        <Input
+                          value={selectedForm.socialLinkedin || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, socialLinkedin: e.target.value})}
+                          placeholder="https://linkedin.com/company/yourcompany"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Instagram className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          Instagram
+                        </label>
+                        <Input
+                          value={selectedForm.socialInstagram || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, socialInstagram: e.target.value})}
+                          placeholder="https://instagram.com/youraccount"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                          <Youtube className="h-4 w-4 mr-2" style={{ color: getPrimaryColor() }} />
+                          YouTube
+                        </label>
+                        <Input
+                          value={selectedForm.socialYoutube || ''}
+                          onChange={(e) => setSelectedForm({...selectedForm, socialYoutube: e.target.value})}
+                          placeholder="https://youtube.com/yourchannel"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+          )}
+        </div>
+          </Card>
+
+          {/* Form Styling Configuration */}
+          <Card className="p-6">
+            <h3 className="text-lg font-medium mb-4 flex items-center">
+              <Palette className="w-5 h-5 mr-2" style={{ color: getPrimaryColor() }} />
+              Form Styling
+            </h3>
+            
+            <div className="space-y-6">
+              {/* Section Background Color */}
+              <div>
+                <ColorPicker
+                  label="Section Background Color"
+                  value={selectedForm.sectionBackgroundColor || (designSystem?.backgroundSecondary || '#F6F8FC')}
+                  onChange={(color) => setSelectedForm({...selectedForm, sectionBackgroundColor: color})}
+                  designSystemColors={getDesignSystemColors()}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Background color for the entire form section
+                </p>
+              </div>
+              
+              {/* Form Container Colors */}
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Form Container</h4>
+                
+                {/* Show Border Toggle */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h5 className="text-sm font-medium text-gray-900">Show Border</h5>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const isCurrentlyNoBorder = selectedForm.formBorderColor === 'transparent' || !selectedForm.formBorderColor;
+                        setSelectedForm({
+                          ...selectedForm, 
+                          formBorderColor: isCurrentlyNoBorder ? `${getPrimaryColor()}20` : 'transparent'
+                        });
+                      }}
+                      className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 cursor-pointer bg-gray-300"
+                      style={(selectedForm.formBorderColor !== 'transparent' && selectedForm.formBorderColor) ? { backgroundColor: getPrimaryColor() } : {}}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
+                          (selectedForm.formBorderColor !== 'transparent' && selectedForm.formBorderColor) ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-500">Add a border around the form container</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <ColorPicker
+                    label="Background"
+                    value={selectedForm.formBackgroundColor || (designSystem?.backgroundPrimary || '#FFFFFF')}
+                    onChange={(color) => setSelectedForm({...selectedForm, formBackgroundColor: color})}
+                    designSystemColors={getDesignSystemColors()}
+                  />
+                  {(selectedForm.formBorderColor !== 'transparent' && selectedForm.formBorderColor) && (
+                    <ColorPicker
+                      label="Border"
+                      value={selectedForm.formBorderColor || `${getPrimaryColor()}20`}
+                      onChange={(color) => setSelectedForm({...selectedForm, formBorderColor: color})}
+                      designSystemColors={getDesignSystemColors()}
+                    />
+                  )}
+                  <ColorPicker
+                    label="Text"
+                    value={selectedForm.formTextColor || (designSystem?.textPrimary || '#1F2937')}
+                    onChange={(color) => setSelectedForm({...selectedForm, formTextColor: color})}
+                    designSystemColors={getDesignSystemColors()}
+                  />
+                </div>
+              </div>
+              
+              {/* Form Fields Colors */}
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Form Fields</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <ColorPicker
+                    label="Background"
+                    value={selectedForm.fieldBackgroundColor || '#FFFFFF'}
+                    onChange={(color) => setSelectedForm({...selectedForm, fieldBackgroundColor: color})}
+                    designSystemColors={getDesignSystemColors()}
+                  />
+                  <ColorPicker
+                    label="Border"
+                    value={selectedForm.fieldBorderColor || '#E5E7EB'}
+                    onChange={(color) => setSelectedForm({...selectedForm, fieldBorderColor: color})}
+                    designSystemColors={getDesignSystemColors()}
+                  />
+                  <ColorPicker
+                    label="Text"
+                    value={selectedForm.fieldTextColor || (designSystem?.textPrimary || '#1F2937')}
+                    onChange={(color) => setSelectedForm({...selectedForm, fieldTextColor: color})}
+                    designSystemColors={getDesignSystemColors()}
+                  />
+                </div>
+              </div>
             </div>
           </Card>
 
           {/* Field Types */}
           <Card className="p-6">
             <h3 className="text-lg font-medium mb-4">Add Form Fields</h3>
-            <FormFieldTypes onFieldSelect={handleFieldSelect} />
+            <FormFieldTypes onFieldSelect={handleFieldSelect} primaryColor={getPrimaryColor()} />
           </Card>
 
           {/* Fields List with Drag and Drop */}
@@ -1770,24 +2309,24 @@ export default function FormBuilder() {
             
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Field Label
-                  </label>
-                  <Input
-                    value={fieldData.label}
-                    onChange={(e) => handleFieldInputChange('label', e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Field Name
-                  </label>
-                  <Input
-                    value={fieldData.fieldName}
-                    onChange={(e) => handleFieldInputChange('fieldName', e.target.value)}
-                  />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Field Label
+                </label>
+                <Input
+                  value={fieldData.label}
+                  onChange={(e) => handleFieldInputChange('label', e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Field Name
+                </label>
+                <Input
+                  value={fieldData.fieldName}
+                  onChange={(e) => handleFieldInputChange('fieldName', e.target.value)}
+                />
                 </div>
               </div>
               

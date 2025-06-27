@@ -276,9 +276,10 @@ export const PREDEFINED_FIELD_TYPES: FormFieldType[] = [
 
 interface FormFieldTypesProps {
   onFieldSelect: (fieldType: FormFieldType) => void;
+  primaryColor?: string;
 }
 
-export default function FormFieldTypes({ onFieldSelect }: FormFieldTypesProps) {
+export default function FormFieldTypes({ onFieldSelect, primaryColor = '#5243E9' }: FormFieldTypesProps) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -288,12 +289,22 @@ export default function FormFieldTypes({ onFieldSelect }: FormFieldTypesProps) {
           return (
             <Card
               key={fieldType.type}
-              className="p-4 cursor-pointer hover:shadow-md transition-shadow border-2 border-dashed border-gray-200 hover:border-green-300"
+              className="p-4 cursor-pointer hover:shadow-md transition-shadow border-2 border-dashed border-gray-200"
+              style={{
+                borderColor: '#e5e7eb', // default gray-200
+                transition: 'all 0.2s ease-in-out'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = `${primaryColor}80`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#e5e7eb';
+              }}
               onClick={() => onFieldSelect(fieldType)}
             >
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
-                  <Icon className="h-6 w-6 text-green-600" />
+                  <Icon className="h-6 w-6" style={{ color: primaryColor }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-medium text-gray-900 truncate">
