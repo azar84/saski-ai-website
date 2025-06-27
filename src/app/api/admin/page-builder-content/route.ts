@@ -146,8 +146,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(response);
     }
 
+    if (contentType === 'forms') {
+      // Fetch all forms
+      const forms = await prisma.form.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          title: true,
+          subheading: true,
+          isActive: true,
+          _count: {
+            select: {
+              fields: true,
+              submissions: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: forms
+      };
+      return NextResponse.json(response);
+    }
+
     // If no specific type, return all content types
-    const [heroSections, featureGroups, mediaSections, pricingSections, faqSections] = await Promise.all([
+    const [heroSections, featureGroups, mediaSections, pricingSections, faqSections, forms] = await Promise.all([
       (prisma.heroSection as any).findMany({
         where: { visible: true },
         select: {
@@ -235,6 +262,23 @@ export async function GET(request: NextRequest) {
           isActive: true
         },
         orderBy: { createdAt: 'desc' }
+      }),
+      prisma.form.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          title: true,
+          subheading: true,
+          isActive: true,
+          _count: {
+            select: {
+              fields: true,
+              submissions: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
       })
     ]);
 
@@ -245,7 +289,8 @@ export async function GET(request: NextRequest) {
         featureGroups,
         mediaSections,
         pricingSections,
-        faqSections
+        faqSections,
+        forms
       }
     };
     return NextResponse.json(response);

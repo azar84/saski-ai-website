@@ -400,7 +400,7 @@ model PageFeatureGroup {
 model PageSection {
   id              Int           @id @default(autoincrement())
   pageId          Int
-  sectionType     String        // hero, features, media, testimonials, pricing, faq, contact, cta, custom
+  sectionType     String        // hero, features, media, testimonials, pricing, faq, contact, form, cta, custom
   title           String?       // Section title/heading (optional override)
   subtitle        String?       // Section subtitle/subheading (optional override)
   content         String?       // JSON content for the section
@@ -414,6 +414,7 @@ model PageSection {
   faqSectionId    Int?          // Reference to FAQSection
   faqCategoryId   Int?          // Reference to FAQCategory (for FAQ sections)
   contactSectionId Int?         // Reference to ContactSection
+  formId          Int?          // Reference to Form (for form builder)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   page            Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
@@ -424,6 +425,7 @@ model PageSection {
   faqSection      FAQSection?   @relation(fields: [faqSectionId], references: [id], onDelete: SetNull)
   faqCategory     FAQCategory?  @relation(fields: [faqCategoryId], references: [id], onDelete: SetNull)
   contactSection  ContactSection? @relation(fields: [contactSectionId], references: [id], onDelete: SetNull)
+  form            Form?         @relation(fields: [formId], references: [id], onDelete: SetNull)
 
   @@map("page_sections")
 }
@@ -940,4 +942,106 @@ model PagePricingSection {
   
   @@unique([pageId, pricingSectionId])
   @@map("page_pricing_sections")
+}
+
+// Form Builder System
+model Form {
+  id              Int      @id @default(autoincrement())
+  name            String   // Internal name (e.g., "Contact Form", "Lead Capture")
+  title           String   // Display title (e.g., "Get In Touch")
+  subheading      String?  // Display subheading (optional)
+  successMessage  String   @default("Thank you! Your message has been sent successfully.")
+  errorMessage    String   @default("Sorry, there was an error. Please try again.")
+  
+  // CTA Customization
+  ctaText         String   @default("Send Message")      // Submit button text
+  ctaIcon         String?                                // Lucide icon name (optional)
+  ctaStyle        String   @default("primary")           // primary, secondary, outline, ghost
+  ctaSize         String   @default("large")             // small, medium, large
+  ctaWidth        String   @default("auto")              // auto, full, fixed
+  ctaLoadingText  String   @default("Sending...")        // Loading state text
+  
+  // Enhanced CTA Colors
+  ctaBackgroundColor      String?                        // Custom background color
+  ctaTextColor            String?                        // Custom text color
+  ctaBorderColor          String?                        // Custom border color
+  ctaHoverBackgroundColor String?                        // Hover background color
+  ctaHoverTextColor       String?                        // Hover text color
+  
+  // Submission Actions
+  redirectUrl       String?                              // Redirect URL after submission
+  emailNotification Boolean @default(false)              // Send email notifications
+  emailRecipients   String?                              // Email recipients (comma-separated)
+  webhookUrl        String?                              // Webhook URL for form data
+  
+  // Captcha Settings
+  enableCaptcha   Boolean  @default(true)                // Enable/disable captcha
+  captchaType     String   @default("math")              // math, puzzle, image, drag
+  captchaDifficulty String @default("medium")            // easy, medium, hard
+  
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  fields          FormField[]      // Form fields
+  submissions     FormSubmission[] // Form submissions
+  pageSections    PageSection[]    // Page builder references
+
+  @@map("forms")
+}
+
+// Form fields with predefined field types
+model FormField {
+  id              Int      @id @default(autoincrement())
+  formId          Int
+  fieldType       String   // predefined field types
+  fieldName       String   // Internal field name
+  label           String   // Display label
+  placeholder     String?  // Placeholder text
+  helpText        String?  // Help text below field
+  isRequired      Boolean  @default(false)
+  isVisible       Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  
+  // Field configuration (JSON string for flexibility)
+  fieldOptions    String?  // JSON: validation rules, options, etc.
+  
+  // Styling
+  fieldWidth      String   @default("full") // full, half, third, quarter
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@map("form_fields")
+}
+
+// Form submissions
+model FormSubmission {
+  id              Int      @id @default(autoincrement())
+  formId          Int
+  
+  // Submission data (JSON string of field values)
+  formData        String   // JSON: {"first_name": "John", "email": "john@example.com", ...}
+  
+  // Metadata
+  ipAddress       String?  // Submitter's IP address
+  userAgent       String?  // Submitter's user agent
+  referrer        String?  // Referring page
+  
+  // Status
+  isRead          Boolean  @default(false)
+  isSpam          Boolean  @default(false)
+  notes           String?  // Admin notes
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@map("form_submissions")
 }

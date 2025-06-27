@@ -1,25 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Grid } from 'lucide-react';
+import { Mail, Database } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
-import ContactSectionsManager from './ContactSectionsManager';
-import ContactFieldsManager from './ContactFieldsManager';
+import FormBuilder from './FormBuilder';
+import FormSubmissionsManager from './FormSubmissionsManager';
 
-type ContactTab = 'forms' | 'fields';
+type ContactTab = 'forms' | 'submissions';
 
 const tabs = [
   {
     id: 'forms' as ContactTab,
-    name: 'Contact Forms',
+    name: 'Form Builder',
     icon: Mail,
-    description: 'Create and manage contact forms with custom messages'
+    description: 'Create and manage dynamic forms with drag-and-drop field builder'
   },
   {
-    id: 'fields' as ContactTab,
-    name: 'Form Fields',
-    icon: Grid,
-    description: 'Build dynamic form fields with validation and options'
+    id: 'submissions' as ContactTab,
+    name: 'Form Submissions',
+    icon: Database,
+    description: 'View and manage form submissions from your website'
   }
 ];
 
@@ -76,8 +76,8 @@ export default function ContactManager() {
 
       {/* Tab Content */}
       <div className="min-h-[600px]">
-        {activeTab === 'forms' && <ContactSectionsManager />}
-        {activeTab === 'fields' && <ContactFieldsManager />}
+        {activeTab === 'forms' && <FormBuilder />}
+        {activeTab === 'submissions' && <FormSubmissionsManager />}
       </div>
     </div>
   );

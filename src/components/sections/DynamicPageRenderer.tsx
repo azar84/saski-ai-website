@@ -7,6 +7,7 @@ import FAQSection from './FAQSection';
 import DynamicHeroSection from './DynamicHeroSection';
 import PricingSection from './PricingSection';
 import ConfigurablePricingSection from './ConfigurablePricingSection';
+import FormSection from './FormSection';
 
 interface PageSection {
   id: number;
@@ -158,6 +159,18 @@ interface PageSection {
     }>;
   };
   faqCategoryId?: number;
+  form?: {
+    id: number;
+    name: string;
+    title: string;
+    subheading?: string;
+    isActive: boolean;
+    _count: {
+      fields: number;
+      submissions: number;
+    };
+  };
+  formId?: number;
 }
 
 interface DynamicPageRendererProps {
@@ -185,24 +198,11 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         
         const result = await response.json();
         
-        console.log('🔍 DynamicPageRenderer - Raw API Response:', result);
-        
         if (result.success && result.data) {
           // Filter visible sections and sort by sortOrder
           const visibleSections = result.data
             .filter((section: PageSection) => section.isVisible)
             .sort((a: PageSection, b: PageSection) => a.sortOrder - b.sortOrder);
-          
-          console.log('🔍 DynamicPageRenderer - Filtered Sections:', visibleSections.map((s: PageSection) => ({
-            id: s.id,
-            sectionType: s.sectionType,
-            title: s.title,
-            featureGroup: s.featureGroup ? {
-              id: s.featureGroup.id,
-              name: s.featureGroup.name,
-              layoutType: s.featureGroup.layoutType
-            } : null
-          })));
           
           setSections(visibleSections);
         } else {
@@ -246,20 +246,12 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             .map(item => item.feature)
             .sort((a, b) => a.sortOrder - b.sortOrder);
 
-          console.log('🎨 DynamicPageRenderer - Feature Group:', {
-            name: section.featureGroup.name,
-            layoutType: section.featureGroup.layoutType,
-            featuresCount: features.length
-          });
-
           const propsToPass = {
             features: features as any,
             heading: section.title || section.featureGroup.heading,
             subheading: section.subtitle || section.featureGroup.subheading,
             layoutType: section.featureGroup.layoutType || 'grid'
           };
-
-          console.log('🚀 DynamicPageRenderer - Passing props to FeaturesSection:', propsToPass);
 
           return (
             <FeaturesSection
@@ -305,6 +297,20 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             className={className}
           />
         );
+
+      case 'form':
+        if (section.form || section.formId) {
+          return (
+            <FormSection
+              key={sectionKey}
+              formId={section.form?.id || section.formId!}
+              title={section.title || section.form?.title}
+              subtitle={section.subtitle || section.form?.subheading}
+              className={className}
+            />
+          );
+        }
+        break;
 
       case 'testimonials':
         return (

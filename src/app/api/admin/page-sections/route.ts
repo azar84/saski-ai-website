@@ -215,6 +215,21 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        },
+        form: {
+          select: {
+            id: true,
+            name: true,
+            title: true,
+            subheading: true,
+            isActive: true,
+            _count: {
+              select: {
+                fields: true,
+                submissions: true
+              }
+            }
+          }
         }
       },
       orderBy: [
@@ -272,7 +287,8 @@ export async function POST(request: NextRequest) {
         pricingSectionId: validatedData.pricingSectionId,
         faqSectionId: validatedData.faqSectionId,
         faqCategoryId: validatedData.faqCategoryId,
-        contactSectionId: validatedData.contactSectionId
+        contactSectionId: validatedData.contactSectionId,
+        formId: validatedData.formId
       },
       include: {
         page: {
@@ -408,6 +424,21 @@ export async function POST(request: NextRequest) {
               }
             }
           }
+        },
+        form: {
+          select: {
+            id: true,
+            name: true,
+            title: true,
+            subheading: true,
+            isActive: true,
+            _count: {
+              select: {
+                fields: true,
+                submissions: true
+              }
+            }
+          }
         }
       }
     });
@@ -454,6 +485,7 @@ export async function PUT(request: NextRequest) {
         ...(validatedData.faqSectionId !== undefined && { faqSectionId: validatedData.faqSectionId }),
         ...(validatedData.faqCategoryId !== undefined && { faqCategoryId: validatedData.faqCategoryId }),
         ...(validatedData.contactSectionId !== undefined && { contactSectionId: validatedData.contactSectionId }),
+        ...(validatedData.formId !== undefined && { formId: validatedData.formId }),
         updatedAt: new Date()
       },
       include: {
