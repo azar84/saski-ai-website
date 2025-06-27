@@ -486,6 +486,8 @@ export default function FormBuilder() {
   const [fieldOptions, setFieldOptions] = useState<string[]>([]);
   const [newOption, setNewOption] = useState('');
   const [termsContent, setTermsContent] = useState('');
+  const [siteSettings, setSiteSettings] = useState<any>(null);
+  const [loadingSiteSettings, setLoadingSiteSettings] = useState(false);
 
   // Design System Integration
   const { designSystem } = useDesignSystem();
@@ -526,7 +528,47 @@ export default function FormBuilder() {
 
   useEffect(() => {
     fetchForms();
+    fetchSiteSettings();
   }, []);
+
+  const fetchSiteSettings = async () => {
+    try {
+      const response = await fetch('/api/admin/site-settings');
+      if (response.ok) {
+        const data = await response.json();
+        setSiteSettings(data);
+      }
+    } catch (error) {
+      console.error('Error fetching site settings:', error);
+    }
+  };
+
+  const autoPopulateFromSiteSettings = (isEditing: boolean = false) => {
+    if (!siteSettings) return;
+
+    const contactData = {
+      contactPhone: siteSettings.companyPhone || '',
+      contactEmail: siteSettings.companyEmail || '',
+      contactAddress: siteSettings.companyAddress || '',
+      socialFacebook: siteSettings.socialFacebook || '',
+      socialTwitter: siteSettings.socialTwitter || '',
+      socialLinkedin: siteSettings.socialLinkedin || '',
+      socialInstagram: siteSettings.socialInstagram || '',
+      socialYoutube: siteSettings.socialYoutube || ''
+    };
+
+    if (isEditing && selectedForm) {
+      setSelectedForm({
+        ...selectedForm,
+        ...contactData
+      });
+    } else {
+      setFormData({
+        ...formData,
+        ...contactData
+      });
+    }
+  };
 
   const fetchForms = async () => {
     try {
@@ -1398,6 +1440,28 @@ export default function FormBuilder() {
               {/* Contact Information Fields */}
               {formData.showContactInfo && (
                 <div className="space-y-4 border-t pt-4">
+                  {/* Auto-populate button */}
+                  {siteSettings && (siteSettings.companyPhone || siteSettings.companyEmail || siteSettings.companyAddress) && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="text-sm font-medium text-blue-900">Auto-populate from Site Settings</h5>
+                          <p className="text-xs text-blue-700">Fill contact information automatically from your site settings</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => autoPopulateFromSiteSettings(false)}
+                          className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                        >
+                          <Building2 className="w-4 h-4 mr-2" />
+                          Auto-fill
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Contact Text Customization */}
                   <div className="space-y-4 border-b pb-4">
                     <h5 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
@@ -2403,6 +2467,28 @@ export default function FormBuilder() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Auto-populate button */}
+                  {siteSettings && (siteSettings.companyPhone || siteSettings.companyEmail || siteSettings.companyAddress) && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="text-sm font-medium text-blue-900">Auto-populate from Site Settings</h5>
+                          <p className="text-xs text-blue-700">Fill contact information automatically from your site settings</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => autoPopulateFromSiteSettings(true)}
+                          className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                        >
+                          <Building2 className="w-4 h-4 mr-2" />
+                          Auto-fill
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Contact Text Customization */}
                   <div className="space-y-4 border-b pb-4">

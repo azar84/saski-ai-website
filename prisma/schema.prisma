@@ -33,6 +33,18 @@ model SiteSettings {
   emailLoggingEnabled   Boolean  @default(true)         // Log email sending attempts
   emailRateLimitPerHour Int?     @default(100)          // Rate limit for emails per hour
   
+  // Company Contact Information
+  companyPhone          String?                         // Company phone number
+  companyEmail          String?                         // Company contact email
+  companyAddress        String?                         // Company physical address
+  
+  // Social Media Links
+  socialFacebook        String?                         // Facebook page URL
+  socialTwitter         String?                         // Twitter profile URL
+  socialLinkedin        String?                         // LinkedIn profile URL
+  socialInstagram       String?                         // Instagram profile URL
+  socialYoutube         String?                         // YouTube channel URL
+  
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

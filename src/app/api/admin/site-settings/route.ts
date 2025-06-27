@@ -26,6 +26,18 @@ const SiteSettingsSchema = z.object({
   adminNotificationEmail: z.string().email().optional().nullable(),
   emailLoggingEnabled: z.boolean().optional(),
   emailRateLimitPerHour: z.number().int().min(1).max(1000).optional().nullable(),
+  
+  // Company Contact Information
+  companyPhone: z.string().optional().nullable(),
+  companyEmail: z.string().email().optional().nullable(),
+  companyAddress: z.string().optional().nullable(),
+  
+  // Social Media Links
+  socialFacebook: z.string().url().optional().nullable(),
+  socialTwitter: z.string().url().optional().nullable(),
+  socialLinkedin: z.string().url().optional().nullable(),
+  socialInstagram: z.string().url().optional().nullable(),
+  socialYoutube: z.string().url().optional().nullable(),
 });
 
 // GET - Retrieve current site settings

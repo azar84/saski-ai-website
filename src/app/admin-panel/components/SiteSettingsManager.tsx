@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Upload, Image, Globe, Save, RotateCcw, X, Mail, Settings, Send, Shield, User, Server } from 'lucide-react';
+import { Upload, Image, Globe, Save, RotateCcw, X, Mail, Settings, Send, Shield, User, Server, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, Youtube } from 'lucide-react';
 
 interface SiteSettings {
   id?: number;
@@ -32,6 +32,18 @@ interface SiteSettings {
   emailLoggingEnabled?: boolean;
   emailRateLimitPerHour?: number | null;
   
+  // Company Contact Information
+  companyPhone?: string | null;
+  companyEmail?: string | null;
+  companyAddress?: string | null;
+  
+  // Social Media Links
+  socialFacebook?: string | null;
+  socialTwitter?: string | null;
+  socialLinkedin?: string | null;
+  socialInstagram?: string | null;
+  socialYoutube?: string | null;
+  
   createdAt?: string;
   updatedAt?: string;
 }
@@ -52,7 +64,7 @@ export default function SiteSettingsManager() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFavicon, setUploadingFavicon] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'email'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'email' | 'contact'>('general');
   const [testingEmail, setTestingEmail] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [emailTestResult, setEmailTestResult] = useState<{
@@ -329,6 +341,19 @@ export default function SiteSettingsManager() {
             </div>
           </button>
           <button
+            onClick={() => setActiveTab('contact')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'contact'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <Phone className="w-4 h-4" />
+              <span>Contact Information</span>
+            </div>
+          </button>
+          <button
             onClick={() => setActiveTab('email')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'email'
@@ -536,6 +561,163 @@ export default function SiteSettingsManager() {
               <p>• <strong>Recommended sizes:</strong> Logo: 200x60px or similar aspect ratio, Favicon: 32x32px</p>
               <p>• <strong>Formats:</strong> PNG with transparency recommended for logo, ICO or PNG for favicon</p>
               <p>• <strong>Note:</strong> Uploaded files are stored as data URLs for demo purposes. In production, use a proper file storage service.</p>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Contact Information Tab */}
+      {activeTab === 'contact' && (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Company Contact Information */}
+            <Card className="p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Phone className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Company Contact</h3>
+                  <p className="text-gray-600 text-sm">Primary contact information for your company</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number
+                  </label>
+                  <Input
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                    value={settings.companyPhone || ''}
+                    onChange={(e) => handleEmailSettingChange('companyPhone', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="contact@example.com"
+                    value={settings.companyEmail || ''}
+                    onChange={(e) => handleEmailSettingChange('companyEmail', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="123 Main St, City, State 12345"
+                    value={settings.companyAddress || ''}
+                    onChange={(e) => handleEmailSettingChange('companyAddress', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* Social Media Links */}
+            <Card className="p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Globe className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Social Media</h3>
+                  <p className="text-gray-600 text-sm">Links to your social media profiles</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+                    <Facebook className="w-4 h-4 text-blue-600" />
+                    <span>Facebook</span>
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://facebook.com/yourpage"
+                    value={settings.socialFacebook || ''}
+                    onChange={(e) => handleEmailSettingChange('socialFacebook', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+                    <Twitter className="w-4 h-4 text-blue-400" />
+                    <span>Twitter</span>
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://twitter.com/youraccount"
+                    value={settings.socialTwitter || ''}
+                    onChange={(e) => handleEmailSettingChange('socialTwitter', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+                    <Linkedin className="w-4 h-4 text-blue-700" />
+                    <span>LinkedIn</span>
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://linkedin.com/company/yourcompany"
+                    value={settings.socialLinkedin || ''}
+                    onChange={(e) => handleEmailSettingChange('socialLinkedin', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+                    <Instagram className="w-4 h-4 text-pink-600" />
+                    <span>Instagram</span>
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://instagram.com/youraccount"
+                    value={settings.socialInstagram || ''}
+                    onChange={(e) => handleEmailSettingChange('socialInstagram', e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+                    <Youtube className="w-4 h-4 text-red-600" />
+                    <span>YouTube</span>
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://youtube.com/yourchannel"
+                    value={settings.socialYoutube || ''}
+                    onChange={(e) => handleEmailSettingChange('socialYoutube', e.target.value)}
+                  />
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Usage Information */}
+          <Card className="p-6 bg-blue-50 border-blue-200">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <MapPin className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900">How This Information is Used</h3>
+              </div>
+            </div>
+            <div className="text-sm text-blue-700 space-y-2">
+              <p>• <strong>Form Builder:</strong> This contact information will automatically populate new forms, saving you time</p>
+              <p>• <strong>Email Templates:</strong> Contact details can be included in email signatures and footers</p>
+              <p>• <strong>Website Footer:</strong> Display your contact information consistently across all pages</p>
+              <p>• <strong>Contact Pages:</strong> Auto-populate contact sections with your company details</p>
             </div>
           </Card>
         </div>
