@@ -66,8 +66,7 @@ interface PageSection {
   featureGroup?: {
     id: number;
     name: string;
-    heading: string;
-    subheading?: string;
+    description?: string;
     layoutType?: 'grid' | 'list';
     isActive: boolean;
     items: Array<{
@@ -76,12 +75,12 @@ interface PageSection {
       isVisible: boolean;
       feature: {
         id: number;
-        title: string;
+        name: string;
         description: string;
-        iconName: string;
+        iconUrl: string;
         category: string;
         sortOrder: number;
-        isVisible: boolean;
+        isActive: boolean;
       };
     }>;
   };
@@ -251,17 +250,39 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
       case 'features':
         if (section.featureGroup) {
+          // Transform API data structure to match layout component expectations
           const features = section.featureGroup.items
             .filter(item => item.isVisible)
-            .map(item => item.feature)
+            .map(item => ({
+              id: item.feature.id,
+              title: item.feature.name, // API returns 'name', layout expects 'title'
+              description: item.feature.description,
+              iconName: item.feature.iconUrl, // API returns 'iconUrl', layout expects 'iconName'
+              category: item.feature.category,
+              sortOrder: item.feature.sortOrder,
+              isVisible: item.feature.isActive, // API returns 'isActive', layout expects 'isVisible'
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }))
             .sort((a, b) => a.sortOrder - b.sortOrder);
 
           const propsToPass = {
-            features: features as any,
-            heading: section.title || section.featureGroup.heading,
-            subheading: section.subtitle || section.featureGroup.subheading,
+            features,
+            heading: section.title || section.featureGroup.name, // API returns 'name', not 'heading'
+            subheading: section.subtitle || section.featureGroup.description, // API returns 'description', not 'subheading'
             layoutType: section.featureGroup.layoutType || 'grid'
           };
+
+          console.log('🎨 Rendering features section with:', {
+            featuresCount: features.length,
+            heading: propsToPass.heading,
+            subheading: propsToPass.subheading,
+            layoutType: propsToPass.layoutType,
+            firstFeature: features[0] ? {
+              title: features[0].title,
+              iconName: features[0].iconName
+            } : null
+          });
 
           return (
             <FeaturesSection

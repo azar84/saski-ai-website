@@ -195,7 +195,7 @@ export interface CTASection {
     ctaText: string;
     ctaUrl: string;
     placement: 'header' | 'footer' | 'inline' | 'floating';
-    style: 'primary' | 'secondary' | 'outline' | 'ghost';
+    style: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
     isActive: boolean;
     backgroundImage?: StrapiMedia;
     createdAt: string;
@@ -266,7 +266,7 @@ export interface GlobalSettings {
 
 // Component Props Types
 export interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  variant?: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   isLoading?: boolean;
   disabled?: boolean;
@@ -555,6 +555,8 @@ export interface PricingSection {
   heading: string;
   subheading?: string;
   layoutType: string;
+  pricingCardsBackgroundColor?: string;
+  comparisonTableBackgroundColor?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -595,6 +597,7 @@ export interface PlanDB {
   id: string;
   name: string;
   description?: string;
+  ctaText?: string;
   position: number;
   isActive: boolean;
   isPopular: boolean;
@@ -623,6 +626,7 @@ export interface PlanPricing {
   billingCycleId: string;
   priceCents: number;
   stripePriceId?: string;
+  ctaUrl?: string;
   createdAt: Date;
   updatedAt: Date;
   plan: PlanDB;
@@ -707,3 +711,7 @@ export type PricingSectionLayout =
   | 'grid'          // Grid layout for many plans
   | 'list'          // Vertical list layout
   | 'slider';       // Carousel/slider layout 
+
+// Type aliases for compatibility
+export type Plan = PlanDB;
+export type FeatureType = PlanFeatureType; 

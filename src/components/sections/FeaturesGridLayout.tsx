@@ -2,33 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Smile, 
-  Users, 
-  MessageSquare, 
-  Settings, 
-  Languages, 
-  BookOpen,
-  Zap,
-  Shield,
-  Clock,
-  Globe,
-  Code,
-  Award,
-  TrendingUp,
-  Heart,
-  Sparkles,
-  Play,
-  ArrowRight,
-  Download,
-  ExternalLink,
-  Mail,
-  Phone,
-  Video,
-  Calendar,
-  Gift,
-  Rocket
-} from 'lucide-react';
+import * as Icons from 'lucide-react';
 
 interface GlobalFeature {
   id: number;
@@ -56,36 +30,9 @@ const FeaturesGridLayout: React.FC<FeaturesGridLayoutProps> = ({
   const getIconComponent = (iconName: string) => {
     const iconProps = { size: 40, strokeWidth: 2.5 };
     
-    const iconMap: { [key: string]: React.ComponentType<any> } = {
-      Smile,
-      Users,
-      MessageSquare,
-      Settings,
-      Languages,
-      BookOpen,
-      Zap,
-      Shield,
-      Clock,
-      Globe,
-      Code,
-      Award,
-      TrendingUp,
-      Heart,
-      Sparkles,
-      Play,
-      ArrowRight,
-      Download,
-      ExternalLink,
-      Mail,
-      Phone,
-      Video,
-      Calendar,
-      Gift,
-      Rocket
-    };
-
-    const IconComponent = iconMap[iconName] || Smile;
-    return <IconComponent {...iconProps} />;
+    // Dynamically get icon component from lucide-react
+    const IconComponent = (Icons as any)[iconName];
+    return IconComponent ? <IconComponent {...iconProps} /> : <Icons.Star {...iconProps} />;
   };
 
   const displayFeatures = features.slice(0, 6); // Show max 6 features
@@ -100,20 +47,11 @@ const FeaturesGridLayout: React.FC<FeaturesGridLayoutProps> = ({
             {/* Header Section */}
             <div className="elementor-widget elementor-widget-heading text-center mb-4">
               <div className="elementor-widget-container">
-                <motion.h4 
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
-                  className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-wide mb-4"
-                >
-                  FEATURES
-                </motion.h4>
                 <motion.h2 
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
+                  transition={{ duration: 0.6 }}
                   className="elementor-heading-title text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight"
                 >
                   {heading}

@@ -21,6 +21,7 @@ interface PlanPricing {
   billingCycleId: string;
   priceCents: number;
   stripePriceId?: string;
+  ctaUrl?: string;
   billingCycle: BillingCycle;
 }
 
@@ -74,6 +75,7 @@ interface Plan {
   id: string;
   name: string;
   description?: string;
+  ctaText?: string;
   position: number;
   isActive: boolean;
   isPopular: boolean;
@@ -97,6 +99,8 @@ interface PricingSection {
   heading: string;
   subheading?: string;
   layoutType: string;
+  pricingCardsBackgroundColor?: string;
+  comparisonTableBackgroundColor?: string;
   isActive: boolean;
   sectionPlans: PricingSectionPlan[];
 }
@@ -169,6 +173,12 @@ export default function ConfigurablePricingSection({
     );
   };
 
+  const getEnabledBasicFeatures = (planId: string) => {
+    return basicFeatures.filter(bf => 
+      bf.isActive && isPlanBasicFeatureEnabled(planId, bf.id)
+    );
+  };
+
   const calculateSavings = (cycle: BillingCycle) => {
     if (cycle.multiplier <= 1) return 0;
     
@@ -238,7 +248,7 @@ export default function ConfigurablePricingSection({
             // Extract plans from section
             const sectionPlans = section.sectionPlans
               ?.filter((sp: PricingSectionPlan) => sp.isVisible && sp.plan.isActive)
-              ?.sort((a: PricingSectionPlan, b: PricingSectionPlan) => a.sortOrder - b.sortOrder)
+              ?.sort((a: PricingSectionPlan, b: PricingSectionPlan) => a.plan.position - b.plan.position)
               ?.map((sp: PricingSectionPlan) => sp.plan) || [];
             setPlans(sectionPlans);
           } else {
@@ -287,7 +297,12 @@ export default function ConfigurablePricingSection({
   }
 
   return (
-    <section className={`py-20 ${className}`} style={{ backgroundColor: designSystem?.backgroundSecondary || '#F6F8FC' }}>
+    <section className={`${className}`} style={{ backgroundColor: designSystem?.backgroundSecondary || '#F6F8FC' }}>
+      {/* Full-Width Pricing Cards Section */}
+      <div 
+        className="w-full py-16"
+        style={{ backgroundColor: pricingSection?.pricingCardsBackgroundColor || 'transparent' }}
+      >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -338,142 +353,192 @@ export default function ConfigurablePricingSection({
           </div>
         )}
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => {
             const pricing = getPlanPricing(plan.id, selectedBillingCycleId);
-            const isPopular = plan.isPopular;
-
             return (
               <div
                 key={plan.id}
-                className={`relative rounded-2xl border-2 transition-all duration-300 hover:shadow-2xl ${
-                  isPopular ? 'scale-105 shadow-2xl' : 'hover:scale-105'
-                }`}
-                style={{
-                  backgroundColor: designSystem?.backgroundSecondary || '#F6F8FC',
-                  borderColor: isPopular ? designSystem?.primaryColor || '#6366F1' : designSystem?.grayLight || '#E5E7EB',
-                  boxShadow: isPopular 
-                    ? `0 25px 50px -12px rgba(99, 102, 241, 0.25)` 
-                    : '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
-                }}
+                  className={`relative p-6 rounded-xl border-2 transition-all ${
+                    plan.isPopular
+                      ? 'border-purple-600 bg-gradient-to-br from-purple-50 to-blue-50 shadow-lg'
+                      : 'border-gray-200 bg-white hover:border-purple-300'
+                  }`}
               >
-                {isPopular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <div className="text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg" style={{ background: `linear-gradient(to right, ${designSystem?.accentColor || '#8B5CF6'}, ${designSystem?.primaryColor || '#6366F1'})` }}>
-                      ⭐ Most Popular
-                    </div>
+                    {plan.isPopular && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          Most Popular
+                        </span>
                   </div>
                 )}
 
-                <div className="p-8">
-                  {/* Header */}
-                  <div className="text-center mb-8">
-                    <h3 className="text-2xl font-bold mb-3" style={{ color: designSystem?.primaryColor || '#6366F1' }}>
-                      {plan.name} Package
-                    </h3>
-                    
-                    {pricing ? (
-                      <div className="mb-6">
-                        <div className="flex items-baseline justify-center mb-2">
-                          <span className="text-5xl font-bold" style={{ color: designSystem?.textPrimary || '#111827' }}>
-                            {formatPrice(pricing.priceCents)}
-                          </span>
-                          <span className="ml-2 text-lg" style={{ color: designSystem?.textSecondary || '#6B7280' }}>
-                            /{billingCycles.find(c => c.id === selectedBillingCycleId)?.label || 'Month'}
-                          </span>
-                        </div>
+                    <div className="text-center mb-6">
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <h4 className="text-xl font-bold text-purple-600">
+                          {plan.name}
+                        </h4>
                       </div>
-                    ) : (
-                      <div className="mb-6">
-                        <span className="text-3xl font-bold" style={{ color: designSystem?.textSecondary || '#6B7280' }}>
-                          Custom Pricing
+                      
+                      <div className="mb-4">
+                        <span className="text-4xl font-bold text-gray-900">
+                          {pricing ? formatPrice(pricing.priceCents) : '$0.00'}
+                        </span>
+                        <span className="text-gray-600 ml-1">
+                          /{billingCycles.find(c => c.id === selectedBillingCycleId)?.label.replace('ly', '') || 'month'}
                         </span>
                       </div>
-                    )}
 
                     <button 
-                      className="w-full py-4 px-6 rounded-xl font-bold text-white text-sm tracking-wide transition-all duration-200 hover:scale-105 shadow-lg"
-                      style={{
-                        background: `linear-gradient(135deg, ${designSystem?.primaryColor || '#6366F1'} 0%, ${designSystem?.accentColor || '#8B5CF6'} 100%)`,
-                        boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.4)'
-                      }}
-                    >
-                      SELECT PLAN ✨
+                        className={`w-full py-3 rounded-lg font-medium transition-all duration-300 mb-6 ${
+                          plan.isPopular 
+                            ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl'
+                            : 'bg-purple-600 hover:bg-purple-700 text-white'
+                        }`}
+                        onClick={() => {
+                          if (pricing?.ctaUrl) {
+                            window.open(pricing.ctaUrl, '_blank');
+                          }
+                        }}
+                      >
+                        <span className="mr-2">{plan.ctaText || 'Get Started'}</span>
+                        <span className="text-lg">✨</span>
                     </button>
                   </div>
 
-                  {/* Feature Icons Grid - Dynamic from Database */}
-                  <div className="grid grid-cols-2 gap-3 mb-8">
-                    {planFeatureTypes.filter(ft => ft.isActive).slice(0, 4).map((featureType) => {
+                    {/* Feature Limits Grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                      {planFeatureTypes
+                        .filter(ft => ft.isActive)
+                        .slice(0, 4)
+                        .map((featureType) => {
                       const limit = getPlanLimit(plan.id, featureType.id);
                       const limitValue = limit?.isUnlimited ? '∞' : (limit?.value || '0');
                       
                       return (
-                        <div key={featureType.id} className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm min-h-[80px] flex items-center">
-                          <div className="flex items-center space-x-2 w-full">
-                            <div className="p-2 rounded-lg flex-shrink-0" style={{ backgroundColor: designSystem?.primaryColor + '20' || '#6366F120' }}>
-                              <IconDisplay iconName={featureType.icon} iconUrl={featureType.iconUrl} className="w-4 h-4" />
+                            <div 
+                              key={featureType.id} 
+                              className="bg-gray-50 rounded-lg p-3 text-center"
+                            >
+                              <div className="flex items-center justify-center mb-1">
+                                <IconDisplay 
+                                  iconName={featureType.icon} 
+                                  iconUrl={featureType.iconUrl} 
+                                  className="w-4 h-4 text-gray-600"
+                                />
+                                <span className="ml-1 text-sm font-medium text-gray-700">
+                                  {featureType.name}
+                                </span>
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="text-xs font-medium uppercase tracking-wide truncate" style={{ color: designSystem?.textSecondary || '#6B7280' }}>{featureType.name}</div>
-                              <div className="text-xl font-bold" style={{ color: designSystem?.textPrimary || '#111827' }}>
-                                {limitValue}{featureType.unit && featureType.dataType === 'number' ? featureType.unit : ''}
-                              </div>
-                            </div>
+                              <div className="text-xl font-bold text-gray-900">
+                                {limitValue}
                           </div>
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Basic Features List - Dynamic from Database */}
-                  <div className="space-y-3">
-                    {basicFeatures.filter(bf => bf.isActive && isPlanBasicFeatureEnabled(plan.id, bf.id)).slice(0, 6).map((feature) => (
-                      <div key={feature.id} className="flex items-center">
-                        <div className="w-5 h-5 rounded-full mr-3 flex items-center justify-center" style={{ backgroundColor: designSystem?.secondaryColor + '40' || '#8B5CF640' }}>
-                          <Check className="w-3 h-3" style={{ color: designSystem?.primaryColor || '#6366F1' }} />
-                        </div>
-                        <span className="text-sm font-medium leading-tight" style={{ color: designSystem?.textPrimary || '#111827' }}>
+                    {/* Basic Features List */}
+                    <div className="space-y-2">
+                      {getEnabledBasicFeatures(plan.id).map((feature) => (
+                        <div key={feature.id} className="flex items-center space-x-2">
+                          <Check className="w-4 h-4 text-purple-600" />
+                          <span className="text-sm text-gray-700">
                           {feature.name}
                         </span>
                       </div>
                     ))}
+                      {getEnabledBasicFeatures(plan.id).length === 0 && (
+                        <div className="text-sm text-gray-500 italic">
+                          No basic features assigned to this plan
+                        </div>
+                      )}
+                    </div>
                   </div>
+                );
+              })}
+          </div>
+        </div>
+      </div>
+
+      {/* Full-Width Comparison Table Section */}
+      <div 
+        className="w-full py-16"
+        style={{ backgroundColor: pricingSection?.comparisonTableBackgroundColor || 'transparent' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="p-8 shadow-xl border border-gray-200 overflow-hidden" style={{ backgroundColor: designSystem?.backgroundPrimary || '#FFFFFF' }}>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div 
+                  className="p-2 rounded-lg"
+                  style={{ background: `linear-gradient(to right, ${designSystem?.primaryColor || '#6366F1'}, ${designSystem?.accentColor || '#8B5CF6'})` }}
+                >
+                  <Check className="w-5 h-5 text-white" />
                 </div>
+                <h3 
+                  className="text-xl font-bold"
+                  style={{ color: designSystem?.textPrimary || '#111827' }}
+                >
+                  Plan Comparison
+                </h3>
               </div>
-            );
-          })}
         </div>
 
-        {/* Comparison Table - Admin Panel Design */}
-        <Card className="overflow-hidden mt-32">
-          <div className="overflow-x-auto">
-            <table className="w-full mt-8">
+            <div className="overflow-x-auto p-4">
+              <table className="min-w-full">
               <thead>
-                <tr>
-                  <th className="text-left py-4 px-6 font-semibold text-gray-900 bg-gray-50 rounded-tl-lg">
+                  <tr className="border-b-2" style={{ borderColor: designSystem?.grayLight || '#E5E7EB' }}>
+                    <th 
+                      className="text-left py-4 px-6 font-semibold rounded-tl-lg"
+                      style={{ 
+                        backgroundColor: designSystem?.backgroundSecondary || '#F6F8FC',
+                        color: designSystem?.textPrimary || '#111827'
+                      }}
+                    >
                     Features
                   </th>
                   {plans.map((plan) => {
                     const pricing = getPlanPricing(plan.id, selectedBillingCycleId);
-                    const isPopular = plan.isPopular;
                     
                     return (
-                      <th key={plan.id} className="text-center py-6 px-6 font-semibold text-gray-900 bg-gray-50 relative">
-                        {isPopular && (
+                        <th 
+                          key={plan.id} 
+                          className="text-center py-4 px-6 font-semibold relative"
+                          style={{ 
+                            backgroundColor: designSystem?.backgroundSecondary || '#F6F8FC',
+                            color: designSystem?.textPrimary || '#111827'
+                          }}
+                        >
+                          {plan.isPopular && (
                           <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                            <span className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                              <span 
+                                className="text-white px-2 py-1 rounded-full text-xs font-semibold"
+                                style={{
+                                  background: `linear-gradient(to right, ${designSystem?.primaryColor || '#6366F1'}, ${designSystem?.accentColor || '#8B5CF6'})`
+                                }}
+                              >
                               Most Popular
                             </span>
                           </div>
                         )}
                         <div className="mt-2">
-                          <div className="text-lg font-bold text-indigo-600">{plan.name}</div>
-                          <div className="text-2xl font-bold text-gray-900 mt-1">
+                            <div 
+                              className="text-lg font-bold"
+                              style={{ color: designSystem?.primaryColor || '#6366F1' }}
+                            >
+                              {plan.name}
+                            </div>
+                            <div 
+                              className="text-2xl font-bold mt-1"
+                              style={{ color: designSystem?.textPrimary || '#111827' }}
+                            >
                             {pricing ? formatPrice(pricing.priceCents) : '$0.00'}
                           </div>
-                          <div className="text-sm text-gray-600">
+                            <div 
+                              className="text-sm"
+                              style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                            >
                             /{billingCycles.find(c => c.id === selectedBillingCycleId)?.label.replace('ly', '') || 'month'}
                           </div>
                         </div>
@@ -482,24 +547,40 @@ export default function ConfigurablePricingSection({
                   })}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y" style={{ borderColor: designSystem?.grayLight || '#E5E7EB' }}>
                 {/* Feature Limits Section */}
-                <tr className="bg-gray-50">
-                  <td colSpan={plans.length + 1} className="px-6 py-3 text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                  <tr style={{ backgroundColor: designSystem?.backgroundSecondary || '#F6F8FC' }}>
+                    <td 
+                      colSpan={plans.length + 1} 
+                      className="px-6 py-3 text-sm font-semibold uppercase tracking-wider"
+                      style={{ color: designSystem?.textPrimary || '#111827' }}
+                    >
                     Feature Limits
                   </td>
                 </tr>
                 
                 {/* Dynamic Feature Types from Database */}
                 {planFeatureTypes.filter(ft => ft.isActive).map((featureType) => (
-                  <tr key={featureType.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                    <tr key={featureType.id} className="hover:opacity-90 transition-all">
+                      <td 
+                        className="px-6 py-4 font-medium"
+                        style={{ color: designSystem?.textPrimary || '#111827' }}
+                      >
                       <div className="flex items-center space-x-3">
-                        <IconDisplay iconName={featureType.icon} iconUrl={featureType.iconUrl} className="w-5 h-5 text-gray-600" />
+                          <IconDisplay 
+                            iconName={featureType.icon} 
+                            iconUrl={featureType.iconUrl} 
+                            className="w-5 h-5 text-gray-600"
+                          />
                         <div>
                           <div className="font-semibold">{featureType.name}</div>
                           {featureType.description && (
-                            <div className="text-sm text-gray-600">{featureType.description}</div>
+                              <div 
+                                className="text-sm"
+                                style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                              >
+                                {featureType.description}
+                              </div>
                           )}
                         </div>
                       </div>
@@ -510,11 +591,19 @@ export default function ConfigurablePricingSection({
                       
                       return (
                         <td key={plan.id} className="px-6 py-4 text-center">
-                          <div className="text-lg font-bold text-gray-900">
+                            <div 
+                              className="text-lg font-bold"
+                              style={{ color: designSystem?.textPrimary || '#111827' }}
+                            >
                             {limitValue}
                           </div>
                           {featureType.unit && (
-                            <div className="text-xs text-gray-500">{featureType.unit}</div>
+                              <div 
+                                className="text-xs"
+                                style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                              >
+                                {featureType.unit}
+                              </div>
                           )}
                         </td>
                       );
@@ -525,8 +614,12 @@ export default function ConfigurablePricingSection({
                 {/* Basic Features Section */}
                 {basicFeatures.filter(bf => bf.isActive).length > 0 && (
                   <>
-                    <tr className="bg-gray-50">
-                      <td colSpan={plans.length + 1} className="px-6 py-3 text-sm font-semibold text-gray-900 uppercase tracking-wider">
+                      <tr style={{ backgroundColor: designSystem?.backgroundSecondary || '#F6F8FC' }}>
+                        <td 
+                          colSpan={plans.length + 1} 
+                          className="px-6 py-3 text-sm font-semibold uppercase tracking-wider"
+                          style={{ color: designSystem?.textPrimary || '#111827' }}
+                        >
                         Basic Features
                       </td>
                     </tr>
@@ -534,14 +627,25 @@ export default function ConfigurablePricingSection({
                       .filter(bf => bf.isActive)
                       .sort((a, b) => a.sortOrder - b.sortOrder)
                       .map((feature) => (
-                        <tr key={feature.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 font-medium text-gray-900">
+                          <tr key={feature.id} className="hover:opacity-90 transition-all">
+                            <td 
+                              className="px-6 py-4 font-medium"
+                              style={{ color: designSystem?.textPrimary || '#111827' }}
+                            >
                             <div className="flex items-center space-x-3">
-                              <CheckCircle className="w-5 h-5" style={{ color: designSystem?.primaryColor || '#6366F1' }} />
+                                <CheckCircle 
+                                  className="w-5 h-5" 
+                                  style={{ color: designSystem?.primaryColor || '#6366F1' }} 
+                                />
                               <div>
                                 <div className="font-semibold">{feature.name}</div>
                                 {feature.description && (
-                                  <div className="text-sm text-gray-600">{feature.description}</div>
+                                    <div 
+                                      className="text-sm"
+                                      style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                                    >
+                                      {feature.description}
+                                    </div>
                                 )}
                               </div>
                             </div>
@@ -552,9 +656,15 @@ export default function ConfigurablePricingSection({
                             return (
                               <td key={plan.id} className="px-6 py-4 text-center">
                                 {isEnabled ? (
-                                  <Check className="w-6 h-6 mx-auto" style={{ color: designSystem?.primaryColor || '#6366F1' }} />
+                                    <Check 
+                                      className="w-6 h-6 mx-auto" 
+                                      style={{ color: designSystem?.primaryColor || '#6366F1' }} 
+                                    />
                                 ) : (
-                                  <X className="w-6 h-6 text-gray-300 mx-auto" />
+                                    <X 
+                                      className="w-6 h-6 mx-auto"
+                                      style={{ color: designSystem?.grayMedium || '#6B7280' }}
+                                    />
                                 )}
                               </td>
                             );
@@ -568,26 +678,37 @@ export default function ConfigurablePricingSection({
           </div>
           
           {/* CTA Row */}
-          <div className="mt-8 border-t pt-6">
+            <div className="mt-8 border-t pt-6" style={{ borderColor: designSystem?.grayLight || '#E5E7EB' }}>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="hidden md:block"></div>
-              {plans.map((plan) => (
+                {plans.map((plan) => {
+                  const pricing = getPlanPricing(plan.id, selectedBillingCycleId);
+                  return (
                 <div key={plan.id} className="text-center">
-                  <Button 
-                    className={`w-full py-3 rounded-lg font-medium transition-all duration-300 ${
-                      plan.isPopular 
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                    }`}
+                      <button 
+                        className="w-full py-3 rounded-lg font-medium transition-all duration-300 text-white shadow-lg hover:shadow-xl"
+                        style={{
+                          background: plan.isPopular
+                            ? `linear-gradient(to right, ${designSystem?.primaryColor || '#6366F1'}, ${designSystem?.accentColor || '#8B5CF6'})`
+                            : designSystem?.primaryColor || '#6366F1'
+                        }}
+                        onClick={() => {
+                          if (pricing?.ctaUrl) {
+                            window.open(pricing.ctaUrl, '_blank');
+                          }
+                        }}
                   >
-                    <span className="mr-2">Choose {plan.name}</span>
+                        <span className="mr-2">{plan.ctaText || `Choose ${plan.name}`}</span>
                     {plan.isPopular && <span className="text-lg">⭐</span>}
-                  </Button>
+                        {pricing?.ctaUrl && <span className="text-lg">→</span>}
+                      </button>
+                    </div>
+                  );
+                })}
                 </div>
-              ))}
             </div>
+          </Card>
           </div>
-        </Card>
       </div>
     </section>
   );

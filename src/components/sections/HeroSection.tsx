@@ -211,18 +211,56 @@ const HeroSection: React.FC = () => {
   };
 
   // Get button styles based on background
-  const getButtonStyles = (buttonType: 'primary' | 'secondary') => {
+  const getButtonStyles = (buttonType: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted') => {
     const isDarkBackground = getTextColor() === 'text-white';
     const baseClasses = 'group px-8 py-4 text-base font-semibold transition-all duration-300 relative overflow-hidden rounded-xl';
     
-    if (buttonType === 'primary') {
+    switch (buttonType) {
+      case 'primary':
       return isDarkBackground 
         ? `${baseClasses} bg-white/95 text-[var(--color-primary)] hover:bg-white border border-white/20 shadow-lg shadow-white/10 hover:shadow-xl hover:shadow-white/20`
-        : `${baseClasses} bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/25 hover:shadow-xl hover:shadow-[var(--color-primary)]/35`;
-    } else {
+          : `${baseClasses} bg-[var(--color-primary)] hover:bg-[var(--color-primary-light)] text-white shadow-lg shadow-[var(--color-primary)]/25 hover:shadow-xl hover:shadow-[var(--color-primary)]/35`;
+      
+      case 'secondary':
+        return isDarkBackground
+          ? `${baseClasses} bg-white/10 text-white hover:bg-white/20 border border-white/20 backdrop-blur-sm shadow-sm hover:shadow-lg hover:shadow-white/10`
+          : `${baseClasses} bg-[var(--color-bg-secondary)] text-[var(--color-primary)] border border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-white shadow-lg shadow-[var(--color-primary)]/15`;
+      
+      case 'accent':
+        return isDarkBackground
+          ? `${baseClasses} bg-[var(--color-accent)]/90 text-white hover:bg-[var(--color-accent)] border border-[var(--color-accent)]/30`
+          : `${baseClasses} bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)] shadow-lg shadow-[var(--color-accent)]/25 hover:shadow-xl hover:shadow-[var(--color-accent)]/35`;
+      
+      case 'ghost':
+        return isDarkBackground
+          ? `${baseClasses} text-white hover:bg-white/10 border border-transparent hover:border-white/20 backdrop-blur-sm`
+          : `${baseClasses} text-[var(--color-text-primary)] hover:bg-[var(--color-primary)]/10 border border-transparent hover:border-[var(--color-primary)]/20`;
+      
+      case 'destructive':
+        return isDarkBackground
+          ? `${baseClasses} bg-[var(--color-error)]/90 text-white hover:bg-[var(--color-error)] border border-[var(--color-error)]/30`
+          : `${baseClasses} bg-[var(--color-error)] text-white hover:bg-[var(--color-error-dark)] shadow-lg shadow-[var(--color-error)]/25`;
+      
+      case 'success':
+        return isDarkBackground
+          ? `${baseClasses} bg-[var(--color-success)]/90 text-white hover:bg-[var(--color-success)] border border-[var(--color-success)]/30`
+          : `${baseClasses} bg-[var(--color-success)] text-white hover:bg-[var(--color-success-dark)] shadow-lg shadow-[var(--color-success)]/25`;
+      
+      case 'info':
+        return isDarkBackground
+          ? `${baseClasses} bg-[var(--color-info)]/90 text-white hover:bg-[var(--color-info)] border border-[var(--color-info)]/30`
+          : `${baseClasses} bg-[var(--color-info)] text-white hover:bg-[var(--color-info-dark)] shadow-lg shadow-[var(--color-info)]/25`;
+      
+      case 'outline':
       return isDarkBackground
         ? `${baseClasses} min-w-[200px] border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-sm shadow-sm hover:shadow-lg hover:shadow-white/10`
-        : `${baseClasses} min-w-[200px] border-2 border-[var(--color-primary)]/30 text-[var(--color-dark-900)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] backdrop-blur-sm shadow-sm hover:shadow-lg hover:shadow-[var(--color-primary)]/25`;
+          : `${baseClasses} min-w-[200px] border-2 border-[var(--color-primary)]/30 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 hover:border-[var(--color-primary)] backdrop-blur-sm shadow-sm hover:shadow-lg hover:shadow-[var(--color-primary)]/25`;
+      
+      case 'muted':
+        return `${baseClasses} bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] border border-[var(--color-border-medium)] cursor-not-allowed opacity-50`;
+      
+      default:
+        return baseClasses;
     }
   };
 
@@ -387,7 +425,8 @@ const HeroSection: React.FC = () => {
               {heroData?.primaryCtaId && heroData?.primaryCta && (
                 <Button 
                   size="lg"
-                  className={getButtonStyles('primary')}
+                  variant={heroData.primaryCta.style as 'primary' | 'secondary' | 'outline' | 'ghost'}
+                  className={getButtonStyles(heroData.primaryCta.style)}
                   onClick={() => {
                     if (heroData?.primaryCta?.url) {
                       if (heroData.primaryCta.url.startsWith('#')) {
@@ -424,8 +463,8 @@ const HeroSection: React.FC = () => {
               {heroData?.secondaryCtaId && heroData?.secondaryCta && (
                 <Button 
                   size="lg"
-                  variant="outline"
-                  className={getButtonStyles('secondary')}
+                  variant={heroData.secondaryCta.style as 'primary' | 'secondary' | 'outline' | 'ghost'}
+                  className={getButtonStyles(heroData.secondaryCta.style)}
                   onClick={() => {
                     if (heroData?.secondaryCta?.url) {
                       if (heroData.secondaryCta.url.startsWith('#')) {

@@ -30,6 +30,7 @@ import HeroManager from './components/HeroManager';
 import HeroSectionsManager from './components/HeroSectionsManager';
 import FeaturesManager from './components/FeaturesManager';
 import FeatureGroupsManager from './components/FeatureGroupsManager';
+import FeaturesManagement from './components/FeaturesManagement';
 import SiteSettingsManager from './components/SiteSettingsManager';
 import PagesManager from './components/PagesManager';
 import HeaderManager from './components/HeaderManager';
@@ -45,7 +46,7 @@ import ContactManager from './components/ContactManager';
 import HtmlSectionsManager from './components/HtmlSectionsManager';
 import MenuManager from './components/MenuManager';
 
-type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'menu-management' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features-management' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'menu-management' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
@@ -55,8 +56,7 @@ const navigation = [
   { id: 'cta-manager', name: 'CTA Buttons', icon: MousePointer, color: 'text-teal-600' },
   { id: 'home-hero', name: 'Home Page Hero', icon: Home, color: 'text-rose-600' },
   { id: 'hero-sections', name: 'Hero Sections', icon: Image, color: 'text-purple-600' },
-  { id: 'features', name: 'Features', icon: Star, color: 'text-amber-600' },
-  { id: 'feature-groups', name: 'Feature Groups', icon: Layers, color: 'text-emerald-600' },
+  { id: 'features-management', name: 'Features Management', icon: Star, color: 'text-amber-600' },
   { id: 'media-sections', name: 'Media Sections', icon: Play, color: 'text-red-600' },
   { id: 'media-library', name: 'Media Library', icon: FolderOpen, color: 'text-blue-600' },
   { id: 'pricing', name: 'Pricing Plans', icon: DollarSign, color: 'text-green-600' },
@@ -89,10 +89,8 @@ export default function AdminPanel() {
         return <HomeHeroManager />;
       case 'hero-sections':
         return <HeroSectionsManager />;
-      case 'features':
-        return <FeaturesManager />;
-      case 'feature-groups':
-        return <FeatureGroupsManager />;
+      case 'features-management':
+        return <FeaturesManagement />;
       case 'site-settings':
         return <SiteSettingsManager />;
       case 'design-system':

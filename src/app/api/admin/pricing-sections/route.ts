@@ -8,6 +8,8 @@ const createPricingSectionSchema = z.object({
   heading: z.string().min(1, 'Heading is required'),
   subheading: z.string().optional(),
   layoutType: z.string().default('standard'),
+  pricingCardsBackgroundColor: z.string().optional(),
+  comparisonTableBackgroundColor: z.string().optional(),
   isActive: z.boolean().default(true)
 });
 
@@ -17,6 +19,8 @@ const updatePricingSectionSchema = z.object({
   heading: z.string().min(1, 'Heading is required'),
   subheading: z.string().optional(),
   layoutType: z.string().default('standard'),
+  pricingCardsBackgroundColor: z.string().optional(),
+  comparisonTableBackgroundColor: z.string().optional(),
   isActive: z.boolean().default(true)
 });
 

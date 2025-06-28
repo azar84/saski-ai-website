@@ -191,30 +191,37 @@ model Feature {
 }
 
 model MediaSection {
-  id               Int                   @id @default(autoincrement())
-  position         Int                   @default(0)
-  layoutType       String                @default("media_right")
-  badgeText        String?
-  badgeColor       String                @default("#5243E9")
-  headline         String
-  subheading       String?
-  description      String?
-  mediaUrl         String?
-  mediaType        String                @default("image")
-  mediaAlt         String?
-  ctaPrimaryText   String?
-  ctaPrimaryUrl    String?
-  ctaSecondaryText String?
-  ctaSecondaryUrl  String?
-  backgroundType   String                @default("white")
-  backgroundValue  String?
-  paddingTop       Int                   @default(80)
-  paddingBottom    Int                   @default(80)
-  isVisible        Boolean               @default(true)
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
-  features         MediaSectionFeature[]
-  pageSections     PageSection[]
+  id                      Int                   @id @default(autoincrement())
+  position                Int                   @default(0)
+  layoutType              String                @default("media_right")
+  badgeText               String?
+  badgeColor              String                @default("#5243E9")
+  headline                String
+  subheading              String?
+  alignment               String                @default("left")
+  mediaType               String                @default("image")
+  mediaUrl                String?
+  mediaAlt                String?
+  mediaSize               String                @default("md")
+  mediaPosition           String                @default("right")
+  showBadge               Boolean               @default(true)
+  showCtaButton           Boolean               @default(false)
+  ctaText                 String?
+  ctaUrl                  String?
+  ctaStyle                String                @default("primary")
+  enableScrollAnimations  Boolean               @default(false)
+  animationType           String                @default("none")
+  backgroundStyle         String                @default("solid")
+  backgroundColor         String                @default("#F6F8FC")
+  textColor               String                @default("#0F1A2A")
+  paddingTop              Int                   @default(80)
+  paddingBottom           Int                   @default(80)
+  containerMaxWidth       String                @default("2xl")
+  isActive                Boolean               @default(true)
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  features                MediaSectionFeature[]
+  pageSections            PageSection[]
 
   @@map("media_sections")
 }
@@ -222,10 +229,10 @@ model MediaSection {
 model MediaSectionFeature {
   id             Int          @id @default(autoincrement())
   mediaSectionId Int
-  iconUrl        String?
-  title          String
-  description    String?
-  position       Int          @default(0)
+  icon           String       @default("MessageSquare")
+  label          String
+  color          String       @default("#5243E9")
+  sortOrder      Int          @default(0)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   mediaSection   MediaSection @relation(fields: [mediaSectionId], references: [id], onDelete: Cascade)
@@ -661,6 +668,7 @@ model Plan {
   id            String               @id @default(uuid())
   name          String
   description   String?
+  ctaText       String?              @default("Get Started")
   position      Int                  @default(0)
   isActive      Boolean              @default(true)
   isPopular     Boolean              @default(false)
@@ -693,6 +701,7 @@ model PlanPricing {
   billingCycleId String
   priceCents     Int
   stripePriceId  String?
+  ctaUrl         String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   billingCycle   BillingCycle @relation(fields: [billingCycleId], references: [id], onDelete: Cascade)
@@ -847,17 +856,19 @@ model PlanBasicFeature {
 }
 
 model PricingSection {
-  id              Int                  @id @default(autoincrement())
-  name            String
-  heading         String
-  subheading      String?
-  layoutType      String               @default("standard")
-  isActive        Boolean              @default(true)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  pageAssignments PagePricingSection[]
-  pageSections    PageSection[]
-  sectionPlans    PricingSectionPlan[]
+  id                             Int                  @id @default(autoincrement())
+  name                           String
+  heading                        String
+  subheading                     String?
+  layoutType                     String               @default("standard")
+  pricingCardsBackgroundColor    String?              @default("#FFFFFF")
+  comparisonTableBackgroundColor String?              @default("#F9FAFB")
+  isActive                       Boolean              @default(true)
+  createdAt                      DateTime             @default(now())
+  updatedAt                      DateTime             @updatedAt
+  pageAssignments                PagePricingSection[]
+  pageSections                   PageSection[]
+  sectionPlans                   PricingSectionPlan[]
 
   @@map("pricing_sections")
 }

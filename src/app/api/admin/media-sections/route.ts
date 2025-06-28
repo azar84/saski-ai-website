@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
     const activeOnly = searchParams.get('activeOnly') === 'true';
 
     const mediaSections = await prisma.mediaSection.findMany({
-      where: activeOnly ? { isActive: true } : undefined,
       include: {
         features: {
           orderBy: { sortOrder: 'asc' }
@@ -48,9 +47,20 @@ export async function POST(request: NextRequest) {
     
     // Validate input using Zod schema
     const validatedData = validateAndTransform(CreateMediaSectionSchema, body);
+    
+    // Extract features from the validated data
+    const { features, ...mediaSectionData } = validatedData;
 
     const mediaSection = await prisma.mediaSection.create({
-      data: validatedData,
+      data: {
+        ...mediaSectionData,
+        features: features && features.length > 0 ? {
+          create: features.map((feature: any, index: number) => ({
+            ...feature,
+            sortOrder: feature.sortOrder ?? index
+          }))
+        } : undefined
+      },
       include: {
         features: {
           orderBy: { sortOrder: 'asc' }
@@ -97,9 +107,12 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(response, { status: 404 });
     }
 
-    const { id, ...updateData } = validatedData;
+    const { id, features, ...updateData } = validatedData;
 
-    const mediaSection = await prisma.mediaSection.update({
+    // Use a transaction to update the media section and its features
+    const mediaSection = await prisma.$transaction(async (tx) => {
+      // Update the media section
+      const updatedSection = await tx.mediaSection.update({
       where: { id },
       data: updateData,
       include: {
@@ -107,6 +120,38 @@ export async function PUT(request: NextRequest) {
           orderBy: { sortOrder: 'asc' }
         }
       }
+      });
+
+      // Handle features update
+      if (features !== undefined) {
+        // Delete existing features
+        await tx.mediaSectionFeature.deleteMany({
+          where: { mediaSectionId: id }
+        });
+
+        // Create new features if provided
+        if (features && features.length > 0) {
+          await tx.mediaSectionFeature.createMany({
+            data: features.map((feature: any, index: number) => ({
+              ...feature,
+              mediaSectionId: id,
+              sortOrder: feature.sortOrder ?? index
+            }))
+          });
+        }
+
+        // Fetch updated section with new features
+        return await tx.mediaSection.findUnique({
+          where: { id },
+          include: {
+            features: {
+              orderBy: { sortOrder: 'asc' }
+            }
+          }
+        });
+      }
+
+      return updatedSection;
     });
 
     const response: ApiResponse = {

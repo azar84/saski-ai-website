@@ -284,6 +284,9 @@ const DesignSystemManager: React.FC = () => {
     root.style.setProperty('--font-family-mono', ds.fontFamilyMono);
     root.style.setProperty('--font-size-base', ds.fontSizeBase);
     root.style.setProperty('--line-height-base', ds.lineHeightBase);
+    root.style.setProperty('--font-weight-normal', ds.fontWeightNormal);
+    root.style.setProperty('--font-weight-medium', ds.fontWeightMedium);
+    root.style.setProperty('--font-weight-bold', ds.fontWeightBold);
     
     root.style.setProperty('--spacing-xs', ds.spacingXs);
     root.style.setProperty('--spacing-sm', ds.spacingSm);

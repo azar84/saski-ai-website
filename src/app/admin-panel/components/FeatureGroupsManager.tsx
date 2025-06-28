@@ -153,8 +153,10 @@ const FeatureGroupsManager: React.FC = () => {
   });
 
   const getIconComponent = (iconName: string) => {
-    const iconData = availableIcons.find(icon => icon.name === iconName);
-    return iconData ? iconData.icon : MessageSquare;
+    // Import the entire lucide-react library for dynamic icon access
+    const LucideIcons = require('lucide-react');
+    const IconComponent = LucideIcons[iconName];
+    return IconComponent || LucideIcons.MessageSquare;
   };
 
   const fetchFeatureGroups = async () => {

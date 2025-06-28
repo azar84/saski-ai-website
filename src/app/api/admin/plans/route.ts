@@ -6,6 +6,7 @@ import { z } from 'zod';
 const createPlanSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
+  ctaText: z.string().min(1, 'CTA text is required').default('Get Started'),
   position: z.number().int().min(0).default(0),
   isActive: z.boolean().default(true),
   isPopular: z.boolean().default(false),
@@ -14,6 +15,7 @@ const createPlanSchema = z.object({
 const updatePlanSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   description: z.string().optional(),
+  ctaText: z.string().min(1, 'CTA text is required').optional(),
   position: z.number().int().min(0).optional(),
   isActive: z.boolean().optional(),
   isPopular: z.boolean().optional(),

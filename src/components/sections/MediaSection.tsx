@@ -1,5 +1,29 @@
 import React from 'react';
-import { Play, CheckCircle, ArrowRight } from 'lucide-react';
+import { 
+  Play, 
+  CheckCircle, 
+  ArrowRight,
+  MessageSquare,
+  Users,
+  Shield,
+  Clock,
+  Zap,
+  Star,
+  Target,
+  Layers,
+  Globe,
+  Heart,
+  Sparkles,
+  Rocket,
+  Award,
+  Briefcase,
+  Code,
+  Database,
+  Monitor,
+  Smartphone,
+  Wifi,
+  Lock
+} from 'lucide-react';
 
 interface MediaSectionFeature {
   id: number;
@@ -15,6 +39,7 @@ interface MediaSectionProps {
   subheading?: string;
   mediaUrl: string;
   mediaType: string;
+  mediaAlt?: string;
   layoutType: string;
   badgeText?: string;
   badgeColor?: string;
@@ -63,8 +88,39 @@ const MediaSection: React.FC<MediaSectionProps> = ({
   paddingBottom,
   containerMaxWidth,
   features = [],
-  className = ''
+  className = '',
+  mediaAlt,
+  enableScrollAnimations,
+  animationType
 }) => {
+  // Available icons mapping
+  const availableIcons: { [key: string]: React.ComponentType<any> } = {
+    MessageSquare,
+    Users,
+    Shield,
+    Clock,
+    Zap,
+    Star,
+    Target,
+    Layers,
+    Globe,
+    Heart,
+    Sparkles,
+    Rocket,
+    Award,
+    Briefcase,
+    Code,
+    Database,
+    Monitor,
+    Smartphone,
+    Wifi,
+    Lock
+  };
+
+  const getIconComponent = (iconName: string) => {
+    return availableIcons[iconName] || MessageSquare;
+  };
+
   const getVideoId = (url: string) => {
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
     return match ? match[1] : null;
@@ -100,10 +156,35 @@ const MediaSection: React.FC<MediaSectionProps> = ({
 
   const getCtaButtonClass = () => {
     switch (ctaStyle) {
-      case 'secondary': return 'bg-gray-200 text-gray-800 hover:bg-gray-300';
-      case 'link': return 'bg-transparent text-blue-600 hover:text-blue-800 underline';
+      case 'secondary': 
+        return 'bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-300';
+      case 'link': 
+        return 'bg-transparent text-blue-600 hover:text-blue-800 underline border-none';
       case 'primary':
-      default: return 'bg-blue-600 text-white hover:bg-blue-700';
+      default: 
+        return 'bg-blue-600 text-white hover:bg-blue-700 border border-blue-600';
+    }
+  };
+
+  const getBackgroundStyle = () => {
+    switch (backgroundStyle) {
+      case 'gradient':
+        return {
+          background: `linear-gradient(135deg, ${backgroundColor} 0%, ${backgroundColor}80 100%)`
+        };
+      case 'radial':
+        return {
+          background: `radial-gradient(circle at center, ${backgroundColor} 0%, ${backgroundColor}80 100%)`
+        };
+      case 'none':
+        return {
+          backgroundColor: 'transparent'
+        };
+      case 'solid':
+      default:
+        return {
+          backgroundColor
+        };
     }
   };
 
@@ -113,7 +194,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({
       if (videoId) {
         return (
           <div className={`relative ${getMediaSizeClass()} mx-auto`}>
-            <div className="relative w-full pb-[56.25%] h-0 overflow-hidden rounded-lg shadow-2xl">
+            <div className="relative w-full pb-[56.25%] h-0 overflow-hidden">
               <iframe
                 src={`https://www.youtube.com/embed/${videoId}`}
                 title="Video"
@@ -133,8 +214,8 @@ const MediaSection: React.FC<MediaSectionProps> = ({
       <div className={`${getMediaSizeClass()} mx-auto`}>
         <img
           src={mediaUrl}
-          alt={headline}
-          className="w-full h-auto rounded-lg shadow-2xl"
+          alt={mediaAlt || headline}
+          className="w-full h-auto"
         />
       </div>
     );
@@ -147,19 +228,22 @@ const MediaSection: React.FC<MediaSectionProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
         {features
           .sort((a, b) => a.sortOrder - b.sortOrder)
-          .map((feature) => (
+          .map((feature) => {
+            const IconComponent = getIconComponent(feature.icon);
+            return (
             <div key={feature.id} className="flex items-center space-x-3">
               <div 
-                className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
+                  className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: feature.color }}
               >
-                <CheckCircle className="w-3 h-3 text-white" />
+                  <IconComponent className="w-4 h-4 text-white" />
               </div>
               <span className="text-sm font-medium" style={{ color: textColor }}>
                 {feature.label}
               </span>
             </div>
-          ))}
+            );
+          })}
       </div>
     );
   };
@@ -169,12 +253,14 @@ const MediaSection: React.FC<MediaSectionProps> = ({
 
   return (
     <section 
-      className={`py-24 ${className}`}
+      className={`py-24 ${className} ${enableScrollAnimations ? 'scroll-animation' : ''}`}
+      data-animation-type={animationType}
       style={{
-        backgroundColor,
+        ...getBackgroundStyle(),
         color: textColor,
         paddingTop: `${paddingTop}px`,
-        paddingBottom: `${paddingBottom}px`
+        paddingBottom: `${paddingBottom}px`,
+        backgroundColor: backgroundStyle === 'none' ? 'transparent' : backgroundColor
       }}
     >
       <div className={`container mx-auto px-4 sm:px-6 lg:px-8 ${getContainerMaxWidth()}`}>

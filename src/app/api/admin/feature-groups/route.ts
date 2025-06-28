@@ -200,8 +200,9 @@ export async function PUT(request: NextRequest) {
     // Transform component data to match validation schema
     const transformedBody = {
       ...body,
-      heading: body.heading || body.name,
-      name: body.name || body.heading,
+      // Ensure both name and heading are available
+      name: body.name || body.heading,     // Use name if provided, fallback to heading
+      heading: body.heading || body.name,  // Use heading if provided, fallback to name
     };
     
     // Validate input using Zod schema
@@ -210,7 +211,8 @@ export async function PUT(request: NextRequest) {
     const featureGroup = await prisma.featureGroup.update({
       where: { id: validatedData.id },
       data: {
-        ...(validatedData.name !== undefined && { name: validatedData.name }),
+        // Update name field in database (this represents the heading in UI)
+        ...(validatedData.heading !== undefined && { name: validatedData.heading }),  // Map heading -> name in DB
         ...(validatedData.subheading !== undefined && { description: validatedData.subheading }),  // Map subheading -> description
         ...(validatedData.layoutType !== undefined && { layoutType: validatedData.layoutType }),
         ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),

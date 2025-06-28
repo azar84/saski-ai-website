@@ -61,7 +61,6 @@ export async function GET(request: NextRequest) {
     if (contentType === 'media-sections') {
       // Fetch all media sections
       const mediaSections = await prisma.mediaSection.findMany({
-        where: { isVisible: true },
         select: {
           id: true,
           headline: true,
@@ -70,7 +69,6 @@ export async function GET(request: NextRequest) {
           mediaType: true,
           layoutType: true,
           badgeText: true,
-          isVisible: true,
           position: true,
           _count: {
             select: {
@@ -231,7 +229,6 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: 'desc' }
       }),
       prisma.mediaSection.findMany({
-        where: { isVisible: true },
         select: {
           id: true,
           headline: true,
@@ -240,7 +237,6 @@ export async function GET(request: NextRequest) {
           mediaType: true,
           layoutType: true,
           badgeText: true,
-          isVisible: true,
           position: true,
           _count: {
             select: {

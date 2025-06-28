@@ -170,24 +170,42 @@ const DynamicHeroSection: React.FC<DynamicHeroSectionProps> = ({
     switch (style) {
       case 'primary':
         return `${baseClasses} ${isDarkBackground 
-          ? 'bg-white/95 text-[#5243E9] hover:bg-white border border-white/20'
-          : 'bg-[#5243E9] text-white hover:bg-[#4338CA] border border-[#5243E9]'}`;
+          ? 'bg-white/95 text-[var(--color-primary)] hover:bg-white border border-white/20'
+          : 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-light)] border border-[var(--color-primary)]'}`;
       case 'secondary':
         return `${baseClasses} ${isDarkBackground
           ? 'bg-white/10 text-white hover:bg-white/20 border border-white/30'
-          : 'bg-gray-100 text-gray-900 hover:bg-gray-200 border border-gray-200'}`;
-      case 'outline':
+          : 'bg-[var(--color-bg-secondary)] text-[var(--color-primary)] border border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-white'}`;
+      case 'accent':
         return `${baseClasses} ${isDarkBackground
-          ? 'bg-transparent text-white border-2 border-white/50 hover:bg-white/10 hover:border-white'
-          : 'bg-transparent text-[#5243E9] border-2 border-[#5243E9]/50 hover:bg-[#5243E9]/5 hover:border-[#5243E9]'}`;
+          ? 'bg-[var(--color-accent)]/90 text-white hover:bg-[var(--color-accent)] border border-[var(--color-accent)]/30'
+          : 'bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-dark)] border border-[var(--color-accent)]'}`;
       case 'ghost':
         return `${baseClasses} ${isDarkBackground
           ? 'bg-transparent text-white hover:bg-white/10 border border-transparent'
-          : 'bg-transparent text-[#5243E9] hover:bg-[#5243E9]/5 border border-transparent'}`;
+          : 'bg-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-primary)]/5 border border-transparent'}`;
+      case 'destructive':
+        return `${baseClasses} ${isDarkBackground
+          ? 'bg-[var(--color-error)]/90 text-white hover:bg-[var(--color-error)] border border-[var(--color-error)]/30'
+          : 'bg-[var(--color-error)] text-white hover:bg-[var(--color-error-dark)] border border-[var(--color-error)]'}`;
+      case 'success':
+        return `${baseClasses} ${isDarkBackground
+          ? 'bg-[var(--color-success)]/90 text-white hover:bg-[var(--color-success)] border border-[var(--color-success)]/30'
+          : 'bg-[var(--color-success)] text-white hover:bg-[var(--color-success-dark)] border border-[var(--color-success)]'}`;
+      case 'info':
+        return `${baseClasses} ${isDarkBackground
+          ? 'bg-[var(--color-info)]/90 text-white hover:bg-[var(--color-info)] border border-[var(--color-info)]/30'
+          : 'bg-[var(--color-info)] text-white hover:bg-[var(--color-info-dark)] border border-[var(--color-info)]'}`;
+      case 'outline':
+        return `${baseClasses} ${isDarkBackground
+          ? 'bg-transparent text-white border-2 border-white/50 hover:bg-white/10 hover:border-white'
+          : 'bg-transparent text-[var(--color-primary)] border-2 border-[var(--color-primary)]/50 hover:bg-[var(--color-primary)]/5 hover:border-[var(--color-primary)]'}`;
+      case 'muted':
+        return `${baseClasses} bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] border border-[var(--color-border-medium)] cursor-not-allowed opacity-50`;
       default:
         return `${baseClasses} ${isDarkBackground 
-          ? 'bg-white/95 text-[#5243E9] hover:bg-white border border-white/20'
-          : 'bg-[#5243E9] text-white hover:bg-[#4338CA] border border-[#5243E9]'}`;
+          ? 'bg-white/95 text-[var(--color-primary)] hover:bg-white border border-white/20'
+          : 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-light)] border border-[var(--color-primary)]'}`;
     }
   };
 
@@ -458,7 +476,7 @@ const DynamicHeroSection: React.FC<DynamicHeroSectionProps> = ({
 
   // Get section height classes and styles
   const getSectionHeight = () => {
-    if (!sectionHeight) return {};
+    if (!sectionHeight) return { className: 'min-h-[70vh]', style: {} }; // Default minimum height
     
     if (sectionHeight.includes('vh')) {
       const vh = parseInt(sectionHeight);
@@ -487,7 +505,7 @@ const DynamicHeroSection: React.FC<DynamicHeroSectionProps> = ({
 
   return (
     <section 
-      className={`relative overflow-hidden ${sectionHeightConfig.className} ${customClasses || ''} ${className}`}
+      className={`relative overflow-hidden ${sectionHeightConfig.className} flex items-center ${customClasses || ''} ${className}`}
       style={{
         ...getBackgroundStyles(),
         ...sectionHeightConfig.style,
@@ -519,9 +537,7 @@ const DynamicHeroSection: React.FC<DynamicHeroSectionProps> = ({
         </div>
       )}
 
-      <div className={`container mx-auto px-4 sm:px-6 lg:px-8 ${getContainerMaxWidth()} relative z-10 ${
-        sectionHeight ? 'flex items-center' : ''
-      }`}>
+      <div className={`container mx-auto px-4 sm:px-6 lg:px-8 ${getContainerMaxWidth()} relative z-10 w-full`}>
         <div className="w-full">
         {renderContent()}
         </div>

@@ -94,7 +94,7 @@ export const UpdatePageSchema = CreatePageSchema.extend({
 }).partial().required({ id: true });
 
 // CTA Button Schema
-export const CTAStyleEnum = z.enum(['primary', 'secondary', 'outline', 'ghost']);
+export const CTAStyleEnum = z.enum(['primary', 'secondary', 'accent', 'ghost', 'destructive', 'success', 'info', 'outline', 'muted']);
 export const CTATargetEnum = z.enum(['_self', '_blank']);
 
 // Custom URL validation that accepts both full URLs and anchor links
@@ -294,26 +294,25 @@ export const HeaderConfigSchema = z.object({
 });
 
 // Media Section Validation Schemas
-export const LayoutTypeEnum = z.enum(['media_left', 'media_right', 'stacked']);
+export const MediaLayoutTypeEnum = z.enum(['media_left', 'media_right']);
 export const AlignmentEnum = z.enum(['left', 'center', 'right']);
-export const MediaTypeEnum = z.enum(['image', 'video', 'animation', '3d']);
+export const MediaTypeEnum = z.enum(['image', 'video']);
 export const MediaSizeEnum = z.enum(['sm', 'md', 'lg', 'full']);
 export const MediaPositionEnum = z.enum(['left', 'right']);
-export const CtaStyleEnum = z.enum(['primary', 'secondary', 'link']);
 export const AnimationTypeEnum = z.enum(['fade', 'slide', 'zoom', 'none']);
 export const BackgroundStyleEnum = z.enum(['solid', 'gradient', 'radial', 'none']);
 export const ContainerMaxWidthEnum = z.enum(['xl', '2xl', 'full']);
 
 export const CreateMediaSectionSchema = z.object({
   position: z.number().int().min(0).default(0),
-  layoutType: LayoutTypeEnum.default('media_right'),
+  layoutType: MediaLayoutTypeEnum.default('media_right'),
   badgeText: z.string().max(100).optional(),
   badgeColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#5243E9'),
   headline: z.string().min(1, 'Headline is required').max(200),
   subheading: z.string().max(500).optional(),
   alignment: AlignmentEnum.default('left'),
   mediaType: MediaTypeEnum.default('image'),
-  mediaUrl: z.string().min(1, 'Media URL is required').max(500),
+  mediaUrl: z.string().max(500).optional(),
   mediaAlt: z.string().max(200).optional(),
   mediaSize: MediaSizeEnum.default('md'),
   mediaPosition: MediaPositionEnum.default('right'),
@@ -321,7 +320,7 @@ export const CreateMediaSectionSchema = z.object({
   showCtaButton: z.boolean().default(false),
   ctaText: z.string().max(50).optional(),
   ctaUrl: z.string().max(500).optional(),
-  ctaStyle: CtaStyleEnum.default('primary'),
+  ctaStyle: CTAStyleEnum.default('primary'),
   enableScrollAnimations: z.boolean().default(false),
   animationType: AnimationTypeEnum.default('none'),
   backgroundStyle: BackgroundStyleEnum.default('solid'),
@@ -331,6 +330,12 @@ export const CreateMediaSectionSchema = z.object({
   paddingBottom: z.number().int().min(0).max(200).default(80),
   containerMaxWidth: ContainerMaxWidthEnum.default('2xl'),
   isActive: z.boolean().default(true),
+  features: z.array(z.object({
+    icon: z.string().min(1, 'Icon is required').max(50).default('MessageSquare'),
+    label: z.string().min(1, 'Label is required').max(100),
+    color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#5243E9'),
+    sortOrder: z.number().int().min(0).default(0),
+  })).optional().default([]),
 });
 
 export const UpdateMediaSectionSchema = CreateMediaSectionSchema.extend({
@@ -339,7 +344,7 @@ export const UpdateMediaSectionSchema = CreateMediaSectionSchema.extend({
 
 export const CreateMediaSectionFeatureSchema = z.object({
   mediaSectionId: IdSchema,
-  icon: z.string().min(1, 'Icon is required').max(50),
+  icon: z.string().min(1, 'Icon is required').max(50).default('MessageSquare'),
   label: z.string().min(1, 'Label is required').max(100),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#5243E9'),
   sortOrder: z.number().int().min(0).default(0),

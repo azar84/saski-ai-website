@@ -75,13 +75,14 @@ export default function ConfigurablePricingManager() {
   const [newPlan, setNewPlan] = useState({
     name: '',
     description: '',
+    ctaText: 'Get Started',
     isActive: true,
     isPopular: false,
     position: 0,
     basicFeatures: [] as string[]
   });
 
-  const [newPlanPricing, setNewPlanPricing] = useState<{[key: string]: {priceCents: number, stripePriceId: string}}>({});
+  const [newPlanPricing, setNewPlanPricing] = useState<{[key: string]: {priceCents: number, stripePriceId: string, ctaUrl: string}}>({});
 
   const [newFeatureType, setNewFeatureType] = useState({
     name: '',
@@ -110,7 +111,7 @@ export default function ConfigurablePricingManager() {
 
   const [editingPlan, setEditingPlan] = useState<string | null>(null);
   const [editPlanData, setEditPlanData] = useState<any>(null);
-  const [editPlanPricing, setEditPlanPricing] = useState<{[key: string]: {priceCents: number, stripePriceId: string}}>({});
+  const [editPlanPricing, setEditPlanPricing] = useState<{[key: string]: {priceCents: number, stripePriceId: string, ctaUrl: string}}>({});
   const [selectedBillingCycle, setSelectedBillingCycle] = useState('');
 
   // Toast notification functions
@@ -178,12 +179,13 @@ export default function ConfigurablePricingManager() {
       
       for (const cycle of billingCycles) {
         const pricingData = newPlanPricing[cycle.id];
-        if (pricingData && (pricingData.priceCents > 0 || pricingData.stripePriceId)) {
+        if (pricingData && (pricingData.priceCents > 0 || pricingData.stripePriceId || pricingData.ctaUrl)) {
           await post('/api/admin/plan-pricing', {
             planId: createdPlan.id,
             billingCycleId: cycle.id,
             priceCents: pricingData.priceCents || 0,
-            stripePriceId: pricingData.stripePriceId || ''
+            stripePriceId: pricingData.stripePriceId || '',
+            ctaUrl: pricingData.ctaUrl || ''
           });
         }
       }
@@ -199,7 +201,7 @@ export default function ConfigurablePricingManager() {
       }
       
       setPlans([...plans, createdPlan]);
-      setNewPlan({ name: '', description: '', isActive: true, isPopular: false, position: 0, basicFeatures: [] });
+      setNewPlan({ name: '', description: '', ctaText: 'Get Started', isActive: true, isPopular: false, position: 0, basicFeatures: [] });
       setNewPlanPricing({});
       await loadData();
       showSuccess(`Plan "${createdPlan.name}" created successfully!`);
@@ -216,17 +218,19 @@ export default function ConfigurablePricingManager() {
     setEditPlanData({
       name: plan.name,
       description: plan.description,
+      ctaText: plan.ctaText || 'Get Started',
       isActive: plan.isActive,
       isPopular: plan.isPopular,
       position: plan.position
     });
     
-    const pricingData: {[key: string]: {priceCents: number, stripePriceId: string}} = {};
+    const pricingData: {[key: string]: {priceCents: number, stripePriceId: string, ctaUrl: string}} = {};
     billingCycles.forEach(cycle => {
       const pricing = getPlanPricing(plan.id, cycle.id);
       pricingData[cycle.id] = {
         priceCents: pricing?.priceCents || 0,
-        stripePriceId: pricing?.stripePriceId || ''
+        stripePriceId: pricing?.stripePriceId || '',
+        ctaUrl: pricing?.ctaUrl || ''
       };
     });
     setEditPlanPricing(pricingData);
@@ -245,20 +249,26 @@ export default function ConfigurablePricingManager() {
       
       for (const cycle of billingCycles) {
         const existingPricing = getPlanPricing(editingPlan, cycle.id);
-        const newPricingData = {
-          planId: editingPlan,
-          billingCycleId: cycle.id,
-          priceCents: editPlanPricing[cycle.id]?.priceCents || 0,
-          stripePriceId: editPlanPricing[cycle.id]?.stripePriceId || ''
-        };
+        const pricingData = editPlanPricing[cycle.id];
         
-        if (existingPricing) {
-          await put('/api/admin/plan-pricing', {
-            id: existingPricing.id,
-            ...newPricingData
-          });
-        } else {
-          await post('/api/admin/plan-pricing', newPricingData);
+        // Only create/update pricing if there's meaningful data
+        if (pricingData && (pricingData.priceCents > 0 || pricingData.stripePriceId || pricingData.ctaUrl)) {
+          const newPricingData = {
+            planId: editingPlan,
+            billingCycleId: cycle.id,
+            priceCents: pricingData.priceCents || 0,
+            stripePriceId: pricingData.stripePriceId || '',
+            ctaUrl: pricingData.ctaUrl || ''
+          };
+          
+          if (existingPricing) {
+            await put('/api/admin/plan-pricing', {
+              id: existingPricing.id,
+              ...newPricingData
+            });
+          } else {
+            await post('/api/admin/plan-pricing', newPricingData);
+          }
         }
       }
       
@@ -653,6 +663,18 @@ export default function ConfigurablePricingManager() {
                   value={newPlan.description}
                   onChange={(e) => setNewPlan({ ...newPlan, description: e.target.value })}
                 />
+                <Input
+                  placeholder="CTA Button Text (e.g., Get Started, Choose Plan)"
+                  value={newPlan.ctaText}
+                  onChange={(e) => setNewPlan({ ...newPlan, ctaText: e.target.value })}
+                />
+                <Input
+                  placeholder="Position (for ordering)"
+                  type="number"
+                  min="0"
+                  value={newPlan.position}
+                  onChange={(e) => setNewPlan({ ...newPlan, position: parseInt(e.target.value) || 0 })}
+                />
               </div>
 
               {basicFeatures.length > 0 && (
@@ -664,10 +686,12 @@ export default function ConfigurablePricingManager() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
                     {basicFeatures.map((feature) => (
                       <label key={feature.id} className="flex items-center space-x-3 p-2 hover:bg-green-100 rounded-lg cursor-pointer transition-colors">
+                        <div className="relative">
                         <input
                           type="checkbox"
                           checked={newPlan.basicFeatures?.includes(feature.id) || false}
                           onChange={(e) => {
+                              console.log('Basic feature checkbox clicked:', feature.name, e.target.checked);
                             const currentFeatures = newPlan.basicFeatures || [];
                             if (e.target.checked) {
                               setNewPlan({ 
@@ -681,8 +705,20 @@ export default function ConfigurablePricingManager() {
                               });
                             }
                           }}
-                          className="w-4 h-4 text-green-600 rounded focus:ring-green-600"
-                        />
+                            className="sr-only"
+                          />
+                          <div className={`w-4 h-4 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                            (newPlan.basicFeatures?.includes(feature.id) || false)
+                              ? 'bg-green-600 border-green-600' 
+                              : 'bg-white border-gray-300 hover:border-green-400'
+                          }`}>
+                            {(newPlan.basicFeatures?.includes(feature.id) || false) && (
+                              <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
                         <div>
                           <span className="text-sm font-medium text-gray-900">{feature.name}</span>
                           {feature.description && (
@@ -725,6 +761,17 @@ export default function ConfigurablePricingManager() {
                             }
                           })}
                         />
+                        <Input
+                          placeholder="CTA URL (e.g., https://checkout.stripe.com/...)"
+                          value={newPlanPricing[cycle.id]?.ctaUrl || ''}
+                          onChange={(e) => setNewPlanPricing({
+                            ...newPlanPricing,
+                            [cycle.id]: {
+                              ...newPlanPricing[cycle.id],
+                              ctaUrl: e.target.value
+                            }
+                          })}
+                        />
                       </div>
                     </div>
                   ))}
@@ -733,22 +780,54 @@ export default function ConfigurablePricingManager() {
 
               <div className="flex items-center justify-between mt-6">
                 <div className="flex items-center space-x-6">
-                  <label className="flex items-center space-x-2">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <div className="relative">
                     <input
                       type="checkbox"
                       checked={newPlan.isActive}
-                      onChange={(e) => setNewPlan({ ...newPlan, isActive: e.target.checked })}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-600"
-                    />
+                        onChange={(e) => {
+                          console.log('Active checkbox clicked:', e.target.checked);
+                          setNewPlan({ ...newPlan, isActive: e.target.checked });
+                        }}
+                        className="sr-only"
+                      />
+                      <div className={`w-5 h-5 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                        newPlan.isActive 
+                          ? 'bg-purple-600 border-purple-600' 
+                          : 'bg-white border-gray-300 hover:border-purple-400'
+                      }`}>
+                        {newPlan.isActive && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
                     <span className="text-gray-900 font-medium">Active</span>
                   </label>
-                  <label className="flex items-center space-x-2">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <div className="relative">
                     <input
                       type="checkbox"
                       checked={newPlan.isPopular}
-                      onChange={(e) => setNewPlan({ ...newPlan, isPopular: e.target.checked })}
-                      className="w-4 h-4 text-purple-600 rounded focus:ring-purple-600"
-                    />
+                        onChange={(e) => {
+                          console.log('Popular checkbox clicked:', e.target.checked);
+                          setNewPlan({ ...newPlan, isPopular: e.target.checked });
+                        }}
+                        className="sr-only"
+                      />
+                      <div className={`w-5 h-5 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                        newPlan.isPopular 
+                          ? 'bg-purple-600 border-purple-600' 
+                          : 'bg-white border-gray-300 hover:border-purple-400'
+                      }`}>
+                        {newPlan.isPopular && (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
                     <span className="text-gray-900 font-medium">Popular</span>
                   </label>
                 </div>
@@ -777,6 +856,18 @@ export default function ConfigurablePricingManager() {
                         placeholder="Description"
                         value={editPlanData?.description || ''}
                         onChange={(e) => setEditPlanData({...editPlanData, description: e.target.value})}
+                      />
+                      <Input
+                        placeholder="CTA Button Text"
+                        value={editPlanData?.ctaText || ''}
+                        onChange={(e) => setEditPlanData({...editPlanData, ctaText: e.target.value})}
+                      />
+                      <Input
+                        placeholder="Position (for ordering)"
+                        type="number"
+                        min="0"
+                        value={editPlanData?.position || 0}
+                        onChange={(e) => setEditPlanData({...editPlanData, position: parseInt(e.target.value) || 0})}
                       />
                       
                       <div className="space-y-2">
@@ -811,28 +902,72 @@ export default function ConfigurablePricingManager() {
                                 className="text-sm"
                               />
                             </div>
+                            <Input
+                              placeholder="CTA URL"
+                              value={editPlanPricing[cycle.id]?.ctaUrl || ''}
+                              onChange={(e) => setEditPlanPricing({
+                                ...editPlanPricing,
+                                [cycle.id]: {
+                                  ...editPlanPricing[cycle.id],
+                                  ctaUrl: e.target.value
+                                }
+                              })}
+                              className="text-sm mt-2"
+                            />
                           </div>
                         ))}
                       </div>
                       
                       <div className="flex items-center space-x-4">
-                        <label className="flex items-center text-sm">
+                        <label className="flex items-center text-sm cursor-pointer">
+                          <div className="relative mr-2">
                           <input
                             type="checkbox"
                             checked={editPlanData?.isActive || false}
-                            onChange={(e) => setEditPlanData({...editPlanData, isActive: e.target.checked})}
-                            className="mr-2 w-4 h-4 text-purple-600"
-                          />
-                          Active
+                              onChange={(e) => {
+                                console.log('Edit Active checkbox clicked:', e.target.checked);
+                                setEditPlanData({...editPlanData, isActive: e.target.checked});
+                              }}
+                              className="sr-only"
+                            />
+                            <div className={`w-4 h-4 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                              (editPlanData?.isActive || false)
+                                ? 'bg-purple-600 border-purple-600' 
+                                : 'bg-white border-gray-300 hover:border-purple-400'
+                            }`}>
+                              {(editPlanData?.isActive || false) && (
+                                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                          <span>Active</span>
                         </label>
-                        <label className="flex items-center text-sm">
+                        <label className="flex items-center text-sm cursor-pointer">
+                          <div className="relative mr-2">
                           <input
                             type="checkbox"
                             checked={editPlanData?.isPopular || false}
-                            onChange={(e) => setEditPlanData({...editPlanData, isPopular: e.target.checked})}
-                            className="mr-2 w-4 h-4 text-purple-600"
-                          />
-                          Popular
+                              onChange={(e) => {
+                                console.log('Edit Popular checkbox clicked:', e.target.checked);
+                                setEditPlanData({...editPlanData, isPopular: e.target.checked});
+                              }}
+                              className="sr-only"
+                            />
+                            <div className={`w-4 h-4 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                              (editPlanData?.isPopular || false)
+                                ? 'bg-purple-600 border-purple-600' 
+                                : 'bg-white border-gray-300 hover:border-purple-400'
+                            }`}>
+                              {(editPlanData?.isPopular || false) && (
+                                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                          <span>Popular</span>
                         </label>
                       </div>
                       
@@ -857,7 +992,12 @@ export default function ConfigurablePricingManager() {
                   ) : (
                     <>
                       <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
                         <h4 className="text-xl font-bold text-gray-900">{plan.name}</h4>
+                          <Badge className="bg-blue-50 text-blue-700 text-xs">
+                            Position: {plan.position}
+                          </Badge>
+                        </div>
                         <div className="flex space-x-2">
                           {plan.isPopular && (
                             <Badge className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-1 text-xs rounded-full">
@@ -1027,14 +1167,30 @@ export default function ConfigurablePricingManager() {
                           />
                           
                           <div className="flex items-center space-x-2">
-                            <label className="flex items-center text-sm">
+                            <label className="flex items-center text-sm cursor-pointer">
+                              <div className="relative mr-2">
                               <input
                                 type="checkbox"
                                 checked={editFeatureTypeData?.isActive || false}
-                                onChange={(e) => setEditFeatureTypeData({...editFeatureTypeData, isActive: e.target.checked})}
-                                className="mr-2 w-4 h-4 text-emerald-600"
-                              />
-                              Active
+                                  onChange={(e) => {
+                                    console.log('Feature type active checkbox clicked:', e.target.checked);
+                                    setEditFeatureTypeData({...editFeatureTypeData, isActive: e.target.checked});
+                                  }}
+                                  className="sr-only"
+                                />
+                                <div className={`w-4 h-4 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                                  (editFeatureTypeData?.isActive || false)
+                                    ? 'bg-emerald-600 border-emerald-600' 
+                                    : 'bg-white border-gray-300 hover:border-emerald-400'
+                                }`}>
+                                  {(editFeatureTypeData?.isActive || false) && (
+                                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </div>
+                              </div>
+                              <span>Active</span>
                             </label>
                           </div>
                         </div>
@@ -1186,14 +1342,30 @@ export default function ConfigurablePricingManager() {
                     <div className="space-y-2">
                       <h5 className="text-sm font-semibold text-gray-900">Quick Assign:</h5>
                       <div className="flex flex-wrap gap-2">
-                        {plans.filter(p => p.isActive).map(plan => (
-                          <label key={plan.id} className="flex items-center space-x-2 text-sm">
+                        {plans.filter(p => p.isActive).sort((a, b) => a.position - b.position).map(plan => (
+                          <label key={plan.id} className="flex items-center space-x-2 text-sm cursor-pointer">
+                            <div className="relative">
                             <input
                               type="checkbox"
                               checked={isPlanBasicFeatureEnabled(plan.id, feature.id)}
-                              onChange={(e) => handleToggleBasicFeature(plan.id, feature.id, e.target.checked)}
-                              className="w-4 h-4 text-green-600 rounded focus:ring-green-600"
-                            />
+                                onChange={(e) => {
+                                  console.log('Plan assignment checkbox clicked:', plan.name, e.target.checked);
+                                  handleToggleBasicFeature(plan.id, feature.id, e.target.checked);
+                                }}
+                                className="sr-only"
+                              />
+                              <div className={`w-4 h-4 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                                isPlanBasicFeatureEnabled(plan.id, feature.id)
+                                  ? 'bg-green-600 border-green-600' 
+                                  : 'bg-white border-gray-300 hover:border-green-400'
+                              }`}>
+                                {isPlanBasicFeatureEnabled(plan.id, feature.id) && (
+                                  <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
                             <span className="text-gray-700">{plan.name}</span>
                           </label>
                         ))}
@@ -1344,8 +1516,14 @@ export default function ConfigurablePricingManager() {
                               ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl'
                               : 'bg-purple-600 hover:bg-purple-700 text-white'
                           }`}
+                          onClick={() => {
+                            const pricing = getPlanPricing(plan.id, selectedBillingCycle);
+                            if (pricing?.ctaUrl) {
+                              window.open(pricing.ctaUrl, '_blank');
+                            }
+                          }}
                         >
-                          <span className="mr-2">UPGRADE PLAN</span>
+                          <span className="mr-2">{plan.ctaText || 'Get Started'}</span>
                           <span className="text-lg">✨</span>
                         </Button>
                       </div>
@@ -1430,7 +1608,7 @@ export default function ConfigurablePricingManager() {
                       <th className="text-left py-4 px-6 font-semibold text-gray-900 bg-gray-50 rounded-tl-lg">
                         Features
                       </th>
-                      {plans.filter(p => p.isActive).map((plan) => (
+                      {plans.filter(p => p.isActive).sort((a, b) => a.position - b.position).map((plan) => (
                         <th key={plan.id} className="text-center py-4 px-6 font-semibold text-gray-900 bg-gray-50 relative">
                           {plan.isPopular && (
                             <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
@@ -1475,7 +1653,7 @@ export default function ConfigurablePricingManager() {
                              </div>
                            </div>
                          </td>
-                        {plans.filter(p => p.isActive).map((plan) => {
+                        {plans.filter(p => p.isActive).sort((a, b) => a.position - b.position).map((plan) => {
                           const limit = getPlanLimit(plan.id, featureType.id);
                           const limitValue = limit?.isUnlimited ? '∞' : (limit?.value || '0');
                           
@@ -1517,7 +1695,7 @@ export default function ConfigurablePricingManager() {
                                   </div>
                                 </div>
                               </td>
-                              {plans.filter(p => p.isActive).map((plan) => {
+                              {plans.filter(p => p.isActive).sort((a, b) => a.position - b.position).map((plan) => {
                                 const isEnabled = isPlanBasicFeatureEnabled(plan.id, feature.id);
                                 
                                 return (
@@ -1542,7 +1720,9 @@ export default function ConfigurablePricingManager() {
               <div className="mt-8 border-t pt-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="hidden md:block"></div>
-                  {plans.filter(p => p.isActive).map((plan) => (
+                  {plans.filter(p => p.isActive).sort((a, b) => a.position - b.position).map((plan) => {
+                    const pricing = getPlanPricing(plan.id, selectedBillingCycle);
+                    return (
                     <div key={plan.id} className="text-center">
                       <Button 
                         className={`w-full py-3 rounded-lg font-medium transition-all duration-300 ${
@@ -1550,12 +1730,19 @@ export default function ConfigurablePricingManager() {
                             ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
                             : 'bg-indigo-600 hover:bg-indigo-700 text-white'
                         }`}
+                          onClick={() => {
+                            if (pricing?.ctaUrl) {
+                              window.open(pricing.ctaUrl, '_blank');
+                            }
+                          }}
                       >
-                        <span className="mr-2">Choose {plan.name}</span>
+                          <span className="mr-2">{plan.ctaText || `Choose ${plan.name}`}</span>
                         {plan.isPopular && <span className="text-lg">⭐</span>}
+                          {pricing?.ctaUrl && <span className="text-lg ml-1">→</span>}
                       </Button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </Card>
@@ -1588,15 +1775,31 @@ function LimitEditor({ limit, onUpdate }: {
   if (editing) {
     return (
       <div className="space-y-2">
-        <div className="flex items-center space-x-2">
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <div className="relative">
           <input
             type="checkbox"
             checked={isUnlimited}
-            onChange={(e) => setIsUnlimited(e.target.checked)}
-            className="w-4 h-4 text-purple-600"
-          />
-          <span className="text-xs text-gray-600">Unlimited</span>
+              onChange={(e) => {
+                console.log('Unlimited checkbox clicked:', e.target.checked);
+                setIsUnlimited(e.target.checked);
+              }}
+              className="sr-only"
+            />
+            <div className={`w-4 h-4 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
+              isUnlimited
+                ? 'bg-purple-600 border-purple-600' 
+                : 'bg-white border-gray-300 hover:border-purple-400'
+            }`}>
+              {isUnlimited && (
+                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
         </div>
+          </div>
+          <span className="text-xs text-gray-600">Unlimited</span>
+        </label>
         {!isUnlimited && (
           <Input
             type="number"

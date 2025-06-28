@@ -87,9 +87,37 @@ const applyDesignSystemToRoot = (ds: DesignSystem) => {
   root.style.setProperty('--color-error', ds.errorColor);
   root.style.setProperty('--color-info', ds.infoColor);
   
-  // Typography (override existing font families)
+  // Darker variants for hover states (auto-generate if not provided)
+  root.style.setProperty('--color-secondary-dark', ds.secondaryColor);
+  root.style.setProperty('--color-accent-dark', ds.accentColor);
+  root.style.setProperty('--color-success-dark', ds.successColor);
+  root.style.setProperty('--color-error-dark', ds.errorColor);
+  root.style.setProperty('--color-info-dark', ds.infoColor);
+  
+  // Typography (override existing font families and add weights)
   root.style.setProperty('--font-family-sans', ds.fontFamily);
   root.style.setProperty('--font-family-mono', ds.fontFamilyMono);
+  root.style.setProperty('--font-size-base', ds.fontSizeBase);
+  root.style.setProperty('--line-height-base', ds.lineHeightBase);
+  root.style.setProperty('--font-weight-normal', ds.fontWeightNormal);
+  root.style.setProperty('--font-weight-medium', ds.fontWeightMedium);
+  root.style.setProperty('--font-weight-bold', ds.fontWeightBold);
+  
+  // Text colors
+  root.style.setProperty('--color-text-primary', ds.textPrimary);
+  root.style.setProperty('--color-text-secondary', ds.textSecondary);
+  root.style.setProperty('--color-text-muted', ds.textMuted);
+  
+  // Background colors
+  root.style.setProperty('--color-bg-primary', ds.backgroundPrimary);
+  root.style.setProperty('--color-bg-secondary', ds.backgroundSecondary);
+  root.style.setProperty('--color-bg-dark', ds.backgroundDark);
+  
+  // Neutral colors
+  root.style.setProperty('--color-gray-light', ds.grayLight);
+  root.style.setProperty('--color-gray-medium', ds.grayMedium);
+  root.style.setProperty('--color-gray-dark', ds.grayDark);
+  root.style.setProperty('--color-border-medium', ds.grayMedium);
   
   // Update gradients to use new colors
   root.style.setProperty('--gradient-hero', `linear-gradient(135deg, ${ds.primaryColor} 0%, ${ds.secondaryColor} 100%)`);

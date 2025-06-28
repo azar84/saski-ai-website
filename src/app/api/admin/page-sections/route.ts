@@ -136,10 +136,35 @@ export async function GET(request: NextRequest) {
             mediaType: true,
             layoutType: true,
             badgeText: true,
-            isVisible: true,
+            badgeColor: true,
+            isActive: true,
             position: true,
+            alignment: true,
+            mediaSize: true,
+            mediaPosition: true,
+            showBadge: true,
+            showCtaButton: true,
+            ctaText: true,
+            ctaUrl: true,
+            ctaStyle: true,
+            enableScrollAnimations: true,
+            animationType: true,
+            backgroundStyle: true,
+            backgroundColor: true,
+            textColor: true,
+            paddingTop: true,
+            paddingBottom: true,
+            containerMaxWidth: true,
+            mediaAlt: true,
             features: {
-              orderBy: { position: 'asc' }
+              select: {
+                id: true,
+                icon: true,
+                label: true,
+                color: true,
+                sortOrder: true
+              },
+              orderBy: { sortOrder: 'asc' }
             }
           }
         },
@@ -397,10 +422,35 @@ export async function POST(request: NextRequest) {
             mediaType: true,
             layoutType: true,
             badgeText: true,
-            isVisible: true,
+            badgeColor: true,
+            isActive: true,
             position: true,
+            alignment: true,
+            mediaSize: true,
+            mediaPosition: true,
+            showBadge: true,
+            showCtaButton: true,
+            ctaText: true,
+            ctaUrl: true,
+            ctaStyle: true,
+            enableScrollAnimations: true,
+            animationType: true,
+            backgroundStyle: true,
+            backgroundColor: true,
+            textColor: true,
+            paddingTop: true,
+            paddingBottom: true,
+            containerMaxWidth: true,
+            mediaAlt: true,
             features: {
-              orderBy: { position: 'asc' }
+              select: {
+                id: true,
+                icon: true,
+                label: true,
+                color: true,
+                sortOrder: true
+              },
+              orderBy: { sortOrder: 'asc' }
             }
           }
         },
@@ -619,17 +669,35 @@ export async function PUT(request: NextRequest) {
             mediaType: true,
             layoutType: true,
             badgeText: true,
-            isVisible: true,
+            badgeColor: true,
+            isActive: true,
             position: true,
+            alignment: true,
+            mediaSize: true,
+            mediaPosition: true,
+            showBadge: true,
+            showCtaButton: true,
+            ctaText: true,
+            ctaUrl: true,
+            ctaStyle: true,
+            enableScrollAnimations: true,
+            animationType: true,
+            backgroundStyle: true,
+            backgroundColor: true,
+            textColor: true,
+            paddingTop: true,
+            paddingBottom: true,
+            containerMaxWidth: true,
+            mediaAlt: true,
             features: {
               select: {
                 id: true,
-                iconUrl: true,
-                title: true,
-                description: true,
-                position: true
+                icon: true,
+                label: true,
+                color: true,
+                sortOrder: true
               },
-              orderBy: { position: 'asc' }
+              orderBy: { sortOrder: 'asc' }
             }
           }
         },

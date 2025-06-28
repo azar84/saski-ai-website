@@ -9,6 +9,7 @@ import { Menu, X, ChevronDown, UserPlus, LogIn, Star, ArrowRight } from 'lucide-
 import * as LucideIcons from 'lucide-react';
 import { cn, getAppropriateLogoUrl } from '@/lib/utils';
 import { useDesignSystem } from '@/hooks/useDesignSystem';
+import { Button } from '@/components/ui/Button';
 
 // Utility function to determine if a color is light or dark
 const isLightColor = (color: string): boolean => {
@@ -55,8 +56,8 @@ interface CTAButton {
   text: string;
   url: string;
   icon?: string; // Optional Lucide icon name
-  style: string;
-  target: string;
+  style: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
+  target: '_self' | '_blank';
 }
 
 interface ClientHeaderProps {
@@ -144,34 +145,121 @@ export default function ClientHeader({
   };
 
   return (
-    <motion.header
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ 
-        y: 0, 
-        opacity: 1,
-        // Subtle floating animation
-        ...(isScrolled ? {} : {
-          y: [0, -2, 0],
-          transition: {
-            y: {
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }
+    <>
+      {/* Inject button styles for CTAs */}
+      <style dangerouslySetInnerHTML={{ 
+        __html: `
+          .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
           }
-        })
-      }}
-      transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out',
-        isScrolled 
-          ? 'backdrop-blur-xl shadow-xl border-b border-gray-100/50' 
-          : 'backdrop-blur-lg'
-      )}
-      style={{
-        backgroundColor: backgroundColor // Consistent color regardless of scroll state
-      }}
-    >
+          .btn-primary:hover {
+            background-color: var(--color-primary-light, var(--color-primary));
+            transform: scale(1.02);
+          }
+          .btn-secondary {
+            background-color: var(--color-bg-secondary, #EEE7F9);
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+          }
+          .btn-secondary:hover {
+            background-color: var(--color-primary-light, var(--color-primary));
+            color: white;
+            transform: scale(1.02);
+          }
+          .btn-accent {
+            background-color: var(--color-accent);
+            color: white;
+            border: none;
+          }
+          .btn-accent:hover {
+            background-color: var(--color-accent-dark, var(--color-accent));
+            transform: scale(1.02);
+          }
+          .btn-ghost {
+            background-color: transparent;
+            color: var(--color-text-primary);
+            border: 1px solid transparent;
+          }
+          .btn-ghost:hover {
+            background-color: var(--color-primary-light, rgba(99, 102, 241, 0.1));
+            transform: scale(1.02);
+          }
+          .btn-destructive {
+            background-color: var(--color-error);
+            color: white;
+            border: none;
+          }
+          .btn-destructive:hover {
+            background-color: var(--color-error-dark, var(--color-error));
+            transform: scale(1.02);
+          }
+          .btn-success {
+            background-color: var(--color-success);
+            color: white;
+            border: none;
+          }
+          .btn-success:hover {
+            background-color: var(--color-success-dark, var(--color-success));
+            transform: scale(1.02);
+          }
+          .btn-info {
+            background-color: var(--color-info);
+            color: white;
+            border: none;
+          }
+          .btn-info:hover {
+            background-color: var(--color-info-dark, var(--color-info));
+            transform: scale(1.02);
+          }
+          .btn-outline {
+            background-color: transparent;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+          }
+          .btn-outline:hover {
+            background-color: var(--color-primary-light, rgba(99, 102, 241, 0.1));
+            transform: scale(1.02);
+          }
+          .btn-muted {
+            background-color: var(--color-bg-secondary);
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-border-medium);
+            cursor: not-allowed;
+            opacity: 0.5;
+          }
+        ` 
+      }} />
+      
+      <motion.header
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ 
+          y: 0, 
+          opacity: 1,
+          // Subtle floating animation
+          ...(isScrolled ? {} : {
+            y: [0, -2, 0],
+            transition: {
+              y: {
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }
+            }
+          })
+        }}
+        transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out',
+          isScrolled 
+            ? 'backdrop-blur-xl shadow-xl border-b border-gray-100/50' 
+            : 'backdrop-blur-lg'
+        )}
+        style={{
+          backgroundColor: backgroundColor // Consistent color regardless of scroll state
+        }}
+      >
       {/* Subtle border animation */}
       <motion.div
         className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-[#5243E9] via-[#7C3AED] to-[#5243E9]"
@@ -452,146 +540,46 @@ export default function ClientHeader({
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
             >
-              {ctaButtons.map((cta, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Link
-                    href={cta.url}
-                    target={cta.target}
-                    className={cn(
-                      'relative px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 overflow-hidden group inline-flex items-center justify-center',
-                      cta.style === 'primary' 
-                        ? 'text-white shadow-lg hover:shadow-xl'
-                        : cta.style === 'secondary'
-                        ? 'text-white shadow-md hover:shadow-lg'
-                        : cta.style === 'outline'
-                        ? 'border-2 hover:text-white shadow-md hover:shadow-lg'
-                        : cta.style === 'ghost'
-                        ? 'hover:bg-gray-50 border border-gray-200'
-                        : 'hover:bg-gray-50'
-                    )}
-                    style={{
-                      backgroundColor: cta.style === 'primary' 
-                        ? 'var(--color-primary)'
-                        : cta.style === 'secondary'
-                        ? 'var(--color-secondary)'
-                        : cta.style === 'outline'
-                        ? 'transparent'
-                        : cta.style === 'ghost'
-                        ? 'transparent'
-                        : 'transparent',
-                      borderColor: cta.style === 'outline' 
-                        ? 'var(--color-primary)'
-                        : cta.style === 'ghost'
-                        ? '#e5e7eb'
-                        : 'transparent',
-                      color: cta.style === 'primary' || cta.style === 'secondary'
-                        ? '#ffffff'
-                        : cta.style === 'outline' || cta.style === 'ghost'
-                        ? 'var(--color-primary)'
-                        : '#374151',
-                      boxShadow: cta.style === 'primary'
-                        ? `0 10px 25px -5px var(--color-primary)40`
-                        : cta.style === 'secondary'
-                        ? `0 4px 6px -1px var(--color-secondary)40`
-                        : undefined
-                    }}
-                    onMouseEnter={(e) => {
-                      if (cta.style === 'primary') {
-                        e.currentTarget.style.backgroundColor = 'var(--color-primary-dark)';
-                        e.currentTarget.style.boxShadow = `0 20px 40px -10px var(--color-primary)50`;
-                      } else if (cta.style === 'secondary') {
-                        e.currentTarget.style.backgroundColor = 'var(--color-primary-dark)';
-                        e.currentTarget.style.boxShadow = `0 10px 25px -5px var(--color-secondary)50`;
-                      } else if (cta.style === 'outline') {
-                        e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                        e.currentTarget.style.color = '#ffffff';
-                        e.currentTarget.style.boxShadow = `0 10px 25px -5px var(--color-primary)40`;
-                      } else if (cta.style === 'ghost') {
-                        e.currentTarget.style.backgroundColor = 'var(--color-primary)10';
-                        e.currentTarget.style.borderColor = 'var(--color-primary)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (cta.style === 'primary') {
-                        e.currentTarget.style.backgroundColor = 'var(--color-primary)';
-                        e.currentTarget.style.boxShadow = `0 10px 25px -5px var(--color-primary)40`;
-                      } else if (cta.style === 'secondary') {
-                        e.currentTarget.style.backgroundColor = 'var(--color-secondary)';
-                        e.currentTarget.style.boxShadow = `0 4px 6px -1px var(--color-secondary)40`;
-                      } else if (cta.style === 'outline') {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.color = 'var(--color-primary)';
-                        e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-                      } else if (cta.style === 'ghost') {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.borderColor = '#e5e7eb';
-                      }
-                                         }}
+              {ctaButtons.map((cta, index) => {
+                const IconComponent = cta.icon ? getIconComponent(cta.icon) : null;
+                
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    {/* Primary button special effects */}
-                    {cta.style === 'primary' && (
-                      <>
-                        {/* Animated shine effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                        
-                        {/* Glow effect */}
-                        <div 
-                          className="absolute inset-0 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"
-                          style={{
-                            background: `linear-gradient(135deg, var(--color-primary), var(--color-secondary))`
-                          }}
-                        />
-                      </>
-                    )}
-                    
-                    {/* Outline button fill effect */}
-                    {cta.style === 'outline' && (
-                      <div 
-                        className="absolute inset-0 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
-                        style={{
-                          background: `linear-gradient(135deg, var(--color-primary), var(--color-secondary))`
-                        }}
-                      />
-                    )}
-                    
-                    <span className="relative z-10 flex items-center space-x-1.5">
-                      {cta.icon && (() => {
-                        const IconComponent = getIconComponent(cta.icon);
-                        return IconComponent ? (
-                          <motion.div
-                            initial={{ x: 0 }}
-                            whileHover={{ x: -1 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <IconComponent className="w-4 h-4" />
-                          </motion.div>
-                        ) : null;
-                      })()}
-                      <span>{cta.text}</span>
-                      {cta.style === 'primary' && !cta.icon && (
-                        <motion.svg
-                          className="w-3.5 h-3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          initial={{ x: 0 }}
-                          whileHover={{ x: 2 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </motion.svg>
+                    <Link
+                      href={cta.url}
+                      target={cta.target}
+                      className={cn(
+                        'inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg transition-all duration-200 select-none relative overflow-hidden',
+                        `btn-${cta.style}`,
+                        cta.style === 'primary' && 'focus-visible:ring-blue-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 before:transition-opacity hover:before:opacity-100',
+                        cta.style === 'secondary' && 'focus-visible:ring-blue-500',
+                        cta.style === 'accent' && 'focus-visible:ring-purple-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 before:transition-opacity hover:before:opacity-100',
+                        cta.style === 'ghost' && 'focus-visible:ring-blue-500',
+                        cta.style === 'destructive' && 'focus-visible:ring-red-500',
+                        cta.style === 'success' && 'focus-visible:ring-green-500',
+                        cta.style === 'info' && 'focus-visible:ring-blue-400',
+                        cta.style === 'outline' && 'focus-visible:ring-blue-500',
+                        cta.style === 'muted' && 'cursor-not-allowed'
                       )}
-                    </span>
-                  </Link>
-                </motion.div>
-              ))}
+                      style={{
+                        fontSize: 'var(--font-size-base)',
+                        fontWeight: 'var(--font-weight-medium)',
+                        fontFamily: 'var(--font-family-sans)',
+                      }}
+                    >
+                      {IconComponent && <IconComponent className="w-4 h-4 flex-shrink-0" />}
+                      <span>{cta.text}</span>
+                    </Link>
+                  </motion.div>
+                );
+              })}
             </motion.div>
 
             {/* Mobile Menu Toggle */}
@@ -872,10 +860,63 @@ export default function ClientHeader({
                   </motion.div>
                 ))}
               </nav>
+              
+              {/* Mobile CTA Buttons */}
+              {ctaButtons.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4 }}
+                  className="pt-6 mt-6 border-t border-gray-200"
+                >
+                  <div className="flex flex-col space-y-3">
+                    {ctaButtons.map((cta, index) => {
+                      const IconComponent = cta.icon ? getIconComponent(cta.icon) : null;
+                      
+                      return (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+                        >
+                          <Link
+                            href={cta.url}
+                            target={cta.target}
+                            onClick={() => setIsMenuOpen(false)}
+                            className={cn(
+                              'inline-flex items-center justify-center gap-2 w-full h-12 px-6 rounded-lg transition-all duration-200 select-none relative overflow-hidden',
+                              `btn-${cta.style}`,
+                              cta.style === 'primary' && 'focus-visible:ring-blue-500',
+                              cta.style === 'secondary' && 'focus-visible:ring-blue-500',
+                              cta.style === 'accent' && 'focus-visible:ring-purple-500',
+                              cta.style === 'ghost' && 'focus-visible:ring-blue-500',
+                              cta.style === 'destructive' && 'focus-visible:ring-red-500',
+                              cta.style === 'success' && 'focus-visible:ring-green-500',
+                              cta.style === 'info' && 'focus-visible:ring-blue-400',
+                              cta.style === 'outline' && 'focus-visible:ring-blue-500',
+                              cta.style === 'muted' && 'cursor-not-allowed'
+                            )}
+                            style={{
+                              fontSize: 'var(--font-size-base)',
+                              fontWeight: 'var(--font-weight-medium)',
+                              fontFamily: 'var(--font-family-sans)',
+                            }}
+                          >
+                            {IconComponent && <IconComponent className="w-4 h-4 flex-shrink-0" />}
+                            <span>{cta.text}</span>
+                          </Link>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </motion.header>
+    </>
   );
 } 

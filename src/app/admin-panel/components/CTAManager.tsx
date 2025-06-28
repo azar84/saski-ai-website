@@ -20,7 +20,7 @@ interface CTA {
   text: string;
   url: string;
   icon?: string;
-  style: 'primary' | 'secondary' | 'outline' | 'ghost';
+  style: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
   target: '_self' | '_blank';
   isActive: boolean;
   createdAt: string;
@@ -40,7 +40,7 @@ interface CTAFormData {
     text: string;
     url: string;
     icon: string;
-    style: 'primary' | 'secondary' | 'outline' | 'ghost';
+    style: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
     target: '_self' | '_blank';
     isActive: boolean;
 }
@@ -270,9 +270,14 @@ export default function CTAManager() {
   const getStyleColor = (style: string) => {
     switch (style) {
       case 'primary': return 'bg-blue-100 text-blue-800';
-      case 'secondary': return 'bg-gray-100 text-gray-800';
-      case 'outline': return 'bg-purple-100 text-purple-800';
-      case 'ghost': return 'bg-green-100 text-green-800';
+      case 'secondary': return 'bg-purple-100 text-purple-800';
+      case 'accent': return 'bg-indigo-100 text-indigo-800';
+      case 'ghost': return 'bg-gray-100 text-gray-600';
+      case 'destructive': return 'bg-red-100 text-red-800';
+      case 'success': return 'bg-green-100 text-green-800';
+      case 'info': return 'bg-cyan-100 text-cyan-800';
+      case 'outline': return 'bg-slate-100 text-slate-800';
+      case 'muted': return 'bg-gray-50 text-gray-500';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -367,22 +372,73 @@ export default function CTAManager() {
                 </p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Button Style
                 </label>
+                
+                {/* Style Preview Grid */}
+                <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <p className="text-sm text-gray-600 mb-3">Click a style to select it:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                      { value: 'primary', label: 'Primary', description: 'Main action' },
+                      { value: 'secondary', label: 'Secondary', description: 'Supporting action' },
+                      { value: 'accent', label: 'Accent', description: 'Special offers' },
+                      { value: 'ghost', label: 'Ghost', description: 'Minimal action' },
+                      { value: 'destructive', label: 'Destructive', description: 'Delete/Remove' },
+                      { value: 'success', label: 'Success', description: 'Save/Confirm' },
+                      { value: 'info', label: 'Info', description: 'Help/More info' },
+                      { value: 'outline', label: 'Outline', description: 'Styled secondary' },
+                      { value: 'muted', label: 'Muted', description: 'Disabled/Inactive' }
+                    ].map((styleOption) => (
+                      <div
+                        key={styleOption.value}
+                        className={`p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                          formData.style === styleOption.value
+                            ? 'border-blue-500 bg-blue-50 shadow-md'
+                            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                        }`}
+                        onClick={() => setFormData({ ...formData, style: styleOption.value as any })}
+                      >
+                        <div className="text-center space-y-2">
+                          <Button
+                            variant={styleOption.value as any}
+                            size="sm"
+                            className="w-full pointer-events-none"
+                            disabled={styleOption.value === 'muted'}
+                          >
+                            {formData.text || 'Sample Text'}
+                          </Button>
+                          <div>
+                            <p className="text-xs font-semibold text-gray-900">{styleOption.label}</p>
+                            <p className="text-xs text-gray-600">{styleOption.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Fallback select for accessibility */}
                 <select
                   value={formData.style}
                   onChange={(e) => {
-                    const value = e.target.value as 'primary' | 'secondary' | 'outline' | 'ghost';
+                    const value = e.target.value as 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
                     setFormData({ ...formData, style: value });
                   }}
-                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent sr-only"
+                  aria-label="Button style selector"
                 >
-                  <option value="primary">Primary (Filled)</option>
-                  <option value="secondary">Secondary (Gray)</option>
-                  <option value="outline">Outline</option>
-                  <option value="ghost">Ghost (Subtle)</option>
+                  <option value="primary">Primary - Main Action (Brand)</option>
+                  <option value="secondary">Secondary - Supporting Action</option>
+                  <option value="accent">Accent - Limited Offers/Highlights</option>
+                  <option value="ghost">Ghost - Minimal Action</option>
+                  <option value="destructive">Destructive - Delete/Remove</option>
+                  <option value="success">Success - Confirmations/Save</option>
+                  <option value="info">Info - Help/More Info</option>
+                  <option value="outline">Outline - Styled Secondary</option>
+                  <option value="muted">Muted - Disabled/Inactive</option>
                 </select>
               </div>
 
@@ -414,6 +470,65 @@ export default function CTAManager() {
                   label=""
                   showLabel={false}
                 />
+              </div>
+            </div>
+
+            {/* Live Preview Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+              <h4 className="text-lg font-semibold text-gray-900 mb-3">Live Preview</h4>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                  {/* Light background preview */}
+                  <div className="flex-1 p-4 bg-white rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-500 mb-2 text-center">On Light Background</p>
+                    <div className="flex justify-center">
+                      <Button
+                        variant={formData.style as any}
+                        size="md"
+                        className="pointer-events-none"
+                        disabled={formData.style === 'muted'}
+                        leftIcon={formData.icon ? (() => {
+                          const IconComponent = getIconComponent(formData.icon);
+                          return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
+                        })() : undefined}
+                      >
+                        {formData.text || 'Button Text'}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Dark background preview */}
+                  <div className="flex-1 p-4 bg-gray-900 rounded-lg border border-gray-700">
+                    <p className="text-xs text-gray-400 mb-2 text-center">On Dark Background</p>
+                    <div className="flex justify-center">
+                      <Button
+                        variant={formData.style as any}
+                        size="md"
+                        className="pointer-events-none"
+                        disabled={formData.style === 'muted'}
+                        leftIcon={formData.icon ? (() => {
+                          const IconComponent = getIconComponent(formData.icon);
+                          return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
+                        })() : undefined}
+                      >
+                        {formData.text || 'Button Text'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Preview details */}
+                <div className="text-center space-y-1">
+                  <p className="text-sm text-gray-700">
+                    <span className="font-medium">Text:</span> {formData.text || 'Button Text'} |{' '}
+                    <span className="font-medium">Style:</span> {formData.style} |{' '}
+                    <span className="font-medium">Target:</span> {formData.target === '_blank' ? 'New Tab' : 'Same Tab'}
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    <span className="font-medium">URL:</span> {formData.url || 'No URL set'} |{' '}
+                    <span className="font-medium">Icon:</span> {formData.icon || 'None'}
+                  </p>
+                </div>
               </div>
             </div>
 

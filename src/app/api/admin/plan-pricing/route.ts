@@ -8,6 +8,9 @@ const createPlanPricingSchema = z.object({
   billingCycleId: z.string().min(1, 'Billing cycle ID is required'),
   priceCents: z.number().int().min(0, 'Price must be positive'),
   stripePriceId: z.string().optional(),
+  ctaUrl: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, {
+    message: 'CTA URL must be empty or a valid URL'
+  }).optional(),
 });
 
 const updatePlanPricingSchema = z.object({
@@ -15,6 +18,9 @@ const updatePlanPricingSchema = z.object({
   billingCycleId: z.string().min(1, 'Billing cycle ID is required').optional(),
   priceCents: z.number().int().min(0, 'Price must be positive').optional(),
   stripePriceId: z.string().optional(),
+  ctaUrl: z.string().refine((val) => val === '' || z.string().url().safeParse(val).success, {
+    message: 'CTA URL must be empty or a valid URL'
+  }).optional(),
 });
 
 export async function GET(request: NextRequest) {
