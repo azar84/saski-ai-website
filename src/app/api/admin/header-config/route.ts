@@ -17,9 +17,29 @@ export async function GET() {
               sortOrder: 'asc'
             }
           },
-          ctaButtons: {
+          headerCTAs: {
             include: {
               cta: true
+            },
+            orderBy: {
+              sortOrder: 'asc'
+            }
+          },
+          menus: {
+            include: {
+              menu: {
+                include: {
+                  items: {
+                    include: {
+                      page: true,
+                      parent: true
+                    },
+                    orderBy: {
+                      sortOrder: 'asc'
+                    }
+                  }
+                }
+              }
             },
             orderBy: {
               sortOrder: 'asc'
@@ -42,7 +62,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { navItems, ctaButtons } = body;
+    const { navItems, ctaButtons, backgroundColor, menuTextColor, menuHoverColor, menuActiveColor, menuId, ctaIds } = body;
 
     // First, deactivate all existing configs
     await prisma.headerConfig.updateMany({
@@ -53,21 +73,40 @@ export async function POST(request: NextRequest) {
     const headerConfig = await prisma.headerConfig.create({
       data: {
         isActive: true,
+        backgroundColor: backgroundColor || '#ffffff',
+        menuTextColor: menuTextColor || '#374151',
+        menuHoverColor: menuHoverColor || '#5243E9',
+        menuActiveColor: menuActiveColor || '#5243E9',
         navItems: {
           create: navItems?.map((item: any, index: number) => ({
-            pageId: item.pageId,
+            pageId: item.pageId || null,
             label: item.label || item.customText || '',
+            customText: item.customText || null,
+            customUrl: item.customUrl || null,
             sortOrder: item.sortOrder || index,
             isVisible: item.isVisible !== undefined ? item.isVisible : true
           })) || []
         },
-        ctaButtons: {
-          create: ctaButtons?.map((item: any, index: number) => ({
+        headerCTAs: {
+          create: (ctaButtons?.map((item: any, index: number) => ({
             ctaId: item.ctaId,
             sortOrder: item.sortOrder || index,
             isVisible: item.isVisible !== undefined ? item.isVisible : true
-          })) || []
-        }
+          })) || []).concat(
+            ctaIds?.map((ctaId: number, index: number) => ({
+              ctaId: ctaId,
+              sortOrder: (ctaButtons?.length || 0) + index,
+              isVisible: true
+            })) || []
+          )
+        },
+        menus: menuId ? {
+          create: [{
+            menuId: menuId,
+            sortOrder: 0,
+            isVisible: true
+          }]
+        } : undefined
       },
       include: {
         navItems: {
@@ -78,9 +117,29 @@ export async function POST(request: NextRequest) {
             sortOrder: 'asc'
           }
         },
-        ctaButtons: {
+        headerCTAs: {
           include: {
             cta: true
+          },
+          orderBy: {
+            sortOrder: 'asc'
+          }
+        },
+        menus: {
+          include: {
+            menu: {
+              include: {
+                items: {
+                  include: {
+                    page: true,
+                    parent: true
+                  },
+                  orderBy: {
+                    sortOrder: 'asc'
+                  }
+                }
+              }
+            }
           },
           orderBy: {
             sortOrder: 'asc'
@@ -106,7 +165,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, navItems, ctaButtons, action, ctaId, headerCtaId, isVisible } = body;
+    const { id, navItems, ctaButtons, backgroundColor, menuTextColor, menuHoverColor, menuActiveColor, menuId, ctaIds, action, ctaId, headerCtaId, isVisible } = body;
 
     // Handle specific actions for CTA management
     if (action) {
@@ -132,7 +191,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Delete existing nav items and CTA buttons
+    // Delete existing nav items, CTA buttons, and menu assignments
     await prisma.headerNavItem.deleteMany({
       where: { headerConfigId: id }
     });
@@ -141,26 +200,49 @@ export async function PUT(request: NextRequest) {
       where: { headerConfigId: id }
     });
 
+    await prisma.headerConfigMenu.deleteMany({
+      where: { headerConfigId: id }
+    });
+
     // Update header config with new items
     const headerConfig = await prisma.headerConfig.update({
       where: { id },
       data: {
         updatedAt: new Date(),
+        backgroundColor: backgroundColor || undefined,
+        menuTextColor: menuTextColor || undefined,
+        menuHoverColor: menuHoverColor || undefined,
+        menuActiveColor: menuActiveColor || undefined,
         navItems: {
           create: navItems?.map((item: any, index: number) => ({
-            pageId: item.pageId,
+            pageId: item.pageId || null,
             label: item.label || item.customText || '',
+            customText: item.customText || null,
+            customUrl: item.customUrl || null,
             sortOrder: item.sortOrder || index,
             isVisible: item.isVisible !== undefined ? item.isVisible : true
           })) || []
         },
-        ctaButtons: {
-          create: ctaButtons?.map((item: any, index: number) => ({
+        headerCTAs: {
+          create: (ctaButtons?.map((item: any, index: number) => ({
             ctaId: item.ctaId,
             sortOrder: item.sortOrder || index,
             isVisible: item.isVisible !== undefined ? item.isVisible : true
-          })) || []
-        }
+          })) || []).concat(
+            ctaIds?.map((ctaId: number, index: number) => ({
+              ctaId: ctaId,
+              sortOrder: (ctaButtons?.length || 0) + index,
+              isVisible: true
+            })) || []
+          )
+        },
+        menus: menuId ? {
+          create: [{
+            menuId: menuId,
+            sortOrder: 0,
+            isVisible: true
+          }]
+        } : undefined
       },
       include: {
         navItems: {
@@ -171,9 +253,29 @@ export async function PUT(request: NextRequest) {
             sortOrder: 'asc'
           }
         },
-        ctaButtons: {
+        headerCTAs: {
           include: {
             cta: true
+          },
+          orderBy: {
+            sortOrder: 'asc'
+          }
+        },
+        menus: {
+          include: {
+            menu: {
+              include: {
+                items: {
+                  include: {
+                    page: true,
+                    parent: true
+                  },
+                  orderBy: {
+                    sortOrder: 'asc'
+                  }
+                }
+              }
+            }
           },
           orderBy: {
             sortOrder: 'asc'
@@ -201,7 +303,7 @@ async function addCtaToHeader(ctaId: number) {
     // Get the active header config
     const headerConfig = await prisma.headerConfig.findFirst({
       where: { isActive: true },
-      include: { ctaButtons: true }
+      include: { headerCTAs: true }
     });
 
     if (!headerConfig) {
@@ -231,7 +333,7 @@ async function addCtaToHeader(ctaId: number) {
       data: {
         headerConfigId: headerConfig.id,
         ctaId: ctaId,
-        sortOrder: headerConfig.ctaButtons.length,
+        sortOrder: headerConfig.headerCTAs.length,
         isVisible: true
       }
     });

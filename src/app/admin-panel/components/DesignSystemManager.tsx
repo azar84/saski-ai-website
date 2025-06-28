@@ -117,7 +117,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, descr
         <div
           className="w-12 h-12 border-2 border-gray-300 rounded-lg shadow-sm cursor-pointer relative overflow-hidden"
           style={{ backgroundColor: value }}
-          title={`${label}: ${value}`}
         >
           <input
             type="color"
@@ -1219,7 +1218,7 @@ const DesignSystemManager: React.FC = () => {
                 <div className="space-y-6">
                   {/* Header */}
                   <div>
-                    <h1 className="text-3xl font-bold mb-2" style={{ color: designSystem.primaryColor }}>
+                    <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--color-primary)' }}>
                       Design System Preview
                     </h1>
                     <p className="text-lg" style={{ color: designSystem.textSecondary }}>
@@ -1230,22 +1229,42 @@ const DesignSystemManager: React.FC = () => {
                   {/* Buttons */}
                   <div className="flex items-center space-x-4">
                     <button
-                      className="px-6 py-3 rounded-lg font-medium transition-colors"
+                      className="px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:shadow-lg"
                       style={{
-                        backgroundColor: designSystem.primaryColor,
+                        backgroundColor: 'var(--color-primary)',
                         color: '#FFFFFF',
                         borderRadius: designSystem.borderRadiusMd,
-                        boxShadow: designSystem.shadowMd
+                        boxShadow: designSystem.shadowMd,
+                        border: 'none'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-primary-dark)';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                        e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
                       Primary Button
                     </button>
                     <button
-                      className="px-6 py-3 rounded-lg font-medium border transition-colors"
+                      className="px-6 py-3 rounded-lg font-medium border-2 transition-all duration-300 hover:shadow-lg bg-transparent"
                       style={{
-                        borderColor: designSystem.primaryColor,
-                        color: designSystem.primaryColor,
-                        borderRadius: designSystem.borderRadiusMd
+                        borderColor: 'var(--color-primary)',
+                        color: 'var(--color-primary)',
+                        borderRadius: designSystem.borderRadiusMd,
+                        backgroundColor: 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                        e.currentTarget.style.color = '#FFFFFF';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = 'var(--color-primary)';
+                        e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
                       Secondary Button
@@ -1268,9 +1287,9 @@ const DesignSystemManager: React.FC = () => {
                       </p>
                       <div className="mt-4 flex items-center space-x-2">
                         <span
-                          className="px-3 py-1 text-sm rounded-full"
+                          className="px-3 py-1 text-sm rounded-full transition-all duration-300 hover:scale-105"
                           style={{
-                            backgroundColor: designSystem.successColor,
+                            backgroundColor: 'var(--color-success)',
                             color: '#FFFFFF',
                             borderRadius: designSystem.borderRadiusFull
                           }}
@@ -1278,9 +1297,9 @@ const DesignSystemManager: React.FC = () => {
                           Success
                         </span>
                         <span
-                          className="px-3 py-1 text-sm rounded-full"
+                          className="px-3 py-1 text-sm rounded-full transition-all duration-300 hover:scale-105"
                           style={{
-                            backgroundColor: designSystem.warningColor,
+                            backgroundColor: 'var(--color-warning)',
                             color: '#FFFFFF',
                             borderRadius: designSystem.borderRadiusFull
                           }}
@@ -1315,22 +1334,24 @@ const DesignSystemManager: React.FC = () => {
                     <h3 className="text-xl font-semibold mb-4">Color Palette</h3>
                     <div className="grid grid-cols-4 md:grid-cols-8 gap-4">
                       {[
-                        { name: 'Primary', color: designSystem.primaryColor },
-                        { name: 'Secondary', color: designSystem.secondaryColor },
-                        { name: 'Accent', color: designSystem.accentColor },
-                        { name: 'Success', color: designSystem.successColor },
-                        { name: 'Warning', color: designSystem.warningColor },
-                        { name: 'Error', color: designSystem.errorColor },
-                        { name: 'Info', color: designSystem.infoColor },
-                        { name: 'Gray', color: designSystem.grayMedium },
+                        { name: 'Primary', color: designSystem.primaryColor, cssVar: 'var(--color-primary)' },
+                        { name: 'Secondary', color: designSystem.secondaryColor, cssVar: 'var(--color-secondary)' },
+                        { name: 'Accent', color: designSystem.accentColor, cssVar: 'var(--color-accent)' },
+                        { name: 'Success', color: designSystem.successColor, cssVar: 'var(--color-success)' },
+                        { name: 'Warning', color: designSystem.warningColor, cssVar: 'var(--color-warning)' },
+                        { name: 'Error', color: designSystem.errorColor, cssVar: 'var(--color-error)' },
+                        { name: 'Info', color: designSystem.infoColor, cssVar: 'var(--color-info)' },
+                        { name: 'Gray', color: designSystem.grayMedium, cssVar: designSystem.grayMedium },
                       ].map((item) => (
                         <div key={item.name} className="text-center">
                           <div
-                            className="w-full h-16 rounded-lg mb-2"
+                            className="w-full h-16 rounded-lg mb-2 transition-all duration-300 hover:scale-105 cursor-pointer"
                             style={{
-                              backgroundColor: item.color,
-                              borderRadius: designSystem.borderRadiusMd
+                              backgroundColor: item.cssVar,
+                              borderRadius: designSystem.borderRadiusMd,
+                              boxShadow: designSystem.shadowSm
                             }}
+                            onClick={() => navigator.clipboard?.writeText(item.color)}
                           ></div>
                           <p className="text-sm font-medium">{item.name}</p>
                           <p className="text-xs font-mono" style={{ color: designSystem.textMuted }}>

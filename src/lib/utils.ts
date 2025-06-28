@@ -221,4 +221,61 @@ export const siteConfig = {
   ogImage: 'https://example.com/og.jpg',
   creator: '@ai_assistant',
   keywords: ['AI', 'customer support', 'automation', 'chatbot', 'communication']
-} as const; 
+} as const;
+
+/**
+ * Determines if a color is considered "dark" based on its luminance
+ * @param color - Hex color string (e.g., "#FFFFFF" or "#000000")
+ * @returns true if the color is dark, false if light
+ */
+export function isColorDark(color: string): boolean {
+  // Remove # if present
+  const hex = color.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculate luminance using the relative luminance formula
+  // https://www.w3.org/WAI/GL/wiki/Relative_luminance
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // If luminance is less than 0.5, consider it dark
+  return luminance < 0.5;
+}
+
+/**
+ * Intelligently selects the appropriate logo based on background color
+ * @param siteSettings - Site settings object containing logo URLs
+ * @param backgroundColor - Background color to check against (hex format)
+ * @returns The appropriate logo URL or null if no logo available
+ */
+export function getAppropriateLogoUrl(
+  siteSettings: {
+    logoLightUrl?: string | null;
+    logoDarkUrl?: string | null;
+    logoUrl?: string | null;
+  },
+  backgroundColor: string = '#FFFFFF'
+): string | null {
+  // If background is dark, use light logo
+  if (isColorDark(backgroundColor)) {
+    if (siteSettings.logoLightUrl) {
+      return siteSettings.logoLightUrl;
+    }
+  } else {
+    // If background is light, use dark logo
+    if (siteSettings.logoDarkUrl) {
+      return siteSettings.logoDarkUrl;
+    }
+  }
+  
+  // Fallback to legacy logo if specific logo not available
+  if (siteSettings.logoUrl) {
+    return siteSettings.logoUrl;
+  }
+  
+  // No logo available
+  return null;
+} 

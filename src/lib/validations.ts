@@ -11,6 +11,8 @@ const optionalUrl = z.string().optional().nullable().transform(val => val === ''
   if (val === null || val === undefined) return true;
   // Allow data URIs for base64 encoded images
   if (val.startsWith('data:')) return true;
+  // Allow relative paths (starting with /)
+  if (val.startsWith('/')) return true;
   // Allow regular URLs
   return z.string().url().safeParse(val).success;
 }, { message: "Invalid URL format" });
@@ -22,7 +24,11 @@ const optionalEmail = z.string().optional().nullable().transform(val => val === 
 // Site Settings Schema
 export const SiteSettingsSchema = z.object({
   logoUrl: optionalUrl,
+  logoLightUrl: optionalUrl,
+  logoDarkUrl: optionalUrl,
   faviconUrl: optionalUrl,
+  faviconLightUrl: optionalUrl,
+  faviconDarkUrl: optionalUrl,
   
   // Email Configuration
   smtpEnabled: z.boolean().optional(),
@@ -56,6 +62,17 @@ export const SiteSettingsSchema = z.object({
   socialLinkedin: optionalUrl,
   socialInstagram: optionalUrl,
   socialYoutube: optionalUrl,
+  
+  // Footer Configuration
+  footerNewsletterFormId: z.number().int().optional().nullable(),
+  footerCopyrightMessage: optionalString,
+  footerMenuIds: optionalString,
+  footerShowContactInfo: z.boolean().optional(),
+  footerShowSocialLinks: z.boolean().optional(),
+  footerCompanyName: optionalString,
+  footerCompanyDescription: optionalString,
+  footerBackgroundColor: z.string().optional().nullable(),
+  footerTextColor: z.string().optional().nullable(),
 });
 
 // Partial schema for updates - all fields are optional

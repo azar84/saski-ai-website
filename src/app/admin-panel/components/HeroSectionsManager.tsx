@@ -189,7 +189,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, allow
                   type="button"
                   onClick={() => handlePresetClick(color.value)}
                   className="flex flex-col items-center p-2 rounded-lg hover:bg-gray-50 transition-colors"
-                  title={`${color.name}: ${color.value}`}
                 >
                   <div
                     className="w-8 h-8 border border-gray-300 rounded mb-1"

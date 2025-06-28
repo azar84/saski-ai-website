@@ -259,7 +259,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, desig
         <div
           className="w-12 h-12 border-2 border-gray-300 rounded-lg cursor-pointer relative overflow-hidden"
           style={{ backgroundColor: value }}
-          title={`${label}: ${value}`}
         >
           <input
             type="color"

@@ -52,7 +52,7 @@ const HeaderManager = () => {
         setHeaderConfig(config);
         setNavItems(config.navItems || []);
         // Map HeaderCTA objects to include both the headerCTA ID and the CTA ID
-        setSelectedCTAs((config.ctaButtons || []).map((headerCta: any) => ({
+        setSelectedCTAs((config.headerCTAs || []).map((headerCta: any) => ({
           id: headerCta.id, // HeaderCTA ID
           ctaId: headerCta.ctaId, // CTA ID
           sortOrder: headerCta.sortOrder,
@@ -63,7 +63,7 @@ const HeaderManager = () => {
         if (headerData.data) {
           setNavItems(headerData.data.navItems || []);
           // Map HeaderCTA objects to include both the headerCTA ID and the CTA ID
-          setSelectedCTAs((headerData.data.ctaButtons || []).map((headerCta: any) => ({
+          setSelectedCTAs((headerData.data.headerCTAs || []).map((headerCta: any) => ({
             id: headerCta.id, // HeaderCTA ID
             ctaId: headerCta.ctaId, // CTA ID
             sortOrder: headerCta.sortOrder,

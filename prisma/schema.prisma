@@ -8,207 +8,169 @@ datasource db {
 }
 
 model SiteSettings {
-  id         Int      @id @default(autoincrement())
-  logoUrl    String?
-  faviconUrl String?
-  
-  // Email Configuration
-  smtpEnabled           Boolean  @default(false)        // Enable SMTP email sending
-  smtpHost              String?                         // SMTP server host (e.g., smtp.gmail.com)
-  smtpPort              Int?     @default(587)          // SMTP port (587 for TLS, 465 for SSL, 25 for unencrypted)
-  smtpSecure            Boolean  @default(true)         // Use TLS/SSL encryption
-  smtpUsername          String?                         // SMTP username/email
-  smtpPassword          String?                         // SMTP password (encrypted)
-  smtpFromEmail         String?                         // Default "from" email address
-  smtpFromName          String?                         // Default "from" name
-  smtpReplyTo           String?                         // Default reply-to email
-  
-  // Email Templates Configuration
-  emailSignature        String?                         // Default email signature
-  emailFooterText       String?                         // Footer text for all emails
-  emailBrandingEnabled  Boolean  @default(true)         // Include company branding in emails
-  
-  // Email Notification Settings
-  adminNotificationEmail String?                        // Admin email for system notifications
-  emailLoggingEnabled   Boolean  @default(true)         // Log email sending attempts
-  emailRateLimitPerHour Int?     @default(100)          // Rate limit for emails per hour
-  
-  // Company Contact Information
-  companyPhone          String?                         // Company phone number
-  companyEmail          String?                         // Company contact email
-  companyAddress        String?                         // Company physical address
-  
-  // Social Media Links
-  socialFacebook        String?                         // Facebook page URL
-  socialTwitter         String?                         // Twitter profile URL
-  socialLinkedin        String?                         // LinkedIn profile URL
-  socialInstagram       String?                         // Instagram profile URL
-  socialYoutube         String?                         // YouTube channel URL
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                       Int      @id @default(autoincrement())
+  logoUrl                  String?
+  logoLightUrl             String?
+  logoDarkUrl              String?
+  faviconUrl               String?
+  faviconLightUrl          String?
+  faviconDarkUrl           String?
+  smtpEnabled              Boolean  @default(false)
+  smtpHost                 String?
+  smtpPort                 Int?     @default(587)
+  smtpSecure               Boolean  @default(true)
+  smtpUsername             String?
+  smtpPassword             String?
+  smtpFromEmail            String?
+  smtpFromName             String?
+  smtpReplyTo              String?
+  emailSignature           String?
+  emailFooterText          String?
+  emailBrandingEnabled     Boolean  @default(true)
+  adminNotificationEmail   String?
+  emailLoggingEnabled      Boolean  @default(true)
+  emailRateLimitPerHour    Int?     @default(100)
+  companyPhone             String?
+  companyEmail             String?
+  companyAddress           String?
+  socialFacebook           String?
+  socialTwitter            String?
+  socialLinkedin           String?
+  socialInstagram          String?
+  socialYoutube            String?
+  footerNewsletterFormId   Int?
+  footerCopyrightMessage   String?
+  footerMenuIds            String?
+  footerShowContactInfo    Boolean  @default(true)
+  footerShowSocialLinks    Boolean  @default(true)
+  footerCompanyName        String?
+  footerCompanyDescription String?
+  footerBackgroundColor    String?  @default("#F9FAFB")
+  footerTextColor          String?  @default("#374151")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 
   @@map("site_settings")
 }
 
 model DesignSystem {
-  id                    Int      @id @default(autoincrement())
-  
-  // Brand Colors
-  primaryColor          String   @default("#5243E9")     // Main brand color
-  primaryColorLight     String   @default("#6366F1")     // Lighter variant
-  primaryColorDark      String   @default("#4338CA")     // Darker variant
-  secondaryColor        String   @default("#7C3AED")     // Secondary brand color
-  accentColor           String   @default("#06B6D4")     // Accent/highlight color
-  
-  // Semantic Colors
-  successColor          String   @default("#10B981")     // Success states
-  warningColor          String   @default("#F59E0B")     // Warning states
-  errorColor            String   @default("#EF4444")     // Error states
-  infoColor             String   @default("#3B82F6")     // Info states
-  
-  // Neutral Colors
-  grayLight             String   @default("#F9FAFB")     // Light gray
-  grayMedium            String   @default("#6B7280")     // Medium gray
-  grayDark              String   @default("#374151")     // Dark gray
-  
-  // Background Colors
-  backgroundPrimary     String   @default("#FFFFFF")     // Main background
-  backgroundSecondary   String   @default("#F6F8FC")     // Secondary background
-  backgroundDark        String   @default("#0F1A2A")     // Dark theme background
-  
-  // Text Colors
-  textPrimary           String   @default("#1F2937")     // Primary text
-  textSecondary         String   @default("#6B7280")     // Secondary text
-  textMuted             String   @default("#9CA3AF")     // Muted text
-  
-  // Typography
-  fontFamily            String   @default("Manrope")     // Primary font family
-  fontFamilyMono        String   @default("ui-monospace") // Monospace font
-  fontSizeBase          String   @default("16px")        // Base font size
-  lineHeightBase        String   @default("1.5")         // Base line height
-  fontWeightNormal      String   @default("400")         // Normal weight
-  fontWeightMedium      String   @default("500")         // Medium weight
-  fontWeightBold        String   @default("700")         // Bold weight
-  
-  // Spacing Scale
-  spacingXs             String   @default("4px")         // Extra small
-  spacingSm             String   @default("8px")         // Small
-  spacingMd             String   @default("16px")        // Medium
-  spacingLg             String   @default("24px")        // Large
-  spacingXl             String   @default("32px")        // Extra large
-  spacing2xl            String   @default("48px")        // 2X large
-  
-  // Border Radius
-  borderRadiusSm        String   @default("4px")         // Small radius
-  borderRadiusMd        String   @default("8px")         // Medium radius
-  borderRadiusLg        String   @default("12px")        // Large radius
-  borderRadiusXl        String   @default("16px")        // Extra large radius
-  borderRadiusFull      String   @default("9999px")      // Full radius (pills)
-  
-  // Shadows
-  shadowSm              String   @default("0 1px 2px 0 rgb(0 0 0 / 0.05)")
-  shadowMd              String   @default("0 4px 6px -1px rgb(0 0 0 / 0.1)")
-  shadowLg              String   @default("0 10px 15px -3px rgb(0 0 0 / 0.1)")
-  shadowXl              String   @default("0 20px 25px -5px rgb(0 0 0 / 0.1)")
-  
-  // Animation Durations
-  animationFast         String   @default("150ms")       // Fast animations
-  animationNormal       String   @default("300ms")       // Normal animations
-  animationSlow         String   @default("500ms")       // Slow animations
-  
-  // Breakpoints
-  breakpointSm          String   @default("640px")       // Small devices
-  breakpointMd          String   @default("768px")       // Medium devices
-  breakpointLg          String   @default("1024px")      // Large devices
-  breakpointXl          String   @default("1280px")      // Extra large devices
-  breakpoint2xl         String   @default("1536px")      // 2X large devices
-  
-  // Theme Mode
-  themeMode             String   @default("light")       // light, dark, auto
-  
-  // Custom CSS Variables (JSON string for additional variables)
-  customVariables       String?                          // JSON string of custom CSS variables
-  
-  // Meta
-  isActive              Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                  Int      @id @default(autoincrement())
+  primaryColor        String   @default("#5243E9")
+  primaryColorLight   String   @default("#6366F1")
+  primaryColorDark    String   @default("#4338CA")
+  secondaryColor      String   @default("#7C3AED")
+  accentColor         String   @default("#06B6D4")
+  successColor        String   @default("#10B981")
+  warningColor        String   @default("#F59E0B")
+  errorColor          String   @default("#EF4444")
+  infoColor           String   @default("#3B82F6")
+  grayLight           String   @default("#F9FAFB")
+  grayMedium          String   @default("#6B7280")
+  grayDark            String   @default("#374151")
+  backgroundPrimary   String   @default("#FFFFFF")
+  backgroundSecondary String   @default("#F6F8FC")
+  backgroundDark      String   @default("#0F1A2A")
+  textPrimary         String   @default("#1F2937")
+  textSecondary       String   @default("#6B7280")
+  textMuted           String   @default("#9CA3AF")
+  fontFamily          String   @default("Manrope")
+  fontFamilyMono      String   @default("ui-monospace")
+  fontSizeBase        String   @default("16px")
+  lineHeightBase      String   @default("1.5")
+  fontWeightNormal    String   @default("400")
+  fontWeightMedium    String   @default("500")
+  fontWeightBold      String   @default("700")
+  spacingXs           String   @default("4px")
+  spacingSm           String   @default("8px")
+  spacingMd           String   @default("16px")
+  spacingLg           String   @default("24px")
+  spacingXl           String   @default("32px")
+  spacing2xl          String   @default("48px")
+  borderRadiusSm      String   @default("4px")
+  borderRadiusMd      String   @default("8px")
+  borderRadiusLg      String   @default("12px")
+  borderRadiusXl      String   @default("16px")
+  borderRadiusFull    String   @default("9999px")
+  shadowSm            String   @default("0 1px 2px 0 rgb(0 0 0 / 0.05)")
+  shadowMd            String   @default("0 4px 6px -1px rgb(0 0 0 / 0.1)")
+  shadowLg            String   @default("0 10px 15px -3px rgb(0 0 0 / 0.1)")
+  shadowXl            String   @default("0 20px 25px -5px rgb(0 0 0 / 0.1)")
+  animationFast       String   @default("150ms")
+  animationNormal     String   @default("300ms")
+  animationSlow       String   @default("500ms")
+  breakpointSm        String   @default("640px")
+  breakpointMd        String   @default("768px")
+  breakpointLg        String   @default("1024px")
+  breakpointXl        String   @default("1280px")
+  breakpoint2xl       String   @default("1536px")
+  themeMode           String   @default("light")
+  customVariables     String?
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@map("design_system")
 }
 
 model Page {
-  id               Int                @id @default(autoincrement())
-  slug             String             @unique
-  title            String
-  metaTitle        String?
-  metaDesc         String?
-  sortOrder        Int                @default(0)
-  showInHeader     Boolean            @default(false)
-  showInFooter     Boolean            @default(false)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  features         Feature[]
-  headerNavItems   HeaderNavItem[]
-  featureGroups    PageFeatureGroup[]
-  pageSections     PageSection[]
-  pricingSections  PagePricingSection[]
-  htmlSections     PageHtmlSection[]
+  id              Int                  @id @default(autoincrement())
+  slug            String               @unique
+  title           String
+  metaTitle       String?
+  metaDesc        String?
+  sortOrder       Int                  @default(0)
+  showInHeader    Boolean              @default(false)
+  showInFooter    Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  menuItems       MenuItem[]
+  features        Feature[]
+  headerNavItems  HeaderNavItem[]
+  featureGroups   PageFeatureGroup[]
+  htmlSections    PageHtmlSection[]
+  pricingSections PagePricingSection[]
+  pageSections    PageSection[]
 
   @@map("pages")
 }
 
 model HeroSection {
-  id                          Int           @id @default(autoincrement())
-  name                        String        @default("Untitled Hero Section") // Name to identify the section
-  layoutType                  String        @default("split") // split, centered, overlay
-  sectionHeight               String        @default("100vh") // Section height (e.g., "100vh", "80vh", "600px")
-  tagline                     String?       // Optional badge or label
-  headline                    String        // Main title
-  subheading                  String?       // Supporting text
-  textAlignment               String        @default("left") // left, center, right
-  
-  // CTA References
-  ctaPrimaryId                Int?          // FK to ctas(id)
-  ctaSecondaryId              Int?          // FK to ctas(id)
-  
-  // Media + Background
-  mediaUrl                    String?       // Path or embed
-  mediaType                   String        @default("image") // image, video, animation, 3d
-  mediaAlt                    String?       // Alt text
-  mediaHeight                 String        @default("80vh") // Media height (e.g., "80vh", "500px", "auto")
-  mediaPosition               String        @default("right") // left, right
-  backgroundType              String        @default("color") // color, gradient, image, video
-  backgroundValue             String        @default("#FFFFFF") // HEX, gradient, or asset path
-  
-  // Text Colors
-  taglineColor                String        @default("#5243E9") // Tagline text color
-  headlineColor               String        @default("#1F2937") // Headline text color
-  subheadingColor             String        @default("#6B7280") // Subheading text color
-  
-  // CTA Styling
-  ctaPrimaryBgColor           String        @default("#5243E9") // Primary CTA background color
-  ctaPrimaryTextColor         String        @default("#FFFFFF") // Primary CTA text color
-  ctaSecondaryBgColor         String        @default("transparent") // Secondary CTA background color
-  ctaSecondaryTextColor       String        @default("#5243E9") // Secondary CTA text color
-  
-  // Advanced
-  showTypingEffect            Boolean       @default(false) // Animate headline
-  enableBackgroundAnimation   Boolean       @default(false) // Sun/Moon, sparkles, etc.
-  customClasses               String?       // Tailwind or utility class overrides
-  paddingTop                  Int           @default(80) // In px
-  paddingBottom               Int           @default(80) // In px
-  containerMaxWidth           String        @default("2xl") // xl, 2xl, full
-  
-  visible                     Boolean       @default(true)
-  createdAt                   DateTime      @default(now())
-  updatedAt                   DateTime      @updatedAt
-  
-  // Relations
-  ctaPrimary                  CTA?          @relation("HeroPrimaryCTA", fields: [ctaPrimaryId], references: [id], onDelete: SetNull)
-  ctaSecondary                CTA?          @relation("HeroSecondaryCTA", fields: [ctaSecondaryId], references: [id], onDelete: SetNull)
-  pageSections                PageSection[] // Page builder references
+  id                        Int           @id @default(autoincrement())
+  name                      String        @default("Untitled Hero Section")
+  layoutType                String        @default("split")
+  sectionHeight             String        @default("100vh")
+  tagline                   String?
+  headline                  String
+  subheading                String?
+  textAlignment             String        @default("left")
+  ctaPrimaryId              Int?
+  ctaSecondaryId            Int?
+  mediaUrl                  String?
+  mediaType                 String        @default("image")
+  mediaAlt                  String?
+  mediaHeight               String        @default("80vh")
+  mediaPosition             String        @default("right")
+  backgroundType            String        @default("color")
+  backgroundValue           String        @default("#FFFFFF")
+  taglineColor              String        @default("#5243E9")
+  headlineColor             String        @default("#1F2937")
+  subheadingColor           String        @default("#6B7280")
+  ctaPrimaryBgColor         String        @default("#5243E9")
+  ctaPrimaryTextColor       String        @default("#FFFFFF")
+  ctaSecondaryBgColor       String        @default("transparent")
+  ctaSecondaryTextColor     String        @default("#5243E9")
+  showTypingEffect          Boolean       @default(false)
+  enableBackgroundAnimation Boolean       @default(false)
+  customClasses             String?
+  paddingTop                Int           @default(80)
+  paddingBottom             Int           @default(80)
+  containerMaxWidth         String        @default("2xl")
+  visible                   Boolean       @default(true)
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+  ctaSecondary              CTA?          @relation("HeroSecondaryCTA", fields: [ctaSecondaryId], references: [id])
+  ctaPrimary                CTA?          @relation("HeroPrimaryCTA", fields: [ctaPrimaryId], references: [id])
+  pageSections              PageSection[]
 
   @@map("hero_sections")
 }
@@ -229,30 +191,30 @@ model Feature {
 }
 
 model MediaSection {
-  id                       Int                     @id @default(autoincrement())
-  position                 Int                     @default(0) // Determines order on the page
-  layoutType               String                  @default("media_right") // media_left, media_right, stacked
-  badgeText                String?                 // Text above headline
-  badgeColor               String                  @default("#5243E9") // HEX color
-  headline                 String                  // Main title
-  subheading               String?                 // Supporting text
-  description              String?                 // Body content
-  mediaUrl                 String?                 // Image/video path
-  mediaType                String                  @default("image") // image, video
-  mediaAlt                 String?                 // Alt text for accessibility
-  ctaPrimaryText           String?                 // Primary button text
-  ctaPrimaryUrl            String?                 // Primary button URL
-  ctaSecondaryText         String?                 // Secondary button text
-  ctaSecondaryUrl          String?                 // Secondary button URL
-  backgroundType           String                  @default("white") // white, gray, gradient, image
-  backgroundValue          String?                 // Gradient colors or image URL
-  paddingTop               Int                     @default(80) // Section padding top (px)
-  paddingBottom            Int                     @default(80) // Section padding bottom (px)
-  isVisible                Boolean                 @default(true)
-  createdAt                DateTime                @default(now())
-  updatedAt                DateTime                @updatedAt
-  features                 MediaSectionFeature[]   // Optional features list
-  pageSections             PageSection[]           // Page builder references
+  id               Int                   @id @default(autoincrement())
+  position         Int                   @default(0)
+  layoutType       String                @default("media_right")
+  badgeText        String?
+  badgeColor       String                @default("#5243E9")
+  headline         String
+  subheading       String?
+  description      String?
+  mediaUrl         String?
+  mediaType        String                @default("image")
+  mediaAlt         String?
+  ctaPrimaryText   String?
+  ctaPrimaryUrl    String?
+  ctaSecondaryText String?
+  ctaSecondaryUrl  String?
+  backgroundType   String                @default("white")
+  backgroundValue  String?
+  paddingTop       Int                   @default(80)
+  paddingBottom    Int                   @default(80)
+  isVisible        Boolean               @default(true)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  features         MediaSectionFeature[]
+  pageSections     PageSection[]
 
   @@map("media_sections")
 }
@@ -260,10 +222,10 @@ model MediaSection {
 model MediaSectionFeature {
   id             Int          @id @default(autoincrement())
   mediaSectionId Int
-  iconUrl        String?      // Feature icon
-  title          String       // Feature title
-  description    String?      // Feature description
-  position       Int          @default(0) // Display order
+  iconUrl        String?
+  title          String
+  description    String?
+  position       Int          @default(0)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   mediaSection   MediaSection @relation(fields: [mediaSectionId], references: [id], onDelete: Cascade)
@@ -271,51 +233,101 @@ model MediaSectionFeature {
   @@map("media_section_features")
 }
 
-model HeaderConfig {
-  id           Int             @id @default(autoincrement())
-  logoUrl      String?
-  logoAlt      String?
-  isActive     Boolean         @default(true)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  navItems     HeaderNavItem[]
-  ctaButtons   HeaderCTA[]
+model Menu {
+  id            Int                @id @default(autoincrement())
+  name          String
+  description   String?
+  isActive      Boolean            @default(true)
+  sortOrder     Int                @default(0)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  headerConfigs HeaderConfigMenu[]
+  items         MenuItem[]
+}
 
-  @@map("header_config")
+model MenuItem {
+  id        Int        @id @default(autoincrement())
+  menuId    Int
+  label     String
+  url       String?
+  icon      String?
+  target    String     @default("_self")
+  isActive  Boolean    @default(true)
+  sortOrder Int        @default(0)
+  parentId  Int?
+  pageId    Int?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  menu      Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  page      Page?      @relation(fields: [pageId], references: [id])
+  parent    MenuItem?  @relation("MenuItemHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  MenuItem[] @relation("MenuItemHierarchy")
+}
+
+model HeaderConfigMenu {
+  id             Int          @id @default(autoincrement())
+  headerConfigId Int
+  menuId         Int
+  sortOrder      Int          @default(0)
+  isVisible      Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  menu           Menu         @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
+
+  @@unique([headerConfigId, menuId])
 }
 
 model HeaderNavItem {
-  id             Int           @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   headerConfigId Int
-  pageId         Int
+  pageId         Int?
   label          String
-  sortOrder      Int           @default(0)
-  isVisible      Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  headerConfig   HeaderConfig  @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
-  page           Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  customText     String?
+  customUrl      String?
+  sortOrder      Int          @default(0)
+  isVisible      Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  page           Page?        @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
 
   @@map("header_nav_items")
 }
 
+model HeaderConfig {
+  id              Int                @id @default(autoincrement())
+  logoUrl         String?
+  logoAlt         String?
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  backgroundColor String?            @default("#ffffff")
+  menuActiveColor String?            @default("#5243E9")
+  menuHoverColor  String?            @default("#5243E9")
+  menuTextColor   String?            @default("#374151")
+  menus           HeaderConfigMenu[]
+  headerCTAs      HeaderCTA[]
+  navItems        HeaderNavItem[]
+
+  @@map("header_config")
+}
+
 model CTA {
-  id               Int           @id @default(autoincrement())
-  text             String        // Button text
-  url              String        // Button URL
-  icon             String?       // Lucide icon name
-  style            String        @default("primary") // primary, secondary, outline, ghost
-  target           String        @default("_self") // _self, _blank
-  isActive         Boolean       @default(true)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  
-  // Relations
-  headerCTAs       HeaderCTA[]
-  heroPrimary      HeroSection[] @relation("HeroPrimaryCTA")
-  heroSecondary    HeroSection[] @relation("HeroSecondaryCTA")
-  homeHeroPrimary  HomePageHero[] @relation("HomeHeroPrimaryCTA")
+  id                Int            @id @default(autoincrement())
+  text              String
+  url               String
+  icon              String?
+  style             String         @default("primary")
+  target            String         @default("_self")
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  headerCTAs        HeaderCTA[]
+  heroSecondary     HeroSection[]  @relation("HeroSecondaryCTA")
+  heroPrimary       HeroSection[]  @relation("HeroPrimaryCTA")
   homeHeroSecondary HomePageHero[] @relation("HomeHeroSecondaryCTA")
+  homeHeroPrimary   HomePageHero[] @relation("HomeHeroPrimaryCTA")
 
   @@map("ctas")
 }
@@ -328,40 +340,38 @@ model HeaderCTA {
   isVisible      Boolean      @default(true)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
   cta            CTA          @relation(fields: [ctaId], references: [id], onDelete: Cascade)
+  headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
 
   @@map("header_ctas")
 }
 
 model HomePageHero {
-  id              Int       @id @default(autoincrement())
-  tagline         String?   // Optional badge text
-  headline        String    // Main hero title
-  subheading      String?   // Supporting text
-  ctaPrimaryId    Int?      // Reference to primary CTA
-  ctaSecondaryId  Int?      // Reference to secondary CTA
-  ctaPrimaryText  String?   // Primary button text (legacy)
-  ctaPrimaryUrl   String?   // Primary button URL (legacy)
-  ctaSecondaryText String?  // Secondary button text (legacy)
-  ctaSecondaryUrl String?   // Secondary button URL (legacy)
-  mediaUrl        String?   // Hero image/video
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Relations
-  ctaPrimary      CTA?      @relation("HomeHeroPrimaryCTA", fields: [ctaPrimaryId], references: [id], onDelete: SetNull)
-  ctaSecondary    CTA?      @relation("HomeHeroSecondaryCTA", fields: [ctaSecondaryId], references: [id], onDelete: SetNull)
+  id               Int      @id @default(autoincrement())
+  tagline          String?
+  headline         String
+  subheading       String?
+  ctaPrimaryId     Int?
+  ctaSecondaryId   Int?
+  ctaPrimaryText   String?
+  ctaPrimaryUrl    String?
+  ctaSecondaryText String?
+  ctaSecondaryUrl  String?
+  mediaUrl         String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  ctaSecondary     CTA?     @relation("HomeHeroSecondaryCTA", fields: [ctaSecondaryId], references: [id])
+  ctaPrimary       CTA?     @relation("HomeHeroPrimaryCTA", fields: [ctaPrimaryId], references: [id])
 
   @@map("home_page_hero")
 }
 
 model TrustIndicator {
   id        Int      @id @default(autoincrement())
-  name      String   // Company name
-  logoUrl   String   // Logo image URL
-  url       String?  // Optional link to company
+  name      String
+  logoUrl   String
+  url       String?
   position  Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -371,46 +381,46 @@ model TrustIndicator {
 }
 
 model GlobalFeature {
-  id               Int                @id @default(autoincrement())
-  name             String             // Feature name
-  description      String?            // Feature description
-  iconUrl          String?            // Feature icon
-  category         String?            // Feature category
-  isActive         Boolean            @default(true)
-  sortOrder        Int                @default(0)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  id                Int                @id @default(autoincrement())
+  name              String
+  description       String?
+  iconUrl           String?
+  category          String?
+  isActive          Boolean            @default(true)
+  sortOrder         Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   featureGroupItems FeatureGroupItem[]
 
   @@map("global_features")
 }
 
 model FeatureGroup {
-  id             Int                @id @default(autoincrement())
-  name           String             // Group name (e.g., "Core Features", "Advanced Tools")
-  description    String?            // Group description
-  layoutType     String             @default("grid") // grid, list, carousel
-  sortOrder      Int                @default(0)
-  isActive       Boolean            @default(true)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  items          FeatureGroupItem[]
-  pageGroups     PageFeatureGroup[]
-  pageSections   PageSection[]
+  id           Int                @id @default(autoincrement())
+  name         String
+  description  String?
+  layoutType   String             @default("grid")
+  sortOrder    Int                @default(0)
+  isActive     Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  items        FeatureGroupItem[]
+  pageGroups   PageFeatureGroup[]
+  pageSections PageSection[]
 
   @@map("feature_groups")
 }
 
 model FeatureGroupItem {
-  id             Int            @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   featureGroupId Int
   featureId      Int
-  sortOrder      Int            @default(0)
-  isVisible      Boolean        @default(true)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  featureGroup   FeatureGroup   @relation(fields: [featureGroupId], references: [id], onDelete: Cascade)
-  feature        GlobalFeature  @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  sortOrder      Int           @default(0)
+  isVisible      Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  feature        GlobalFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  featureGroup   FeatureGroup  @relation(fields: [featureGroupId], references: [id], onDelete: Cascade)
 
   @@unique([featureGroupId, featureId])
   @@map("feature_group_items")
@@ -424,528 +434,433 @@ model PageFeatureGroup {
   isVisible      Boolean      @default(true)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  page           Page         @relation(fields: [pageId], references: [id], onDelete: Cascade)
   featureGroup   FeatureGroup @relation(fields: [featureGroupId], references: [id], onDelete: Cascade)
+  page           Page         @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@unique([pageId, featureGroupId])
   @@map("page_feature_groups")
 }
 
-// Page Builder System
 model PageSection {
-  id              Int           @id @default(autoincrement())
-  pageId          Int
-  sectionType     String        // hero, features, media, testimonials, pricing, faq, contact, form, cta, html, custom
-  title           String?       // Section title/heading (optional override)
-  subtitle        String?       // Section subtitle/subheading (optional override)
-  content         String?       // JSON content for the section
-  sortOrder       Int           @default(0)
-  isVisible       Boolean       @default(true)
-  // References to existing content
-  heroSectionId   Int?          // Reference to HeroSection
-  featureGroupId  Int?          // Reference to FeatureGroup
-  mediaSectionId  Int?          // Reference to MediaSection
-  pricingSectionId Int?         // Reference to PricingSection
-  faqSectionId    Int?          // Reference to FAQSection
-  faqCategoryId   Int?          // Reference to FAQCategory (for FAQ sections)
-  contactSectionId Int?         // Reference to ContactSection
-  formId          Int?          // Reference to Form (for form builder)
-  htmlSectionId   Int?          // Reference to HtmlSection
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  page            Page          @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  heroSection     HeroSection?  @relation(fields: [heroSectionId], references: [id], onDelete: SetNull)
-  featureGroup    FeatureGroup? @relation(fields: [featureGroupId], references: [id], onDelete: SetNull)
-  mediaSection    MediaSection? @relation(fields: [mediaSectionId], references: [id], onDelete: SetNull)
-  pricingSection  PricingSection? @relation(fields: [pricingSectionId], references: [id], onDelete: SetNull)
-  faqSection      FAQSection?   @relation(fields: [faqSectionId], references: [id], onDelete: SetNull)
-  faqCategory     FAQCategory?  @relation(fields: [faqCategoryId], references: [id], onDelete: SetNull)
-  contactSection  ContactSection? @relation(fields: [contactSectionId], references: [id], onDelete: SetNull)
-  form            Form?         @relation(fields: [formId], references: [id], onDelete: SetNull)
-  htmlSection     HtmlSection?  @relation(fields: [htmlSectionId], references: [id], onDelete: SetNull)
+  id               Int             @id @default(autoincrement())
+  pageId           Int
+  sectionType      String
+  title            String?
+  subtitle         String?
+  content          String?
+  sortOrder        Int             @default(0)
+  isVisible        Boolean         @default(true)
+  heroSectionId    Int?
+  featureGroupId   Int?
+  mediaSectionId   Int?
+  pricingSectionId Int?
+  faqSectionId     Int?
+  faqCategoryId    Int?
+  contactSectionId Int?
+  formId           Int?
+  htmlSectionId    Int?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  htmlSection      HtmlSection?    @relation(fields: [htmlSectionId], references: [id])
+  form             Form?           @relation(fields: [formId], references: [id])
+  contactSection   ContactSection? @relation(fields: [contactSectionId], references: [id])
+  faqCategory      FAQCategory?    @relation(fields: [faqCategoryId], references: [id])
+  faqSection       FAQSection?     @relation(fields: [faqSectionId], references: [id])
+  pricingSection   PricingSection? @relation(fields: [pricingSectionId], references: [id])
+  mediaSection     MediaSection?   @relation(fields: [mediaSectionId], references: [id])
+  featureGroup     FeatureGroup?   @relation(fields: [featureGroupId], references: [id])
+  heroSection      HeroSection?    @relation(fields: [heroSectionId], references: [id])
+  page             Page            @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@map("page_sections")
 }
 
-// Pre-built section templates
 model SectionTemplate {
-  id          Int       @id @default(autoincrement())
-  name        String    // Template name (e.g., "Hero with Video", "Features Grid", "Testimonials Carousel")
-  sectionType String    // hero, features, media, testimonials, pricing, faq, cta
-  description String?   // Template description
-  thumbnail   String?   // Template preview image URL
-  content     String    // JSON template structure
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id          Int      @id @default(autoincrement())
+  name        String
+  sectionType String
+  description String?
+  thumbnail   String?
+  content     String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("section_templates")
 }
 
-// Testimonials system
 model Testimonial {
-  id          Int       @id @default(autoincrement())
-  name        String    // Customer name
-  title       String?   // Customer title/position
-  company     String?   // Customer company
-  content     String    // Testimonial content/quote
-  rating      Int?      // Rating out of 5
-  avatarUrl   String?   // Customer avatar image URL
-  logoUrl     String?   // Company logo URL
-  isActive    Boolean   @default(true)
-  isFeatured  Boolean   @default(false)
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         Int      @id @default(autoincrement())
+  name       String
+  title      String?
+  company    String?
+  content    String
+  rating     Int?
+  avatarUrl  String?
+  logoUrl    String?
+  isActive   Boolean  @default(true)
+  isFeatured Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("testimonials")
 }
 
-// FAQ system
-// FAQ Categories for organized FAQ sections
 model FAQCategory {
-  id          Int       @id @default(autoincrement())
-  name        String    // Category name (e.g., "General", "Technical", "Billing")
-  description String?   // Category description
-  icon        String?   // Icon name or URL for category
-  color       String    @default("#5243E9") // Category color for UI
-  sortOrder   Int       @default(0)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Relations
-  faqs        FAQ[]     // FAQs in this category
-  pageSections PageSection[] // Page builder references
-  sectionCategories FAQSectionCategory[] // FAQ sections using this category
+  id                Int                  @id @default(autoincrement())
+  name              String
+  description       String?
+  icon              String?
+  color             String               @default("#5243E9")
+  sortOrder         Int                  @default(0)
+  isActive          Boolean              @default(true)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  sectionCategories FAQSectionCategory[]
+  faqs              FAQ[]
+  pageSections      PageSection[]
 
   @@map("faq_categories")
 }
 
 model FAQ {
-  id          Int         @id @default(autoincrement())
-  categoryId  Int?        // Optional category assignment
-  question    String      // FAQ question
-  answer      String      // FAQ answer (supports HTML/Markdown)
-  isActive    Boolean     @default(true)
-  sortOrder   Int         @default(0) // Order within category
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
-  // Relations
-  category    FAQCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  id         Int          @id @default(autoincrement())
+  categoryId Int?
+  question   String
+  answer     String
+  isActive   Boolean      @default(true)
+  sortOrder  Int          @default(0)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  category   FAQCategory? @relation(fields: [categoryId], references: [id])
 
   @@map("faqs")
 }
 
-// FAQ Section Configuration - For managing FAQ display settings
 model FAQSection {
-  id                    Int      @id @default(autoincrement())
-  name                  String   @unique // Internal name (e.g., "Main FAQ Section")
-  heading               String   // Main heading (e.g., "Frequently Asked Questions")
-  subheading            String?  // Optional subheading
-  heroTitle             String   // Hero section title
-  heroSubtitle          String?  // Hero section subtitle
-  searchPlaceholder     String   @default("Enter your keyword here")
-  showHero              Boolean  @default(true)
-  showCategories        Boolean  @default(true)
-  backgroundColor       String   @default("#f8fafc")
-  heroBackgroundColor   String   @default("#6366f1")
-  heroHeight            String   @default("80vh")
-  isActive              Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  // Relations
-  pageSections          PageSection[] // Page builder references
-  sectionCategories     FAQSectionCategory[] // Categories assigned to this section
+  id                  Int                  @id @default(autoincrement())
+  name                String               @unique
+  heading             String
+  subheading          String?
+  heroTitle           String
+  heroSubtitle        String?
+  searchPlaceholder   String               @default("Enter your keyword here")
+  showHero            Boolean              @default(true)
+  showCategories      Boolean              @default(true)
+  backgroundColor     String               @default("#f8fafc")
+  heroBackgroundColor String               @default("#6366f1")
+  heroHeight          String               @default("80vh")
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  sectionCategories   FAQSectionCategory[]
+  pageSections        PageSection[]
 
   @@map("faq_sections")
 }
 
-// Junction table for FAQ sections and categories (many-to-many)
 model FAQSectionCategory {
-  id            Int         @id @default(autoincrement())
-  faqSectionId  Int
-  categoryId    Int
-  sortOrder     Int         @default(0) // Order of categories within section
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  // Relations
-  faqSection    FAQSection  @relation(fields: [faqSectionId], references: [id], onDelete: Cascade)
-  category      FAQCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  id           Int         @id @default(autoincrement())
+  faqSectionId Int
+  categoryId   Int
+  sortOrder    Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  category     FAQCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  faqSection   FAQSection  @relation(fields: [faqSectionId], references: [id], onDelete: Cascade)
 
   @@unique([faqSectionId, categoryId])
   @@map("faq_section_categories")
 }
 
-// Contact Section System - Dynamic Form Builder
 model ContactSection {
-  id            Int      @id @default(autoincrement())
-  name          String   // Internal name (e.g., "Main Contact Form")
-  heading       String   // Display heading (e.g., "Get In Touch")
-  subheading    String?  // Display subheading (optional)
-  successMessage String  @default("Thank you for your message! We'll get back to you soon.")
-  errorMessage  String   @default("Sorry, there was an error sending your message. Please try again.")
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relations
-  fields        ContactField[]     // Form fields
-  emailSettings ContactEmailSettings? // Email configuration
-  submissions   ContactSubmission[] // Form submissions
-  pageSections  PageSection[]      // Page builder references
+  id             Int                   @id @default(autoincrement())
+  name           String
+  heading        String
+  subheading     String?
+  successMessage String                @default("Thank you for your message! We'll get back to you soon.")
+  errorMessage   String                @default("Sorry, there was an error sending your message. Please try again.")
+  isActive       Boolean               @default(true)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  emailSettings  ContactEmailSettings?
+  fields         ContactField[]
+  submissions    ContactSubmission[]
+  pageSections   PageSection[]
 
   @@map("contact_sections")
 }
 
-// Dynamic form fields for contact forms
 model ContactField {
-  id              Int            @id @default(autoincrement())
+  id               Int            @id @default(autoincrement())
   contactSectionId Int
-  fieldType       String         // text, email, tel, textarea, select, checkbox, radio, number, date
-  fieldName       String         // Internal field name (e.g., "first_name", "email")
-  label           String         // Display label (e.g., "First Name", "Email Address")
-  placeholder     String?        // Placeholder text
-  helpText        String?        // Help text below field
-  isRequired      Boolean        @default(false)
-  isVisible       Boolean        @default(true)
-  sortOrder       Int            @default(0)
-  
-  // Field configuration (JSON string for flexibility)
-  fieldOptions    String?        // JSON: select options, validation rules, etc.
-  
-  // Styling
-  fieldWidth      String         @default("full") // full, half, third, quarter
-  
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  
-  // Relations
-  contactSection  ContactSection @relation(fields: [contactSectionId], references: [id], onDelete: Cascade)
+  fieldType        String
+  fieldName        String
+  label            String
+  placeholder      String?
+  helpText         String?
+  isRequired       Boolean        @default(false)
+  isVisible        Boolean        @default(true)
+  sortOrder        Int            @default(0)
+  fieldOptions     String?
+  fieldWidth       String         @default("full")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  contactSection   ContactSection @relation(fields: [contactSectionId], references: [id], onDelete: Cascade)
 
   @@map("contact_fields")
 }
 
-// Email server configuration for contact forms
 model ContactEmailSettings {
-  id              Int            @id @default(autoincrement())
-  contactSectionId Int           @unique
-  
-  // SMTP Configuration
-  smtpHost        String         // SMTP server host
-  smtpPort        Int            @default(587) // SMTP port
-  smtpUsername    String         // SMTP username
-  smtpPassword    String         // SMTP password (encrypted)
-  smtpSecure      Boolean        @default(true) // Use TLS/SSL
-  
-  // Email Settings
-  fromEmail       String         // From email address
-  fromName        String         // From name
-  toEmail         String         // Recipient email address
-  ccEmail         String?        // CC email addresses (comma-separated)
-  bccEmail        String?        // BCC email addresses (comma-separated)
-  replyToEmail    String?        // Reply-to email address
-  
-  // Email Template
-  emailSubject    String         @default("New Contact Form Submission")
-  emailTemplate   String?        // HTML email template (optional)
-  
-  // Auto-responder
-  autoRespond     Boolean        @default(false)
-  autoRespondSubject String?     // Auto-responder subject
-  autoRespondTemplate String?    // Auto-responder template
-  
-  isActive        Boolean        @default(true)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  
-  // Relations
-  contactSection  ContactSection @relation(fields: [contactSectionId], references: [id], onDelete: Cascade)
+  id                  Int            @id @default(autoincrement())
+  contactSectionId    Int            @unique
+  smtpHost            String
+  smtpPort            Int            @default(587)
+  smtpUsername        String
+  smtpPassword        String
+  smtpSecure          Boolean        @default(true)
+  fromEmail           String
+  fromName            String
+  toEmail             String
+  ccEmail             String?
+  bccEmail            String?
+  replyToEmail        String?
+  emailSubject        String         @default("New Contact Form Submission")
+  emailTemplate       String?
+  autoRespond         Boolean        @default(false)
+  autoRespondSubject  String?
+  autoRespondTemplate String?
+  isActive            Boolean        @default(true)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  contactSection      ContactSection @relation(fields: [contactSectionId], references: [id], onDelete: Cascade)
 
   @@map("contact_email_settings")
 }
 
-// Contact form submissions
 model ContactSubmission {
-  id              Int            @id @default(autoincrement())
+  id               Int            @id @default(autoincrement())
   contactSectionId Int
-  
-  // Submission data (JSON string of field values)
-  formData        String         // JSON: {"first_name": "John", "email": "john@example.com", ...}
-  
-  // Metadata
-  ipAddress       String?        // Submitter's IP address
-  userAgent       String?        // Submitter's user agent
-  referrer        String?        // Referring page
-  
-  // Status
-  isRead          Boolean        @default(false)
-  isSpam          Boolean        @default(false)
-  notes           String?        // Admin notes
-  
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  
-  // Relations
-  contactSection  ContactSection @relation(fields: [contactSectionId], references: [id], onDelete: Cascade)
+  formData         String
+  ipAddress        String?
+  userAgent        String?
+  referrer         String?
+  isRead           Boolean        @default(false)
+  isSpam           Boolean        @default(false)
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  contactSection   ContactSection @relation(fields: [contactSectionId], references: [id], onDelete: Cascade)
 
   @@map("contact_submissions")
 }
 
-// Comprehensive Pricing System with Configurable Plan Features
 model Plan {
-  id          String        @id @default(uuid())
-  name        String        // Plan name (e.g., "Starter", "Professional", "Enterprise")
-  description String?       // Plan description
-  position    Int           @default(0) // For sorting plans
-  isActive    Boolean       @default(true)
-  isPopular   Boolean       @default(false) // Only one plan should be popular at a time
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  // Relations
-  pricing        PlanPricing[]
-  features       PlanFeature[]
-  featureLimits  PlanFeatureLimit[] // Configurable limits (assistants, tokens, etc.)
-  basicFeatures  PlanBasicFeature[] // Basic features assigned to this plan
-  sectionPlans   PricingSectionPlan[] // Pricing sections using this plan
+  id            String               @id @default(uuid())
+  name          String
+  description   String?
+  position      Int                  @default(0)
+  isActive      Boolean              @default(true)
+  isPopular     Boolean              @default(false)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  basicFeatures PlanBasicFeature[]
+  featureLimits PlanFeatureLimit[]
+  features      PlanFeature[]
+  pricing       PlanPricing[]
+  sectionPlans  PricingSectionPlan[]
 
   @@map("plans")
 }
 
 model BillingCycle {
   id         String        @id @default(uuid())
-  label      String        // "Monthly", "Yearly"
-  multiplier Float         // 1 for monthly, 12 for yearly
+  label      String
+  multiplier Float
   isDefault  Boolean       @default(false)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
-  
-  // Relations
   pricing    PlanPricing[]
 
   @@map("billing_cycles")
 }
 
 model PlanPricing {
-  id              String       @id @default(uuid())
-  planId          String
-  billingCycleId  String
-  priceCents      Int          // Price in cents (e.g., 2999 for $29.99)
-  stripePriceId   String?      // Stripe Price ID for integration
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  
-  // Relations
-  plan            Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
-  billingCycle    BillingCycle @relation(fields: [billingCycleId], references: [id], onDelete: Cascade)
-  
+  id             String       @id @default(uuid())
+  planId         String
+  billingCycleId String
+  priceCents     Int
+  stripePriceId  String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  billingCycle   BillingCycle @relation(fields: [billingCycleId], references: [id], onDelete: Cascade)
+  plan           Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+
   @@unique([planId, billingCycleId])
   @@map("plan_pricing")
 }
 
-// Configurable Plan Feature Types (Assistants, Tokens, etc.)
 model PlanFeatureType {
-  id          String   @id @default(uuid())
-  name        String   // "Assistants", "Tokens", "Phone Numbers", "Knowledge Bases"
-  unit        String?  // "per month", "total", "users", etc.
-  description String?  // Feature description
-  icon        String?  // Icon name
-  iconUrl     String?  // Custom PNG/SVG icon URL
-  dataType    String   @default("number") // "number", "boolean", "text"
-  sortOrder   Int      @default(0) // Display order
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  limits      PlanFeatureLimit[] // Plan-specific limits for this feature type
+  id          String             @id @default(uuid())
+  name        String
+  unit        String?
+  description String?
+  icon        String?
+  iconUrl     String?
+  dataType    String             @default("number")
+  sortOrder   Int                @default(0)
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  limits      PlanFeatureLimit[]
 
   @@map("plan_feature_types")
 }
 
-// Plan-specific limits for configurable features
 model PlanFeatureLimit {
-  id               String          @id @default(uuid())
-  planId           String
-  featureTypeId    String
-  value            String          // Store as string to handle different data types
-  isUnlimited      Boolean         @default(false) // True for unlimited values
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  
-  // Relations
-  plan             Plan            @relation(fields: [planId], references: [id], onDelete: Cascade)
-  featureType      PlanFeatureType @relation(fields: [featureTypeId], references: [id], onDelete: Cascade)
-  
+  id            String          @id @default(uuid())
+  planId        String
+  featureTypeId String
+  value         String
+  isUnlimited   Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  featureType   PlanFeatureType @relation(fields: [featureTypeId], references: [id], onDelete: Cascade)
+  plan          Plan            @relation(fields: [planId], references: [id], onDelete: Cascade)
+
   @@unique([planId, featureTypeId])
   @@map("plan_feature_limits")
 }
 
-// Shared Features (for additional benefits, not limits)
 model SharedFeature {
-  id       String        @id @default(uuid())
-  name     String        // Global feature name (e.g., "API Access", "Custom Branding")
-  icon     String?       // Icon name or URL
-  category String?       // Feature category for grouping
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  
-  // Relations
-  usedIn   PlanFeature[] // Plans that use this shared feature
+  id        String        @id @default(uuid())
+  name      String
+  icon      String?
+  category  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  usedIn    PlanFeature[]
 
   @@map("shared_features")
 }
 
-// Plan Features (additional benefits, not limits)
 model PlanFeature {
-  id          String         @id @default(uuid())
-  planId      String
-  featureId   String?        // Optional: null if custom feature
-  available   Boolean        @default(true) // Whether this feature is available in this plan
-  label       String?        // Override display name if needed (for custom features)
-  icon        String?        // Optional icon override
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  
-  // Relations
-  plan        Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
-  feature     SharedFeature? @relation(fields: [featureId], references: [id], onDelete: SetNull)
+  id        String         @id @default(uuid())
+  planId    String
+  featureId String?
+  available Boolean        @default(true)
+  label     String?
+  icon      String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  feature   SharedFeature? @relation(fields: [featureId], references: [id])
+  plan      Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   @@map("plan_features")
 }
 
-// Media Library System
 model MediaLibrary {
-  id            Int      @id @default(autoincrement())
-  filename      String   // Original filename
-  title         String?  // User-defined title
-  description   String?  // User-defined description
-  alt           String?  // Alt text for accessibility
-  fileType      String   // image, video, audio, document, etc.
-  mimeType      String   // image/jpeg, video/mp4, etc.
-  fileSize      Int      // File size in bytes
-  width         Int?     // For images/videos
-  height        Int?     // For images/videos
-  duration      Float?   // For videos/audio in seconds
-  
-  // Storage information
-  originalUrl   String   // Original source URL (if imported from URL)
-  localPath     String?  // Local file path
-  publicUrl     String   // Public accessible URL
-  thumbnailUrl  String?  // Thumbnail/preview URL
-  
-  // Organization
-  folderId      Int?     // Optional folder organization
-  tags          String?  // JSON array of tags for searching
-  
-  // Upload metadata
-  uploadSource  String   @default("upload") // upload, url_import, drag_drop
-  uploadedBy    String?  // User identifier (future use)
-  
-  // Status and visibility
-  isActive      Boolean  @default(true)
-  isPublic      Boolean  @default(true)
-  
-  // Timestamps
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relations
-  folder        MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  usages        MediaUsage[]
+  id           Int          @id @default(autoincrement())
+  filename     String
+  title        String?
+  description  String?
+  alt          String?
+  fileType     String
+  mimeType     String
+  fileSize     Int
+  width        Int?
+  height       Int?
+  duration     Float?
+  originalUrl  String
+  localPath    String?
+  publicUrl    String
+  thumbnailUrl String?
+  folderId     Int?
+  tags         String?
+  uploadSource String       @default("upload")
+  uploadedBy   String?
+  isActive     Boolean      @default(true)
+  isPublic     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  folder       MediaFolder? @relation(fields: [folderId], references: [id])
+  usages       MediaUsage[]
 
   @@map("media_library")
 }
 
 model MediaFolder {
-  id          Int           @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   name        String
   description String?
-  parentId    Int?          // For nested folders
-  color       String        @default("#5243E9") // Folder color for UI
-  sortOrder   Int           @default(0)
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  // Relations
-  parent      MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
-  children    MediaFolder[] @relation("FolderHierarchy")
+  parentId    Int?
+  color       String         @default("#5243E9")
+  sortOrder   Int            @default(0)
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  parent      MediaFolder?   @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children    MediaFolder[]  @relation("FolderHierarchy")
   media       MediaLibrary[]
 
   @@map("media_folders")
 }
 
 model MediaUsage {
-  id          Int          @id @default(autoincrement())
-  mediaId     Int
-  entityType  String       // hero_section, media_section, page, cta, etc.
-  entityId    Int
-  fieldName   String       // mediaUrl, backgroundImage, logoUrl, etc.
-  createdAt   DateTime     @default(now())
-  
-  // Relations
-  media       MediaLibrary @relation(fields: [mediaId], references: [id], onDelete: Cascade)
-  
+  id         Int          @id @default(autoincrement())
+  mediaId    Int
+  entityType String
+  entityId   Int
+  fieldName  String
+  createdAt  DateTime     @default(now())
+  media      MediaLibrary @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
   @@unique([mediaId, entityType, entityId, fieldName])
   @@map("media_usage")
 }
 
-// Basic Features (simple checkbox features for plans)
 model BasicFeature {
-  id          String              @id @default(uuid())
-  name        String              // Feature name (e.g., "API Access", "Priority Support")
-  description String?             // Feature description
-  sortOrder   Int                 @default(0) // Display order
-  isActive    Boolean             @default(true)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  
-  // Relations
-  planAssignments PlanBasicFeature[] // Plans that have this feature
+  id              String             @id @default(uuid())
+  name            String
+  description     String?
+  sortOrder       Int                @default(0)
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  planAssignments PlanBasicFeature[]
 
   @@map("basic_features")
 }
 
-// Plan-Basic Feature assignments (many-to-many relationship)
 model PlanBasicFeature {
   id             String       @id @default(uuid())
   planId         String
   basicFeatureId String
   createdAt      DateTime     @default(now())
-  
-  // Relations
-  plan           Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
   basicFeature   BasicFeature @relation(fields: [basicFeatureId], references: [id], onDelete: Cascade)
-  
+  plan           Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+
   @@unique([planId, basicFeatureId])
   @@map("plan_basic_features")
 }
 
-// Pricing Sections (configurable pricing displays)
 model PricingSection {
-  id          Int      @id @default(autoincrement())
-  name        String   // Internal name (e.g., "Home Page Pricing")
-  heading     String   // Display heading (e.g., "Choose Your Plan")
-  subheading  String?  // Display subheading (optional)
-  layoutType  String   @default("standard") // standard, comparison, cards, grid, list
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  // Relations
-  sectionPlans        PricingSectionPlan[]
-  pageAssignments     PagePricingSection[]
-  pageSections        PageSection[]
+  id              Int                  @id @default(autoincrement())
+  name            String
+  heading         String
+  subheading      String?
+  layoutType      String               @default("standard")
+  isActive        Boolean              @default(true)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  pageAssignments PagePricingSection[]
+  pageSections    PageSection[]
+  sectionPlans    PricingSectionPlan[]
 
   @@map("pricing_sections")
 }
 
-// Pricing Section Plans (which plans to include in each section)
 model PricingSectionPlan {
   id               Int            @id @default(autoincrement())
   pricingSectionId Int
@@ -954,16 +869,13 @@ model PricingSectionPlan {
   isVisible        Boolean        @default(true)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  
-  // Relations
-  pricingSection   PricingSection @relation(fields: [pricingSectionId], references: [id], onDelete: Cascade)
   plan             Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
-  
+  pricingSection   PricingSection @relation(fields: [pricingSectionId], references: [id], onDelete: Cascade)
+
   @@unique([pricingSectionId, planId])
   @@map("pricing_section_plans")
 }
 
-// Page Pricing Section assignments (optional, for future use)
 model PagePricingSection {
   id               Int            @id @default(autoincrement())
   pageId           Int
@@ -972,188 +884,139 @@ model PagePricingSection {
   isVisible        Boolean        @default(true)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  
-  // Relations
-  page             Page           @relation(fields: [pageId], references: [id], onDelete: Cascade)
   pricingSection   PricingSection @relation(fields: [pricingSectionId], references: [id], onDelete: Cascade)
-  
+  page             Page           @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
   @@unique([pageId, pricingSectionId])
   @@map("page_pricing_sections")
 }
 
-// Form Builder System
 model Form {
-  id              Int      @id @default(autoincrement())
-  name            String   // Internal name (e.g., "Contact Form")
-  title           String   // Display title (e.g., "Get In Touch")
-  subheading      String?  // Display subheading (optional)
-  successMessage  String   @default("Thank you! Your message has been sent successfully.")
-  errorMessage    String   @default("Sorry, there was an error. Please try again.")
-  
-  // CTA Button Customization
-  ctaText         String   @default("Send Message")          // Button text
-  ctaIcon         String?                                     // Icon name from Lucide
-  ctaStyle        String   @default("primary")               // primary, secondary, outline
-  ctaSize         String   @default("large")                 // small, medium, large
-  ctaWidth        String   @default("auto")                  // auto, full
-  ctaLoadingText  String   @default("Sending...")            // Loading state text
-  
-  // CTA Button Colors
-  ctaBackgroundColor      String?  // Custom background color
-  ctaTextColor           String?  // Custom text color
-  ctaBorderColor         String?  // Custom border color
-  ctaHoverBackgroundColor String?  // Custom hover background color
-  ctaHoverTextColor      String?  // Custom hover text color
-  
-  // Submission Actions
-  redirectUrl     String?  // URL to redirect after submission
-  emailNotification Boolean @default(false)  // Enable email notifications
-  emailRecipients String?  // Comma-separated static email addresses
-  
-  // Dynamic Email Recipients
-  dynamicEmailRecipients Boolean @default(false)  // Enable dynamic recipients
-  emailFieldRecipients   String?                  // Comma-separated field names for recipients
-  sendToSubmitterEmail   Boolean @default(false)  // Send confirmation to submitter
-  submitterEmailField    String?                  // Field name containing submitter email
-  
-  // Email Templates
-  adminEmailSubject      String   @default("New Form Submission")
-  adminEmailTemplate     String   @default("You have received a new form submission.\n\n{{FORM_DATA}}\n\nSubmitted at: {{SUBMITTED_AT}}")
-  submitterEmailSubject  String   @default("Thank you for your submission")
-  submitterEmailTemplate String   @default("Dear {{SUBMITTER_NAME}},\n\nThank you for contacting us! We have received your message and will get back to you soon.\n\nBest regards,\nThe Team")
-  
-  webhookUrl      String?  // Webhook URL for external integrations
-  
-  // Captcha Settings
-  enableCaptcha   Boolean  @default(true)
-  captchaType     String   @default("math")     // math, image, recaptcha
-  captchaDifficulty String @default("medium")   // easy, medium, hard
-  
-  // Contact Information Display
-  showContactInfo Boolean  @default(false)
-  contactPosition String   @default("right")    // left, right, bottom
-  contactPhone    String?
-  contactEmail    String?
-  contactAddress  String?
-  
-  // Social Media Links
-  socialFacebook  String?
-  socialTwitter   String?
-  socialLinkedin  String?
-  socialInstagram String?
-  socialYoutube   String?
-  
-  // Contact Section Text Customization
-  contactHeading        String @default("Get in Touch")
-  contactSubheading     String @default("We'd love to hear from you. Here's how you can reach us.")
-  contactPhoneLabel     String @default("Phone")
-  contactEmailLabel     String @default("Email")
-  contactAddressLabel   String @default("Address")
-  contactSocialLabel    String @default("Follow Us")
-  
-  // Form Styling
-  formBackgroundColor   String?  // Form container background
-  formBorderColor      String   @default("transparent")  // Form container border
-  formTextColor        String?  // Form text color
-  
-  // Field Styling
-  fieldBackgroundColor String?  // Input field background
-  fieldBorderColor     String?  // Input field border
-  fieldTextColor       String?  // Input field text
-  
-  // Section Styling
-  sectionBackgroundColor String?  // Section background color
-  
-  // Status & Timestamps
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  fields          FormField[]
-  submissions     FormSubmission[]
-  pageSections    PageSection[]
+  id                      Int              @id @default(autoincrement())
+  name                    String
+  title                   String
+  subheading              String?
+  successMessage          String           @default("Thank you! Your message has been sent successfully.")
+  errorMessage            String           @default("Sorry, there was an error. Please try again.")
+  ctaText                 String           @default("Send Message")
+  ctaIcon                 String?
+  ctaStyle                String           @default("primary")
+  ctaSize                 String           @default("large")
+  ctaWidth                String           @default("auto")
+  ctaLoadingText          String           @default("Sending...")
+  ctaBackgroundColor      String?
+  ctaTextColor            String?
+  ctaBorderColor          String?
+  ctaHoverBackgroundColor String?
+  ctaHoverTextColor       String?
+  redirectUrl             String?
+  emailNotification       Boolean          @default(false)
+  emailRecipients         String?
+  dynamicEmailRecipients  Boolean          @default(false)
+  emailFieldRecipients    String?
+  sendToSubmitterEmail    Boolean          @default(false)
+  submitterEmailField     String?
+  adminEmailSubject       String           @default("New Form Submission")
+  adminEmailTemplate      String           @default("You have received a new form submission.\n\n{{FORM_DATA}}\n\nSubmitted at: {{SUBMITTED_AT}}")
+  submitterEmailSubject   String           @default("Thank you for your submission")
+  submitterEmailTemplate  String           @default("Dear {{SUBMITTER_NAME}},\n\nThank you for contacting us! We have received your message and will get back to you soon.\n\nBest regards,\nThe Team")
+  webhookUrl              String?
+  enableCaptcha           Boolean          @default(true)
+  captchaType             String           @default("math")
+  captchaDifficulty       String           @default("medium")
+  showContactInfo         Boolean          @default(false)
+  contactPosition         String           @default("right")
+  contactPhone            String?
+  contactEmail            String?
+  contactAddress          String?
+  socialFacebook          String?
+  socialTwitter           String?
+  socialLinkedin          String?
+  socialInstagram         String?
+  socialYoutube           String?
+  contactHeading          String           @default("Get in Touch")
+  contactSubheading       String           @default("We'd love to hear from you. Here's how you can reach us.")
+  contactPhoneLabel       String           @default("Phone")
+  contactEmailLabel       String           @default("Email")
+  contactAddressLabel     String           @default("Address")
+  contactSocialLabel      String           @default("Follow Us")
+  formBackgroundColor     String?
+  formBorderColor         String           @default("transparent")
+  formTextColor           String?
+  fieldBackgroundColor    String?
+  fieldBorderColor        String?
+  fieldTextColor          String?
+  sectionBackgroundColor  String?
+  isActive                Boolean          @default(true)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  fields                  FormField[]
+  submissions             FormSubmission[]
+  pageSections            PageSection[]
 
   @@map("forms")
 }
 
-// Form fields with predefined field types
 model FormField {
-  id              Int      @id @default(autoincrement())
-  formId          Int
-  fieldType       String   // predefined field types
-  fieldName       String   // Internal field name
-  label           String   // Display label
-  placeholder     String?  // Placeholder text
-  helpText        String?  // Help text below field
-  isRequired      Boolean  @default(false)
-  isVisible       Boolean  @default(true)
-  sortOrder       Int      @default(0)
-  
-  // Field configuration (JSON string for flexibility)
-  fieldOptions    String?  // JSON: validation rules, options, etc.
-  
-  // Styling
-  fieldWidth      String   @default("full") // full, half, third, quarter
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relations
-  form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  id           Int      @id @default(autoincrement())
+  formId       Int
+  fieldType    String
+  fieldName    String
+  label        String
+  placeholder  String?
+  helpText     String?
+  isRequired   Boolean  @default(false)
+  isVisible    Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  fieldOptions String?
+  fieldWidth   String   @default("full")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  form         Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
 
   @@map("form_fields")
 }
 
-// Form submissions
 model FormSubmission {
-  id              Int      @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   formId          Int
-  formData        String   // JSON string of form data
+  formData        String
   ipAddress       String?
   userAgent       String?
   referrer        String?
-  isRead          Boolean  @default(false)
-  isSpam          Boolean  @default(false)
+  isRead          Boolean   @default(false)
+  isSpam          Boolean   @default(false)
   notes           String?
-  
-  // Email tracking fields
-  emailStatus     String   @default("not_configured") // pending, sent, failed, not_configured
-  emailMessageId  String?  // SMTP message ID
-  emailRecipients String?  // Comma-separated list of recipients
-  emailSubject    String?  // Email subject
-  emailSentAt     DateTime? // When email was sent
-  emailError      String?  // Error message if email failed
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  emailStatus     String    @default("not_configured")
+  emailMessageId  String?
+  emailRecipients String?
+  emailSubject    String?
+  emailSentAt     DateTime?
+  emailError      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  form            Form      @relation(fields: [formId], references: [id], onDelete: Cascade)
 
   @@map("form_submissions")
 }
 
-// HTML Code Sections
 model HtmlSection {
   id               Int               @id @default(autoincrement())
-  name             String            // Display name for the HTML section
-  description      String?           // Optional description
-  htmlContent      String            // The actual HTML content
-  cssContent       String?           // Optional CSS styles
-  jsContent        String?           // Optional JavaScript code
+  name             String
+  description      String?
+  htmlContent      String
+  cssContent       String?
+  jsContent        String?
   isActive         Boolean           @default(true)
   sortOrder        Int               @default(0)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-  
-  // Relations
   pageHtmlSections PageHtmlSection[]
   pageSections     PageSection[]
 
   @@map("html_sections")
 }
 
-// Page HTML Section assignments
 model PageHtmlSection {
   id            Int         @id @default(autoincrement())
   pageId        Int
@@ -1162,10 +1025,8 @@ model PageHtmlSection {
   isVisible     Boolean     @default(true)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  
-  // Relations
-  page          Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
   htmlSection   HtmlSection @relation(fields: [htmlSectionId], references: [id], onDelete: Cascade)
+  page          Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@unique([pageId, htmlSectionId])
   @@map("page_html_sections")

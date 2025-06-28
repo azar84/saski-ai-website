@@ -43,8 +43,9 @@ import ConfigurablePricingManager from './components/ConfigurablePricingManager'
 import FAQManager from './components/FAQManager';
 import ContactManager from './components/ContactManager';
 import HtmlSectionsManager from './components/HtmlSectionsManager';
+import MenuManager from './components/MenuManager';
 
-type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features' | 'feature-groups' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'menu-management' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
@@ -63,6 +64,7 @@ const navigation = [
   { id: 'faq-management', name: 'FAQ Management', icon: MessageSquare, color: 'text-cyan-600' },
   { id: 'contact-management', name: 'Forms Management', icon: Mail, color: 'text-blue-600' },
   { id: 'html-sections', name: 'HTML Sections', icon: Grid, color: 'text-purple-600' },
+  { id: 'menu-management', name: 'Menu Management', icon: Menu, color: 'text-indigo-600' },
   { id: 'users', name: 'Users', icon: Users, color: 'text-pink-600' },
   { id: 'analytics', name: 'Analytics', icon: BarChart3, color: 'text-emerald-600' },
   { id: 'design-system', name: 'Design System', icon: Layers, color: 'text-blue-600' },
@@ -121,6 +123,8 @@ export default function AdminPanel() {
         return <ContactManager />;
       case 'html-sections':
         return <HtmlSectionsManager />;
+      case 'menu-management':
+        return <MenuManager />;
       case 'users':
         return (
           <div className="p-8">

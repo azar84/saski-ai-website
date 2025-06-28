@@ -1,15 +1,51 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Card } from '@/components/ui/Card';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Upload, Image, Globe, Save, RotateCcw, X, Mail, Settings, Send, Shield, User, Server, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram, Youtube } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import MediaSelector from '@/components/ui/MediaSelector';
+import { useDesignSystem } from '@/hooks/useDesignSystem';
+import { 
+  Save, 
+  RotateCcw, 
+  Upload, 
+  X, 
+  Image, 
+  Settings, 
+  Phone, 
+  Mail, 
+  Send, 
+  Shield,
+  Globe,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Youtube
+} from 'lucide-react';
+
+interface MediaItem {
+  id: number;
+  filename: string;
+  title?: string;
+  description?: string;
+  alt?: string;
+  fileType: 'image' | 'video' | 'audio' | 'document' | 'other';
+  mimeType: string;
+  fileSize: number;
+  publicUrl: string;
+  thumbnailUrl?: string;
+}
 
 interface SiteSettings {
   id?: number;
   logoUrl: string | null;
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
   faviconUrl: string | null;
+  faviconLightUrl: string | null;
+  faviconDarkUrl: string | null;
   
   // Email Configuration
   smtpEnabled?: boolean;
@@ -44,109 +80,158 @@ interface SiteSettings {
   socialInstagram?: string | null;
   socialYoutube?: string | null;
   
+  // Footer Configuration
+  footerNewsletterFormId?: number | null;
+  footerCopyrightMessage?: string | null;
+  footerMenuIds?: string | null;
+  footerShowContactInfo?: boolean;
+  footerShowSocialLinks?: boolean;
+  footerCompanyName?: string | null;
+  footerCompanyDescription?: string | null;
+  footerBackgroundColor?: string | null;
+  footerTextColor?: string | null;
+  
   createdAt?: string;
   updatedAt?: string;
 }
 
+// Utility function to determine if a color is light or dark
+const isLightColor = (hexColor: string): boolean => {
+  // Remove the # if present
+  const hex = hexColor.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Calculate luminance using the relative luminance formula
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  
+  // Return true if light (luminance > 0.5)
+  return luminance > 0.5;
+};
+
 export default function SiteSettingsManager() {
+  const { designSystem } = useDesignSystem();
   const [settings, setSettings] = useState<SiteSettings>({
     logoUrl: null,
+    logoLightUrl: null,
+    logoDarkUrl: null,
     faviconUrl: null,
-    smtpEnabled: false,
-    smtpPort: 587,
-    smtpSecure: true,
-    emailBrandingEnabled: true,
-    emailLoggingEnabled: true,
-    emailRateLimitPerHour: 100,
+    faviconLightUrl: null,
+    faviconDarkUrl: null,
   });
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [uploadingFavicon, setUploadingFavicon] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'email' | 'contact'>('general');
-  const [testingEmail, setTestingEmail] = useState(false);
-  const [testEmail, setTestEmail] = useState('');
-  const [emailTestResult, setEmailTestResult] = useState<{
-    success: boolean;
-    message?: string;
-    error?: string;
-    suggestion?: string;
-    details?: any;
-  } | null>(null);
+  const [activeTab, setActiveTab] = useState<'general' | 'contact' | 'email'>('general');
   
+  // File upload states
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingLogoLight, setUploadingLogoLight] = useState(false);
+  const [uploadingLogoDark, setUploadingLogoDark] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [uploadingFaviconLight, setUploadingFaviconLight] = useState(false);
+  const [uploadingFaviconDark, setUploadingFaviconDark] = useState(false);
+  
+  // Email test states
+  const [testEmail, setTestEmail] = useState('');
+  const [testingEmail, setTestingEmail] = useState(false);
+  const [emailTestResult, setEmailTestResult] = useState<any>(null);
+  
+  // File input refs
   const logoFileRef = useRef<HTMLInputElement>(null);
+  const logoLightFileRef = useRef<HTMLInputElement>(null);
+  const logoDarkFileRef = useRef<HTMLInputElement>(null);
   const faviconFileRef = useRef<HTMLInputElement>(null);
+  const faviconLightFileRef = useRef<HTMLInputElement>(null);
+  const faviconDarkFileRef = useRef<HTMLInputElement>(null);
 
-  // Fetch current settings
   useEffect(() => {
     fetchSettings();
   }, []);
 
   const fetchSettings = async () => {
     try {
+      setLoading(true);
       const response = await fetch('/api/admin/site-settings');
-      const result = await response.json();
+      const data = await response.json();
       
-      if (response.ok) {
-        setSettings(result);
-      } else {
-        setMessage({ type: 'error', text: result.error || 'Failed to load settings' });
+      if (data.success) {
+        setSettings(data.data || {
+          logoUrl: null,
+          logoLightUrl: null,
+          logoDarkUrl: null,
+          faviconUrl: null,
+          faviconLightUrl: null,
+          faviconDarkUrl: null,
+        });
       }
     } catch (error) {
-      console.error('Failed to fetch settings:', error);
-      setMessage({ type: 'error', text: 'Failed to load settings' });
+      console.error('Error fetching settings:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: 'logoUrl' | 'faviconUrl', value: string) => {
-    setSettings(prev => ({
-      ...prev,
-      [field]: value || null
-    }));
+  const handleInputChange = (field: keyof SiteSettings, value: string) => {
+    setSettings(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFileUpload = async (file: File, type: 'logo' | 'favicon') => {
-    if (type === 'logo') {
-      setUploadingLogo(true);
-    } else {
-      setUploadingFavicon(true);
+  const handleMediaSelect = (field: keyof SiteSettings, media: MediaItem | MediaItem[] | null) => {
+    if (media && !Array.isArray(media)) {
+      setSettings(prev => ({ ...prev, [field]: media.publicUrl }));
+      setMessage({ type: 'success', text: 'Media selected successfully!' });
+    } else if (media === null) {
+      setSettings(prev => ({ ...prev, [field]: null }));
     }
+  };
+
+  const handleFileUpload = async (file: File, type: 'logo' | 'logoLight' | 'logoDark' | 'favicon' | 'faviconLight' | 'faviconDark') => {
+    const setUploading = {
+      logo: setUploadingLogo,
+      logoLight: setUploadingLogoLight,
+      logoDark: setUploadingLogoDark,
+      favicon: setUploadingFavicon,
+      faviconLight: setUploadingFaviconLight,
+      faviconDark: setUploadingFaviconDark,
+    }[type];
 
     try {
-      // Create a simple file URL for demo purposes
-      // In a real app, you'd upload to a cloud service like AWS S3, Cloudinary, etc.
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const dataUrl = e.target?.result as string;
-        
-        // For demo, we'll use the data URL directly
-        // In production, you'd upload the file and get back a URL
-        const field = type === 'logo' ? 'logoUrl' : 'faviconUrl';
-        
-        setSettings(prev => ({
-          ...prev,
-          [field]: dataUrl
-        }));
-
-        setMessage({ 
-          type: 'success', 
-          text: `${type === 'logo' ? 'Logo' : 'Favicon'} uploaded successfully! Don't forget to save.` 
-        });
-      };
+      setUploading(true);
       
-      reader.readAsDataURL(file);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'media');
+
+      const response = await fetch('/api/admin/media-library', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        const fieldMap = {
+          logo: 'logoUrl',
+          logoLight: 'logoLightUrl',
+          logoDark: 'logoDarkUrl',
+          favicon: 'faviconUrl',
+          faviconLight: 'faviconLightUrl',
+          faviconDark: 'faviconDarkUrl',
+        } as const;
+        
+        handleInputChange(fieldMap[type], result.data.publicUrl);
+        setMessage({ type: 'success', text: 'Image uploaded successfully!' });
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Upload failed' });
+      }
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('Upload error:', error);
       setMessage({ type: 'error', text: 'Upload failed. Please try again.' });
     } finally {
-      if (type === 'logo') {
-        setUploadingLogo(false);
-      } else {
-        setUploadingFavicon(false);
-      }
+      setUploading(false);
     }
   };
 
@@ -154,38 +239,39 @@ export default function SiteSettingsManager() {
     e.preventDefault();
   };
 
-  const handleDrop = (e: React.DragEvent, type: 'logo' | 'favicon') => {
+  const handleDrop = (e: React.DragEvent, type: 'logo' | 'logoLight' | 'logoDark' | 'favicon' | 'faviconLight' | 'faviconDark') => {
     e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
-    const file = files[0];
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileUpload(files[0], type);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'logoLight' | 'logoDark' | 'favicon' | 'faviconLight' | 'faviconDark') => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFileUpload(files[0], type);
+    }
+  };
+
+  const removeImage = (type: 'logo' | 'logoLight' | 'logoDark' | 'favicon' | 'faviconLight' | 'faviconDark') => {
+    const fieldMap = {
+      logo: 'logoUrl',
+      logoLight: 'logoLightUrl',
+      logoDark: 'logoDarkUrl',
+      favicon: 'faviconUrl',
+      faviconLight: 'faviconLightUrl',
+      faviconDark: 'faviconDarkUrl',
+    } as const;
     
-    if (file && file.type.startsWith('image/')) {
-      handleFileUpload(file, type);
-    } else {
-      setMessage({ type: 'error', text: 'Please upload a valid image file.' });
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'favicon') => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file, type);
-    }
-  };
-
-  const removeImage = (type: 'logo' | 'favicon') => {
-    const field = type === 'logo' ? 'logoUrl' : 'faviconUrl';
-    setSettings(prev => ({
-      ...prev,
-      [field]: null
-    }));
+    handleInputChange(fieldMap[type], '');
   };
 
   const handleSave = async () => {
-    setSaving(true);
-    setMessage(null);
-
     try {
+      setSaving(true);
+      setMessage(null);
+      
       const response = await fetch('/api/admin/site-settings', {
         method: 'PUT',
         headers: {
@@ -195,16 +281,16 @@ export default function SiteSettingsManager() {
       });
 
       const result = await response.json();
-
-      if (response.ok) {
-        setSettings(result);
+      
+      if (result.success) {
         setMessage({ type: 'success', text: 'Settings saved successfully!' });
+        setSettings(result.data);
       } else {
         setMessage({ type: 'error', text: result.error || 'Failed to save settings' });
       }
     } catch (error) {
-      console.error('Failed to save settings:', error);
-      setMessage({ type: 'error', text: 'Failed to save settings' });
+      console.error('Save error:', error);
+      setMessage({ type: 'error', text: 'Failed to save settings. Please try again.' });
     } finally {
       setSaving(false);
     }
@@ -216,55 +302,36 @@ export default function SiteSettingsManager() {
   };
 
   const handleEmailSettingChange = (field: keyof SiteSettings, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setSettings(prev => ({ ...prev, [field]: value }));
   };
 
   const handleTestEmail = async () => {
-    if (!testEmail) {
-      setMessage({ type: 'error', text: 'Please enter a test email address' });
-      return;
-    }
-
-    setTestingEmail(true);
-    setMessage(null);
-    setEmailTestResult(null);
-
+    if (!testEmail) return;
+    
     try {
+      setTestingEmail(true);
+      setEmailTestResult(null);
+      
       const response = await fetch('/api/admin/test-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ testEmail }),
+        body: JSON.stringify({ 
+          testEmail,
+          settings 
+        }),
       });
 
       const result = await response.json();
-
-      if (response.ok) {
-        setEmailTestResult({
-          success: true,
-          message: result.message
-        });
-        setMessage({ type: 'success', text: result.message });
-      } else {
-        setEmailTestResult({
-          success: false,
-          error: result.error,
-          suggestion: result.suggestion,
-          details: result.details
-        });
-        setMessage({ type: 'error', text: result.error || 'Failed to send test email' });
-      }
+      setEmailTestResult(result);
+      
     } catch (error) {
-      console.error('Failed to test email:', error);
+      console.error('Test email error:', error);
       setEmailTestResult({
         success: false,
-        error: 'Failed to test email configuration'
+        error: 'Failed to send test email. Please check your connection.',
       });
-      setMessage({ type: 'error', text: 'Failed to test email configuration' });
     } finally {
       setTestingEmail(false);
     }
@@ -353,6 +420,7 @@ export default function SiteSettingsManager() {
               <span>Contact Information</span>
             </div>
           </button>
+
           <button
             onClick={() => setActiveTab('email')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -373,196 +441,546 @@ export default function SiteSettingsManager() {
       {activeTab === 'general' && (
         <div className="space-y-8">
           {/* Settings Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Logo Settings */}
-        <Card className="p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Image className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">Website Logo</h3>
-              <p className="text-gray-600 text-sm">Upload or set URL for your website logo</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Logo URL
-              </label>
-              <Input
-                type="url"
-                placeholder="https://example.com/logo.png"
-                value={settings.logoUrl || ''}
-                onChange={(e) => handleInputChange('logoUrl', e.target.value)}
-                className="h-12"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Enter a direct URL to your logo image (PNG, JPG, SVG)
-              </p>
-            </div>
-
-            {/* Logo Preview */}
-            {settings.logoUrl && (
-              <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-700">Preview:</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeImage('logo')}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Light Logo Settings */}
+            <Card className="p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Image className="w-5 h-5 text-blue-600" />
                 </div>
-                <div className="flex items-center justify-center bg-gray-50 rounded p-4">
-                  <img
-                    src={settings.logoUrl}
-                    alt="Logo Preview"
-                    className="max-h-16 max-w-full object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Light Logo</h3>
+                  <p className="text-gray-600 text-sm">Logo for dark backgrounds</p>
                 </div>
               </div>
-            )}
 
-            {/* File Upload Area */}
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, 'logo')}
-              onClick={() => logoFileRef.current?.click()}
-            >
-              <input
-                ref={logoFileRef}
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileSelect(e, 'logo')}
-                className="hidden"
-              />
-              {uploadingLogo ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2 text-gray-600">Uploading...</span>
-                </div>
-              ) : (
-                <>
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Click to upload</span> or drag and drop
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Light Logo URL
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/logo-light.png"
+                    value={settings.logoLightUrl || ''}
+                    onChange={(e) => handleInputChange('logoLightUrl', e.target.value)}
+                    className="h-12"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Light version for dark backgrounds
                   </p>
-                  <p className="text-xs text-gray-500">PNG, JPG, SVG up to 2MB</p>
-                </>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* Favicon Settings */}
-        <Card className="p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Globe className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">Favicon</h3>
-              <p className="text-gray-600 text-sm">Set the small icon that appears in browser tabs</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Favicon URL
-              </label>
-              <Input
-                type="url"
-                placeholder="https://example.com/favicon.ico"
-                value={settings.faviconUrl || ''}
-                onChange={(e) => handleInputChange('faviconUrl', e.target.value)}
-                className="h-12"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Enter a direct URL to your favicon (.ico, .png 16x16 or 32x32)
-              </p>
-            </div>
-
-            {/* Favicon Preview */}
-            {settings.faviconUrl && (
-              <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-700">Preview:</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeImage('favicon')}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
                 </div>
-                <div className="flex items-center justify-center bg-gray-50 rounded p-4">
-                  <img
-                    src={settings.faviconUrl}
-                    alt="Favicon Preview"
-                    className="w-8 h-8 object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
+
+                {/* Media Selector */}
+                <div>
+                  <MediaSelector
+                    value={settings.logoLightUrl ? {
+                      id: 0,
+                      filename: 'Selected Logo',
+                      fileType: 'image' as const,
+                      mimeType: 'image/*',
+                      fileSize: 0,
+                      publicUrl: settings.logoLightUrl
+                    } : null}
+                    onChange={(media) => handleMediaSelect('logoLightUrl', media)}
+                    acceptedTypes={['image/*']}
+                    label="Or select from media library"
+                    placeholder="Choose from uploaded images..."
+                    className="mb-4"
                   />
                 </div>
-              </div>
-            )}
 
-            {/* File Upload Area */}
-            <div
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors cursor-pointer"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, 'favicon')}
-              onClick={() => faviconFileRef.current?.click()}
-            >
-              <input
-                ref={faviconFileRef}
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileSelect(e, 'favicon')}
-                className="hidden"
-              />
-              {uploadingFavicon ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                  <span className="ml-2 text-gray-600">Uploading...</span>
+                {/* Light Logo Preview */}
+                {settings.logoLightUrl && (
+                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-700">Preview on dark:</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeImage('logoLight')}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-center bg-gray-800 rounded p-4">
+                      <img
+                        src={settings.logoLightUrl}
+                        alt="Light Logo Preview"
+                        className="max-h-16 max-w-full object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* File Upload Area */}
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'logoLight')}
+                  onClick={() => logoLightFileRef.current?.click()}
+                >
+                  <input
+                    ref={logoLightFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, 'logoLight')}
+                    className="hidden"
+                  />
+                  {uploadingLogoLight ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <span className="ml-2 text-gray-600">Uploading...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, SVG up to 2MB</p>
+                    </>
+                  )}
                 </div>
-              ) : (
-                <>
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500">ICO, PNG 16x16 or 32x32</p>
-                </>
-              )}
-            </div>
-          </div>
-        </Card>
-      </div>
+              </div>
+            </Card>
 
-          {/* Usage Instructions */}
-          <Card className="p-6 bg-blue-50 border-blue-200">
-            <h4 className="text-lg font-semibold text-blue-900 mb-3">Usage Instructions</h4>
-            <div className="space-y-2 text-sm text-blue-800">
-              <p>• <strong>Logo:</strong> Will be displayed in the website header and other prominent locations</p>
-              <p>• <strong>Favicon:</strong> Small icon that appears in browser tabs and bookmarks</p>
-              <p>• <strong>Upload:</strong> Click the upload area or drag and drop files directly</p>
-              <p>• <strong>Recommended sizes:</strong> Logo: 200x60px or similar aspect ratio, Favicon: 32x32px</p>
-              <p>• <strong>Formats:</strong> PNG with transparency recommended for logo, ICO or PNG for favicon</p>
-              <p>• <strong>Note:</strong> Uploaded files are stored as data URLs for demo purposes. In production, use a proper file storage service.</p>
-            </div>
-          </Card>
+            {/* Dark Logo Settings */}
+            <Card className="p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  <Image className="w-5 h-5 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Dark Logo</h3>
+                  <p className="text-gray-600 text-sm">Logo for light backgrounds</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Dark Logo URL
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/logo-dark.png"
+                    value={settings.logoDarkUrl || ''}
+                    onChange={(e) => handleInputChange('logoDarkUrl', e.target.value)}
+                    className="h-12"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Dark version for light backgrounds
+                  </p>
+                </div>
+
+                {/* Media Selector */}
+                <div>
+                  <MediaSelector
+                    value={settings.logoDarkUrl ? {
+                      id: 0,
+                      filename: 'Selected Logo',
+                      fileType: 'image' as const,
+                      mimeType: 'image/*',
+                      fileSize: 0,
+                      publicUrl: settings.logoDarkUrl
+                    } : null}
+                    onChange={(media) => handleMediaSelect('logoDarkUrl', media)}
+                    acceptedTypes={['image/*']}
+                    label="Or select from media library"
+                    placeholder="Choose from uploaded images..."
+                    className="mb-4"
+                  />
+                </div>
+
+                {/* Dark Logo Preview */}
+                {settings.logoDarkUrl && (
+                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-700">Preview on light:</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeImage('logoDark')}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-center bg-white border rounded p-4">
+                      <img
+                        src={settings.logoDarkUrl}
+                        alt="Dark Logo Preview"
+                        className="max-h-16 max-w-full object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* File Upload Area */}
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'logoDark')}
+                  onClick={() => logoDarkFileRef.current?.click()}
+                >
+                  <input
+                    ref={logoDarkFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, 'logoDark')}
+                    className="hidden"
+                  />
+                  {uploadingLogoDark ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <span className="ml-2 text-gray-600">Uploading...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, SVG up to 2MB</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+          </div>
+
+          {/* Favicon Settings */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Light Favicon Settings */}
+            <Card className="p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Globe className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Light Favicon</h3>
+                  <p className="text-gray-600 text-sm">Favicon for dark themes</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Light Favicon URL
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/favicon-light.ico"
+                    value={settings.faviconLightUrl || ''}
+                    onChange={(e) => handleInputChange('faviconLightUrl', e.target.value)}
+                    className="h-12"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Light favicon for dark browser themes (16x16 or 32x32)
+                  </p>
+                </div>
+
+                {/* Media Selector */}
+                <div>
+                  <MediaSelector
+                    value={settings.faviconLightUrl ? {
+                      id: 0,
+                      filename: 'Selected Favicon',
+                      fileType: 'image' as const,
+                      mimeType: 'image/*',
+                      fileSize: 0,
+                      publicUrl: settings.faviconLightUrl
+                    } : null}
+                    onChange={(media) => handleMediaSelect('faviconLightUrl', media)}
+                    acceptedTypes={['image/*']}
+                    label="Or select from media library"
+                    placeholder="Choose from uploaded images..."
+                    className="mb-4"
+                  />
+                </div>
+
+                {/* Light Favicon Preview */}
+                {settings.faviconLightUrl && (
+                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-700">Preview on dark:</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeImage('faviconLight')}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-center bg-gray-800 rounded p-4">
+                      <img
+                        src={settings.faviconLightUrl}
+                        alt="Light Favicon Preview"
+                        className="w-8 h-8 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* File Upload Area */}
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'faviconLight')}
+                  onClick={() => faviconLightFileRef.current?.click()}
+                >
+                  <input
+                    ref={faviconLightFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, 'faviconLight')}
+                    className="hidden"
+                  />
+                  {uploadingFaviconLight ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <span className="ml-2 text-gray-600">Uploading...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">ICO, PNG up to 1MB</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            {/* Dark Favicon Settings */}
+            <Card className="p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  <Globe className="w-5 h-5 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Dark Favicon</h3>
+                  <p className="text-gray-600 text-sm">Favicon for light themes</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Dark Favicon URL
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/favicon-dark.ico"
+                    value={settings.faviconDarkUrl || ''}
+                    onChange={(e) => handleInputChange('faviconDarkUrl', e.target.value)}
+                    className="h-12"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Dark favicon for light browser themes (16x16 or 32x32)
+                  </p>
+                </div>
+
+                {/* Media Selector */}
+                <div>
+                  <MediaSelector
+                    value={settings.faviconDarkUrl ? {
+                      id: 0,
+                      filename: 'Selected Favicon',
+                      fileType: 'image' as const,
+                      mimeType: 'image/*',
+                      fileSize: 0,
+                      publicUrl: settings.faviconDarkUrl
+                    } : null}
+                    onChange={(media) => handleMediaSelect('faviconDarkUrl', media)}
+                    acceptedTypes={['image/*']}
+                    label="Or select from media library"
+                    placeholder="Choose from uploaded images..."
+                    className="mb-4"
+                  />
+                </div>
+
+                {/* Dark Favicon Preview */}
+                {settings.faviconDarkUrl && (
+                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-700">Preview on light:</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeImage('faviconDark')}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-center bg-white border rounded p-4">
+                      <img
+                        src={settings.faviconDarkUrl}
+                        alt="Dark Favicon Preview"
+                        className="w-8 h-8 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* File Upload Area */}
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'faviconDark')}
+                  onClick={() => faviconDarkFileRef.current?.click()}
+                >
+                  <input
+                    ref={faviconDarkFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, 'faviconDark')}
+                    className="hidden"
+                  />
+                  {uploadingFaviconDark ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
+                      <span className="ml-2 text-gray-600">Uploading...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">ICO, PNG up to 1MB</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            {/* Legacy Favicon Settings */}
+            <Card className="p-6 lg:col-span-2">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Globe className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Legacy Favicon</h3>
+                  <p className="text-gray-600 text-sm">Fallback favicon for older browsers</p>
+                </div>
+              </div>
+
+              <div className="max-w-md space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Legacy Favicon URL
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/favicon.ico"
+                    value={settings.faviconUrl || ''}
+                    onChange={(e) => handleInputChange('faviconUrl', e.target.value)}
+                    className="h-12"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Used when light/dark favicons are not supported (16x16 or 32x32)
+                  </p>
+                </div>
+
+                {/* Media Selector */}
+                <div>
+                  <MediaSelector
+                    value={settings.faviconUrl ? {
+                      id: 0,
+                      filename: 'Selected Favicon',
+                      fileType: 'image' as const,
+                      mimeType: 'image/*',
+                      fileSize: 0,
+                      publicUrl: settings.faviconUrl
+                    } : null}
+                    onChange={(media) => handleMediaSelect('faviconUrl', media)}
+                    acceptedTypes={['image/*']}
+                    label="Or select from media library"
+                    placeholder="Choose from uploaded images..."
+                    className="mb-4"
+                  />
+                </div>
+
+                {/* Legacy Favicon Preview */}
+                {settings.faviconUrl && (
+                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-700">Preview:</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeImage('favicon')}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-center bg-gray-50 rounded p-4">
+                      <img
+                        src={settings.faviconUrl}
+                        alt="Legacy Favicon Preview"
+                        className="w-8 h-8 object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* File Upload Area */}
+                <div
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors cursor-pointer"
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'favicon')}
+                  onClick={() => faviconFileRef.current?.click()}
+                >
+                  <input
+                    ref={faviconFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, 'favicon')}
+                    className="hidden"
+                  />
+                  {uploadingFavicon ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                      <span className="ml-2 text-gray-600">Uploading...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">ICO, PNG up to 1MB</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       )}
 
@@ -570,22 +988,22 @@ export default function SiteSettingsManager() {
       {activeTab === 'contact' && (
         <div className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Company Contact Information */}
+            {/* Company Information */}
             <Card className="p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="p-2 bg-blue-100 rounded-lg">
-                  <Phone className="w-5 h-5 text-blue-600" />
+                  <Globe className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Company Contact</h3>
-                  <p className="text-gray-600 text-sm">Primary contact information for your company</p>
+                  <h3 className="text-xl font-semibold text-gray-900">Company Information</h3>
+                  <p className="text-gray-600 text-sm">Basic company contact details</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
+                    Company Phone
                   </label>
                   <Input
                     type="tel"
@@ -597,11 +1015,11 @@ export default function SiteSettingsManager() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
+                    Company Email
                   </label>
                   <Input
                     type="email"
-                    placeholder="contact@example.com"
+                    placeholder="contact@company.com"
                     value={settings.companyEmail || ''}
                     onChange={(e) => handleEmailSettingChange('companyEmail', e.target.value)}
                   />
@@ -609,11 +1027,11 @@ export default function SiteSettingsManager() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address
+                    Company Address
                   </label>
                   <textarea
                     rows={3}
-                    placeholder="123 Main St, City, State 12345"
+                    placeholder="123 Business St, City, State 12345"
                     value={settings.companyAddress || ''}
                     onChange={(e) => handleEmailSettingChange('companyAddress', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -626,45 +1044,45 @@ export default function SiteSettingsManager() {
             <Card className="p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <Globe className="w-5 h-5 text-purple-600" />
+                  <Facebook className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">Social Media</h3>
-                  <p className="text-gray-600 text-sm">Links to your social media profiles</p>
+                  <p className="text-gray-600 text-sm">Social media profile links</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-                    <Facebook className="w-4 h-4 text-blue-600" />
-                    <span>Facebook</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Facebook className="w-4 h-4 inline mr-2" />
+                    Facebook
                   </label>
                   <Input
                     type="url"
-                    placeholder="https://facebook.com/yourpage"
+                    placeholder="https://facebook.com/yourcompany"
                     value={settings.socialFacebook || ''}
                     onChange={(e) => handleEmailSettingChange('socialFacebook', e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-                    <Twitter className="w-4 h-4 text-blue-400" />
-                    <span>Twitter</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Twitter className="w-4 h-4 inline mr-2" />
+                    Twitter
                   </label>
                   <Input
                     type="url"
-                    placeholder="https://twitter.com/youraccount"
+                    placeholder="https://twitter.com/yourcompany"
                     value={settings.socialTwitter || ''}
                     onChange={(e) => handleEmailSettingChange('socialTwitter', e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-                    <Linkedin className="w-4 h-4 text-blue-700" />
-                    <span>LinkedIn</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Linkedin className="w-4 h-4 inline mr-2" />
+                    LinkedIn
                   </label>
                   <Input
                     type="url"
@@ -675,26 +1093,26 @@ export default function SiteSettingsManager() {
                 </div>
 
                 <div>
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-                    <Instagram className="w-4 h-4 text-pink-600" />
-                    <span>Instagram</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Instagram className="w-4 h-4 inline mr-2" />
+                    Instagram
                   </label>
                   <Input
                     type="url"
-                    placeholder="https://instagram.com/youraccount"
+                    placeholder="https://instagram.com/yourcompany"
                     value={settings.socialInstagram || ''}
                     onChange={(e) => handleEmailSettingChange('socialInstagram', e.target.value)}
                   />
                 </div>
 
                 <div>
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-                    <Youtube className="w-4 h-4 text-red-600" />
-                    <span>YouTube</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Youtube className="w-4 h-4 inline mr-2" />
+                    YouTube
                   </label>
                   <Input
                     type="url"
-                    placeholder="https://youtube.com/yourchannel"
+                    placeholder="https://youtube.com/yourcompany"
                     value={settings.socialYoutube || ''}
                     onChange={(e) => handleEmailSettingChange('socialYoutube', e.target.value)}
                   />
@@ -702,392 +1120,199 @@ export default function SiteSettingsManager() {
               </div>
             </Card>
           </div>
+          
 
-          {/* Usage Information */}
-          <Card className="p-6 bg-blue-50 border-blue-200">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <MapPin className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-blue-900">How This Information is Used</h3>
-              </div>
-            </div>
-            <div className="text-sm text-blue-700 space-y-2">
-              <p>• <strong>Form Builder:</strong> This contact information will automatically populate new forms, saving you time</p>
-              <p>• <strong>Email Templates:</strong> Contact details can be included in email signatures and footers</p>
-              <p>• <strong>Website Footer:</strong> Display your contact information consistently across all pages</p>
-              <p>• <strong>Contact Pages:</strong> Auto-populate contact sections with your company details</p>
-            </div>
-          </Card>
         </div>
       )}
+
+
 
       {/* Email Settings Tab */}
       {activeTab === 'email' && (
         <div className="space-y-8">
-          {/* SMTP Configuration */}
-          <Card className="p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Server className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">SMTP Configuration</h3>
-                <p className="text-gray-600 text-sm">Configure your email server settings</p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {/* Enable SMTP */}
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="smtpEnabled"
-                  checked={settings.smtpEnabled || false}
-                  onChange={(e) => handleEmailSettingChange('smtpEnabled', e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="smtpEnabled" className="text-sm font-medium text-gray-700">
-                  Enable SMTP Email Sending
-                </label>
-              </div>
-
-              {settings.smtpEnabled && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SMTP Host
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="smtp.gmail.com"
-                      value={settings.smtpHost || ''}
-                      onChange={(e) => handleEmailSettingChange('smtpHost', e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SMTP Port
-                    </label>
-                    <Input
-                      type="number"
-                      placeholder="587"
-                      value={settings.smtpPort || ''}
-                      onChange={(e) => handleEmailSettingChange('smtpPort', parseInt(e.target.value) || null)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Username/Email
-                    </label>
-                    <Input
-                      type="email"
-                      placeholder="your-email@gmail.com"
-                      value={settings.smtpUsername || ''}
-                      onChange={(e) => handleEmailSettingChange('smtpUsername', e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Password
-                    </label>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      value={settings.smtpPassword || ''}
-                      onChange={(e) => handleEmailSettingChange('smtpPassword', e.target.value)}
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id="smtpSecure"
-                      checked={settings.smtpSecure || false}
-                      onChange={(e) => handleEmailSettingChange('smtpSecure', e.target.checked)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="smtpSecure" className="text-sm font-medium text-gray-700">
-                      Use TLS/SSL Encryption
-                    </label>
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* SMTP Configuration */}
+            <Card className="p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Mail className="w-5 h-5 text-blue-600" />
                 </div>
-              )}
-            </div>
-          </Card>
-
-          {/* Email Sender Configuration */}
-          <Card className="p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <User className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">Email Sender Configuration</h3>
-                <p className="text-gray-600 text-sm">Configure how emails appear to recipients</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  From Email Address
-                </label>
-                <Input
-                  type="email"
-                  placeholder="noreply@yoursite.com"
-                  value={settings.smtpFromEmail || ''}
-                  onChange={(e) => handleEmailSettingChange('smtpFromEmail', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  From Name
-                </label>
-                <Input
-                  type="text"
-                  placeholder="Your Company Name"
-                  value={settings.smtpFromName || ''}
-                  onChange={(e) => handleEmailSettingChange('smtpFromName', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Reply-To Email
-                </label>
-                <Input
-                  type="email"
-                  placeholder="support@yoursite.com"
-                  value={settings.smtpReplyTo || ''}
-                  onChange={(e) => handleEmailSettingChange('smtpReplyTo', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Admin Notification Email
-                </label>
-                <Input
-                  type="email"
-                  placeholder="admin@yoursite.com"
-                  value={settings.adminNotificationEmail || ''}
-                  onChange={(e) => handleEmailSettingChange('adminNotificationEmail', e.target.value)}
-                />
-              </div>
-            </div>
-          </Card>
-
-          {/* Email Templates */}
-          <Card className="p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Mail className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">Email Templates</h3>
-                <p className="text-gray-600 text-sm">Customize email appearance and content</p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Signature
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Best regards,&#10;Your Company Team"
-                  value={settings.emailSignature || ''}
-                  onChange={(e) => handleEmailSettingChange('emailSignature', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Footer Text
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="© 2024 Your Company. All rights reserved."
-                  value={settings.emailFooterText || ''}
-                  onChange={(e) => handleEmailSettingChange('emailFooterText', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="emailBrandingEnabled"
-                  checked={settings.emailBrandingEnabled || false}
-                  onChange={(e) => handleEmailSettingChange('emailBrandingEnabled', e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="emailBrandingEnabled" className="text-sm font-medium text-gray-700">
-                  Include signature and footer in all emails
-                </label>
-              </div>
-            </div>
-          </Card>
-
-          {/* Email Settings */}
-          <Card className="p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Shield className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-900">Email Settings</h3>
-                <p className="text-gray-600 text-sm">Configure email logging and rate limiting</p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  id="emailLoggingEnabled"
-                  checked={settings.emailLoggingEnabled || false}
-                  onChange={(e) => handleEmailSettingChange('emailLoggingEnabled', e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="emailLoggingEnabled" className="text-sm font-medium text-gray-700">
-                  Enable email sending logs
-                </label>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Rate Limit (per hour)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="100"
-                  value={settings.emailRateLimitPerHour || ''}
-                  onChange={(e) => handleEmailSettingChange('emailRateLimitPerHour', parseInt(e.target.value) || null)}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Maximum number of emails that can be sent per hour
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Test Email */}
-          <Card className="p-6 bg-green-50 border-green-200">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Send className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-green-900">Test Email Configuration</h3>
-                <p className="text-green-700 text-sm">Send a test email to verify your settings</p>
-              </div>
-            </div>
-
-            <div className="flex items-end space-x-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-green-700 mb-2">
-                  Test Email Address
-                </label>
-                <Input
-                  type="email"
-                  placeholder="test@example.com"
-                  value={testEmail}
-                  onChange={(e) => setTestEmail(e.target.value)}
-                  className="border-green-300 focus:border-green-500 focus:ring-green-500"
-                />
-              </div>
-              <Button
-                onClick={handleTestEmail}
-                disabled={testingEmail || !settings.smtpEnabled}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                {testingEmail ? 'Sending...' : 'Send Test Email'}
-              </Button>
-            </div>
-
-            {!settings.smtpEnabled && (
-              <p className="text-sm text-green-600 mt-2">
-                Please enable SMTP and configure your settings before testing.
-              </p>
-            )}
-
-            {/* Detailed Error Information */}
-            {emailTestResult && !emailTestResult.success && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <h4 className="text-sm font-semibold text-red-800 mb-2">❌ Email Test Failed</h4>
-                <p className="text-sm text-red-700 mb-3">{emailTestResult.error}</p>
-                
-                {emailTestResult.suggestion && (
-                  <div className="mt-3 p-3 bg-red-100 border border-red-200 rounded">
-                    <h5 className="text-sm font-semibold text-red-800 mb-1">💡 Suggestion:</h5>
-                    <p className="text-xs text-red-700">{emailTestResult.suggestion}</p>
-                  </div>
-                )}
-
-                {emailTestResult.details && (
-                  <details className="mt-3">
-                    <summary className="text-xs text-red-600 cursor-pointer hover:text-red-800">
-                      Show Technical Details
-                    </summary>
-                    <pre className="mt-2 text-xs text-red-600 bg-red-100 p-2 rounded overflow-auto">
-                      {JSON.stringify(emailTestResult.details, null, 2)}
-                    </pre>
-                  </details>
-                )}
-
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                  <h5 className="text-sm font-semibold text-yellow-800 mb-2">Common Solutions:</h5>
-                  <ul className="text-xs text-yellow-700 space-y-1">
-                    <li>• <strong>Gmail:</strong> Use your Gmail address as "From Email" and create an App Password</li>
-                    <li>• <strong>Domain Issues:</strong> Use your actual email address, not a custom domain</li>
-                    <li>• <strong>SendGrid/Mailgun:</strong> Verify your domain in their dashboard first</li>
-                    <li>• <strong>Port Issues:</strong> Try 587 (TLS), 465 (SSL), or 25 (no encryption)</li>
-                  </ul>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">SMTP Configuration</h3>
+                  <p className="text-gray-600 text-sm">Configure email sending settings</p>
                 </div>
               </div>
-            )}
 
-            {/* Success Information */}
-            {emailTestResult && emailTestResult.success && (
-              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="text-sm font-semibold text-green-800 mb-2">✅ Email Test Successful!</h4>
-                <p className="text-sm text-green-700 mb-3">
-                  Your email configuration is working correctly. Form submissions will now automatically send email notifications.
-                </p>
-                
-                {(emailTestResult as any).deliverabilityTips && (
-                  <div className="mt-3 p-3 bg-green-100 border border-green-200 rounded">
-                    <h5 className="text-sm font-semibold text-green-800 mb-2">📊 Deliverability Report:</h5>
-                    <ul className="text-xs text-green-700 space-y-1">
-                      {((emailTestResult as any).deliverabilityTips as string[]).map((tip: string, index: number) => (
-                        <li key={index}>• {tip}</li>
-                      ))}
-                    </ul>
-                  </div>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="smtpEnabled"
+                    checked={settings.smtpEnabled || false}
+                    onChange={(e) => handleEmailSettingChange('smtpEnabled', e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="smtpEnabled" className="text-sm font-medium text-gray-700">
+                    Enable SMTP Email Sending
+                  </label>
+                </div>
+
+                {settings.smtpEnabled && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        SMTP Host
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="smtp.gmail.com"
+                        value={settings.smtpHost || ''}
+                        onChange={(e) => handleEmailSettingChange('smtpHost', e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        SMTP Port
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="587"
+                        value={settings.smtpPort || ''}
+                        onChange={(e) => handleEmailSettingChange('smtpPort', parseInt(e.target.value) || null)}
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="smtpSecure"
+                        checked={settings.smtpSecure || false}
+                        onChange={(e) => handleEmailSettingChange('smtpSecure', e.target.checked)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="smtpSecure" className="text-sm font-medium text-gray-700">
+                        Use SSL/TLS
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        SMTP Username
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="your-email@gmail.com"
+                        value={settings.smtpUsername || ''}
+                        onChange={(e) => handleEmailSettingChange('smtpUsername', e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        SMTP Password
+                      </label>
+                      <Input
+                        type="password"
+                        placeholder="your-app-password"
+                        value={settings.smtpPassword || ''}
+                        onChange={(e) => handleEmailSettingChange('smtpPassword', e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        From Email
+                      </label>
+                      <Input
+                        type="email"
+                        placeholder="noreply@yourcompany.com"
+                        value={settings.smtpFromEmail || ''}
+                        onChange={(e) => handleEmailSettingChange('smtpFromEmail', e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        From Name
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="Your Company"
+                        value={settings.smtpFromName || ''}
+                        onChange={(e) => handleEmailSettingChange('smtpFromName', e.target.value)}
+                      />
+                    </div>
+                  </>
                 )}
-                
-                {(emailTestResult as any).domainCheck?.suggestions && (
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
-                    <h5 className="text-sm font-semibold text-blue-800 mb-2">🔍 Domain Analysis:</h5>
-                    <ul className="text-xs text-blue-700 space-y-1">
-                      {((emailTestResult as any).domainCheck.suggestions as string[]).map((suggestion: string, index: number) => (
-                        <li key={index}>{suggestion}</li>
-                      ))}
-                    </ul>
+              </div>
+            </Card>
+
+            {/* Test Email */}
+            <Card className="p-6 bg-green-50 border-green-200">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Send className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-green-900">Test Email</h3>
+                  <p className="text-green-700 text-sm">Send a test email to verify settings</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-green-700 mb-2">
+                    Test Email Address
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="test@example.com"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    className="border-green-300 focus:border-green-500 focus:ring-green-500"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleTestEmail}
+                  disabled={testingEmail || !settings.smtpEnabled || !testEmail}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {testingEmail ? 'Sending...' : 'Send Test Email'}
+                </Button>
+
+                {!settings.smtpEnabled && (
+                  <p className="text-sm text-green-600">
+                    Please enable SMTP and configure your settings before testing.
+                  </p>
+                )}
+
+                {/* Test Results */}
+                {emailTestResult && (
+                  <div className={`mt-4 p-4 rounded-lg ${
+                    emailTestResult.success 
+                      ? 'bg-green-100 border border-green-200' 
+                      : 'bg-red-100 border border-red-200'
+                  }`}>
+                    <h4 className={`text-sm font-semibold mb-2 ${
+                      emailTestResult.success ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                      {emailTestResult.success ? '✅ Email Test Successful!' : '❌ Email Test Failed'}
+                    </h4>
+                    <p className={`text-sm ${
+                      emailTestResult.success ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      {emailTestResult.success 
+                        ? 'Your email configuration is working correctly!'
+                        : emailTestResult.error || 'Unknown error occurred'
+                      }
+                    </p>
                   </div>
                 )}
               </div>
-            )}
-          </Card>
+            </Card>
+          </div>
         </div>
       )}
     </div>

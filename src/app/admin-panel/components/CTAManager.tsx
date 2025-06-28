@@ -95,7 +95,7 @@ export default function CTAManager() {
       if (response.ok) {
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
-          setHeaderCtas(data[0].ctaButtons || []);
+          setHeaderCtas(data[0].headerCTAs || []);
         } else {
           setHeaderCtas([]);
         }

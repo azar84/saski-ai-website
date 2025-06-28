@@ -78,6 +78,8 @@ const applyDesignSystemToRoot = (ds: DesignSystem) => {
   root.style.setProperty('--color-primary', ds.primaryColor);
   root.style.setProperty('--color-primary-light', ds.primaryColorLight);
   root.style.setProperty('--color-primary-dark', ds.primaryColorDark);
+  root.style.setProperty('--color-secondary', ds.secondaryColor);
+  root.style.setProperty('--color-accent', ds.accentColor);
   
   // Semantic Colors (override existing --color-success, etc.)
   root.style.setProperty('--color-success', ds.successColor);

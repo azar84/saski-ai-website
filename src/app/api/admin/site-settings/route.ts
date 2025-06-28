@@ -104,7 +104,11 @@ export async function PUT(request: NextRequest) {
       });
 
       const { smtpPassword, ...safeSiteSettings } = newSettings;
-      return NextResponse.json(safeSiteSettings);
+      return NextResponse.json({
+        success: true,
+        data: safeSiteSettings,
+        message: 'Site settings created successfully'
+      });
     } else {
       // Update existing settings
       const updatedSettings = await prisma.siteSettings.update({
@@ -113,19 +117,23 @@ export async function PUT(request: NextRequest) {
       });
 
       const { smtpPassword, ...safeSiteSettings } = updatedSettings;
-      return NextResponse.json(safeSiteSettings);
+      return NextResponse.json({
+        success: true,
+        data: safeSiteSettings,
+        message: 'Site settings updated successfully'
+      });
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { success: false, error: 'Validation failed', details: error.errors },
         { status: 400 }
       );
     }
     
     console.error('Error updating site settings:', error);
     return NextResponse.json(
-      { error: 'Failed to update site settings' },
+      { success: false, error: 'Failed to update site settings' },
       { status: 500 }
     );
   }
