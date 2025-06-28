@@ -358,6 +358,7 @@ model HomePageHero {
   ctaSecondaryText String?
   ctaSecondaryUrl  String?
   mediaUrl         String?
+  backgroundColor  String?  @default("#FFFFFF")
   isActive         Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

@@ -20,6 +20,7 @@ export async function GET() {
         id: null,
         heading: 'Automate Conversations, Capture Leads, Serve Customers — All Without Code',
         subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
+        backgroundColor: '#FFFFFF',
         primaryCtaId: null,
         secondaryCtaId: null,
         primaryCta: null,
@@ -43,6 +44,7 @@ export async function GET() {
       id: homeHero.id,
       heading: homeHero.headline,           // Map headline -> heading
       subheading: homeHero.subheading,
+      backgroundColor: homeHero.backgroundColor || '#FFFFFF',
       primaryCtaId: homeHero.ctaPrimaryId || null,    // Use actual CTA ID from database
       secondaryCtaId: homeHero.ctaSecondaryId || null, // Use actual CTA ID from database
       primaryCta: homeHero.ctaPrimary || null,         // Include actual CTA button data
@@ -84,6 +86,7 @@ export async function POST(request: NextRequest) {
         tagline: body.tagline || null,
         headline: body.heading || body.headline, // Accept both heading and headline
         subheading: body.subheading || null,
+        backgroundColor: body.backgroundColor || '#FFFFFF',
         ctaPrimaryId: body.primaryCtaId || null,     // Store CTA ID
         ctaSecondaryId: body.secondaryCtaId || null, // Store CTA ID
         ctaPrimaryText: body.ctaPrimaryText || null,
@@ -100,6 +103,7 @@ export async function POST(request: NextRequest) {
       id: homeHero.id,
       heading: homeHero.headline,
       subheading: homeHero.subheading,
+      backgroundColor: homeHero.backgroundColor,
       primaryCtaId: homeHero.ctaPrimaryId,
       secondaryCtaId: homeHero.ctaSecondaryId,
       isActive: homeHero.isActive,
@@ -142,6 +146,7 @@ export async function PUT(request: NextRequest) {
           tagline: null,
           headline: updateData.heading || 'Welcome to Our Platform',  // Map heading -> headline
           subheading: updateData.subheading || null,
+          backgroundColor: updateData.backgroundColor || '#FFFFFF',
           ctaPrimaryId: updateData.primaryCtaId || null,     // Store CTA ID
           ctaSecondaryId: updateData.secondaryCtaId || null, // Store CTA ID
           ctaPrimaryText: null,    // These will be fetched from CTA table when needed
@@ -158,6 +163,7 @@ export async function PUT(request: NextRequest) {
         id: homeHero.id,
         heading: homeHero.headline,
         subheading: homeHero.subheading,
+        backgroundColor: homeHero.backgroundColor,
         primaryCtaId: homeHero.ctaPrimaryId,
         secondaryCtaId: homeHero.ctaSecondaryId,
         isActive: homeHero.isActive,
@@ -180,6 +186,7 @@ export async function PUT(request: NextRequest) {
       data: {
         ...(updateData.heading !== undefined && { headline: updateData.heading }),  // Map heading -> headline
         ...(updateData.subheading !== undefined && { subheading: updateData.subheading }),
+        ...(updateData.backgroundColor !== undefined && { backgroundColor: updateData.backgroundColor }),
         ...(updateData.primaryCtaId !== undefined && { ctaPrimaryId: updateData.primaryCtaId }),     // Store CTA ID
         ...(updateData.secondaryCtaId !== undefined && { ctaSecondaryId: updateData.secondaryCtaId }), // Store CTA ID
         ...(updateData.isActive !== undefined && { isActive: updateData.isActive }),
@@ -192,6 +199,7 @@ export async function PUT(request: NextRequest) {
       id: homeHero.id,
       heading: homeHero.headline,
       subheading: homeHero.subheading,
+      backgroundColor: homeHero.backgroundColor,
       primaryCtaId: homeHero.ctaPrimaryId,
       secondaryCtaId: homeHero.ctaSecondaryId,
       isActive: homeHero.isActive,

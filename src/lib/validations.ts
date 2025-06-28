@@ -270,6 +270,7 @@ export const UpdatePageFeatureGroupSchema = CreatePageFeatureGroupSchema.extend(
 export const HomeHeroSchema = z.object({
   heading: z.string().min(1, 'Heading is required').max(200),
   subheading: z.string().max(500),
+  backgroundColor: z.string().optional(),
   primaryCtaId: z.number().int().positive().nullable(),
   secondaryCtaId: z.number().int().positive().nullable(),
   isActive: z.boolean().default(true),

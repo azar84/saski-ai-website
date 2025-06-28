@@ -173,6 +173,59 @@ const HeroSection: React.FC = () => {
     fetchHeroData();
   }, []);
 
+  // Smart color calculation based on background color
+  const getTextColor = () => {
+    if (!heroData?.backgroundColor) return 'text-gray-900'; // Default dark text
+    
+    const hex = heroData.backgroundColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 128 ? 'text-gray-900' : 'text-white';
+  };
+
+  // Get secondary text color based on background
+  const getSecondaryTextColor = () => {
+    const primaryColor = getTextColor();
+    return primaryColor === 'text-white' ? 'text-white/90' : 'text-gray-600';
+  };
+
+  // Get trust indicator colors based on background
+  const getTrustIndicatorColors = () => {
+    const primaryColor = getTextColor();
+    if (primaryColor === 'text-white') {
+      return {
+        text: 'text-white/90',
+        background: 'bg-white/10',
+        border: 'border-white/20',
+        icon: 'text-white'
+      };
+    }
+    return {
+      text: 'text-gray-700',
+      background: 'bg-white/60',
+      border: 'border-white/40',
+      icon: 'text-[var(--color-primary)]'
+    };
+  };
+
+  // Get button styles based on background
+  const getButtonStyles = (buttonType: 'primary' | 'secondary') => {
+    const isDarkBackground = getTextColor() === 'text-white';
+    const baseClasses = 'group px-8 py-4 text-base font-semibold transition-all duration-300 relative overflow-hidden rounded-xl';
+    
+    if (buttonType === 'primary') {
+      return isDarkBackground 
+        ? `${baseClasses} bg-white/95 text-[var(--color-primary)] hover:bg-white border border-white/20 shadow-lg shadow-white/10 hover:shadow-xl hover:shadow-white/20`
+        : `${baseClasses} bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/25 hover:shadow-xl hover:shadow-[var(--color-primary)]/35`;
+    } else {
+      return isDarkBackground
+        ? `${baseClasses} min-w-[200px] border-2 border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-sm shadow-sm hover:shadow-lg hover:shadow-white/10`
+        : `${baseClasses} min-w-[200px] border-2 border-[var(--color-primary)]/30 text-[var(--color-dark-900)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] backdrop-blur-sm shadow-sm hover:shadow-lg hover:shadow-[var(--color-primary)]/25`;
+    }
+  };
+
   // Conversation flow
   const conversationFlow: Array<{
     type: 'user' | 'ai' | 'typing';
@@ -262,11 +315,22 @@ const HeroSection: React.FC = () => {
   return (
     <motion.section 
       ref={heroRef}
-      style={{ y, opacity }}
+      style={{ 
+        y, 
+        opacity,
+        backgroundColor: heroData?.backgroundColor || '#FFFFFF'
+      }}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
       {/* Enhanced Background with Soft Radial Gradient */}
-      <div className="absolute inset-0 bg-gradient-radial from-[#FBFBFB] via-[var(--color-light-100)] to-white" />
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: heroData?.backgroundColor 
+            ? `radial-gradient(circle at center, ${heroData.backgroundColor}, ${heroData.backgroundColor})`
+            : 'radial-gradient(circle at center, #FBFBFB, #FFFFFF)'
+        }}
+      />
       
       {/* Subtle Particle Background - Reduced */}
       <div className="absolute inset-0 pointer-events-none">
@@ -297,7 +361,7 @@ const HeroSection: React.FC = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] text-[var(--color-dark-900)]"
+                className={`text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] ${getTextColor()}`}
               >
                 {heroData?.heading || 'Automate Conversations, Capture Leads, Serve Customers — All Without Code'}
               </motion.h1>
@@ -308,7 +372,7 @@ const HeroSection: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.6 }}
-              className="text-lg text-[var(--color-dark-700)] leading-relaxed max-w-lg font-medium"
+              className={`text-lg ${getSecondaryTextColor()} leading-relaxed max-w-lg font-medium`}
             >
               {heroData?.subheading || 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.'}
             </motion.p>
@@ -323,7 +387,7 @@ const HeroSection: React.FC = () => {
               {heroData?.primaryCtaId && heroData?.primaryCta && (
                 <Button 
                   size="lg"
-                  className="group bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] text-white px-8 py-4 text-base font-semibold shadow-lg shadow-[var(--color-primary)]/25 hover:shadow-xl hover:shadow-[var(--color-primary)]/35 transition-all duration-300 relative overflow-hidden rounded-xl"
+                  className={getButtonStyles('primary')}
                   onClick={() => {
                     if (heroData?.primaryCta?.url) {
                       if (heroData.primaryCta.url.startsWith('#')) {
@@ -361,7 +425,7 @@ const HeroSection: React.FC = () => {
                 <Button 
                   size="lg"
                   variant="outline"
-                  className="group min-w-[200px] border-2 border-[var(--color-primary)]/30 text-[var(--color-dark-900)] px-8 py-4 text-base font-semibold hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] backdrop-blur-sm transition-all duration-300 rounded-xl shadow-sm hover:shadow-lg hover:shadow-[var(--color-primary)]/25 relative overflow-hidden"
+                  className={getButtonStyles('secondary')}
                   onClick={() => {
                     if (heroData?.secondaryCta?.url) {
                       if (heroData.secondaryCta.url.startsWith('#')) {
@@ -406,15 +470,16 @@ const HeroSection: React.FC = () => {
               >
                 {heroData.trustIndicators.map((indicator: any, index: number) => {
                   const IconComponent = getIconComponent(indicator.iconName);
+                  const trustColors = getTrustIndicatorColors();
                   return (
                     <motion.div 
                       key={indicator.id || index} 
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5, delay: 1.2 + index * 0.1 }}
-                      className="flex items-center gap-2 text-[var(--color-dark-700)] bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-white/40"
+                      className={`flex items-center gap-2 ${trustColors.text} ${trustColors.background} backdrop-blur-sm px-3 py-2 rounded-lg border ${trustColors.border}`}
                     >
-                      <IconComponent className="w-4 h-4 text-[var(--color-primary)]" />
+                      <IconComponent className={`w-4 h-4 ${trustColors.icon}`} />
                       <span className="text-sm font-medium">{indicator.text}</span>
                     </motion.div>
                   );

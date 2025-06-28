@@ -272,7 +272,7 @@ export default function FormSection({
 
     setSubmitting(true);
     setSubmitError(null); // Clear any previous errors
-    
+
     try {
       const response = await fetch('/api/forms/submit', {
         method: 'POST',

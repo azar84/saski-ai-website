@@ -125,6 +125,9 @@ export async function generateMetadata(): Promise<Metadata> {
     verification: {
       google: "your-google-verification-code",
     },
+    other: {
+      'color-scheme': 'light'
+    },
   };
 }
 
@@ -138,14 +141,17 @@ export default async function RootLayout({
   const faviconUrl = faviconData.default;
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-theme="light" style={{colorScheme: 'light'}}>
+      <head>
+        <meta name="color-scheme" content="light" />
+      </head>
       <body className={`${manrope.variable} font-sans antialiased`}>
         <ErrorBoundary>
           <DesignSystemProvider>
             <ThemeProvider
               attribute="data-theme"
-              defaultTheme="system"
-              enableSystem
+              defaultTheme="light"
+              enableSystem={false}
               disableTransitionOnChange={false}
             >
               <DynamicFavicon faviconUrl={faviconUrl} />

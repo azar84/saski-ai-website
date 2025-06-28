@@ -30,7 +30,7 @@ interface FormSubmission {
     userAgent?: string;
     timestamp?: string;
     url?: string;
-    ipAddress?: string;
+  ipAddress?: string;
   };
   emailStatus: 'pending' | 'sent' | 'failed' | 'not_configured';
   emailDetails?: {
@@ -85,7 +85,7 @@ const FormSubmissionsManager: React.FC = () => {
 
   const deleteSubmission = async (id: number) => {
     if (!confirm('Are you sure you want to delete this submission?')) return;
-    
+
     try {
       const response = await fetch(`/api/admin/form-submissions?id=${id}`, {
         method: 'DELETE',
@@ -214,8 +214,8 @@ const FormSubmissionsManager: React.FC = () => {
         <div className="flex space-x-2">
           <Button onClick={fetchSubmissions} variant="outline" size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
+          Refresh
+        </Button>
           <Button onClick={exportSubmissions} variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
             Export CSV
@@ -256,7 +256,7 @@ const FormSubmissionsManager: React.FC = () => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Form</label>
-            <select
+          <select
               value={formFilter}
               onChange={(e) => setFormFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -265,9 +265,9 @@ const FormSubmissionsManager: React.FC = () => {
               {uniqueForms.map(form => (
                 <option key={form?.id} value={form?.id.toString()}>
                   {form?.name}
-                </option>
-              ))}
-            </select>
+              </option>
+            ))}
+          </select>
           </div>
           
           <div>
@@ -311,7 +311,7 @@ const FormSubmissionsManager: React.FC = () => {
                 {submissions.filter(s => s.emailStatus === 'sent').length}
               </p>
             </div>
-          </div>
+                  </div>
         </Card>
         
         <Card className="p-4">
@@ -325,7 +325,7 @@ const FormSubmissionsManager: React.FC = () => {
                 {submissions.filter(s => s.emailStatus === 'failed').length}
               </p>
             </div>
-          </div>
+                  </div>
         </Card>
         
         <Card className="p-4">
@@ -341,8 +341,8 @@ const FormSubmissionsManager: React.FC = () => {
             </div>
           </div>
         </Card>
-      </div>
-
+                  </div>
+                  
       {/* Submissions List */}
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
@@ -397,36 +397,36 @@ const FormSubmissionsManager: React.FC = () => {
                       {Object.keys(submission.formData).length > 2 && (
                         <div className="text-gray-500">
                           +{Object.keys(submission.formData).length - 2} more fields
-                        </div>
-                      )}
                     </div>
+                  )}
+                </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <Button
+                  <Button
                       onClick={() => setSelectedSubmission(submission)}
-                      variant="outline"
-                      size="sm"
-                    >
+                    variant="outline"
+                    size="sm"
+                  >
                       <Eye className="w-4 h-4" />
-                    </Button>
+                  </Button>
                     {submission.emailStatus === 'failed' && (
-                      <Button
+                  <Button
                         onClick={() => retryEmail(submission.id)}
-                        variant="outline"
-                        size="sm"
+                    variant="outline"
+                    size="sm"
                         className="text-blue-600 hover:text-blue-800"
-                      >
+                  >
                         <Send className="w-4 h-4" />
-                      </Button>
+                  </Button>
                     )}
-                    <Button
+          <Button
                       onClick={() => deleteSubmission(submission.id)}
-                      variant="outline"
+            variant="outline"
                       size="sm"
                       className="text-red-600 hover:text-red-800"
-                    >
+          >
                       <Trash2 className="w-4 h-4" />
-                    </Button>
+          </Button>
                   </td>
                 </tr>
               ))}
@@ -443,8 +443,8 @@ const FormSubmissionsManager: React.FC = () => {
                 ? 'Try adjusting your filters'
                 : 'No form submissions have been received yet'}
             </p>
-          </div>
-        )}
+        </div>
+      )}
       </Card>
 
       {/* Submission Detail Modal */}
@@ -456,18 +456,18 @@ const FormSubmissionsManager: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Submission Details - {selectedSubmission.form.name}
                 </h3>
-                <Button
+              <Button
                   onClick={() => setSelectedSubmission(null)}
-                  variant="outline"
-                  size="sm"
-                >
+                variant="outline"
+                size="sm"
+              >
                   ✕
-                </Button>
-              </div>
-
+              </Button>
+            </div>
+            
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Form Data */}
-                <div>
+              <div>
                   <h4 className="text-md font-semibold text-gray-900 mb-3">Form Data</h4>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                     {Object.entries(selectedSubmission.formData).map(([key, value]) => (
@@ -495,8 +495,8 @@ const FormSubmissionsManager: React.FC = () => {
                           <span className="ml-2 text-gray-900">
                             {selectedSubmission.form.emailRecipients || 'None'}
                           </span>
-                        </div>
-                        
+              </div>
+              
                         {selectedSubmission.form.dynamicEmailRecipients && (
                           <div>
                             <span className="font-medium text-gray-700">Dynamic Recipients:</span>
@@ -556,12 +556,12 @@ const FormSubmissionsManager: React.FC = () => {
                         )}
                         
                         {selectedSubmission.emailDetails.error && (
-                          <div>
+              <div>
                             <span className="font-medium text-red-700">Error:</span>
                             <span className="ml-2 text-red-900">
                               {selectedSubmission.emailDetails.error}
-                            </span>
-                          </div>
+                      </span>
+                    </div>
                         )}
                       </>
                     )}
@@ -578,7 +578,7 @@ const FormSubmissionsManager: React.FC = () => {
                   </div>
                 </div>
               </div>
-
+              
               {selectedSubmission.emailStatus === 'failed' && (
                 <div className="mt-6 flex justify-end">
                   <Button

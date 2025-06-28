@@ -34,9 +34,19 @@ import {
   Calendar,
   BookOpen,
   Gift,
-  Rocket
+  Rocket,
+  Trophy,
+  Lock,
+  Check,
+  MessageCircle,
+  Smartphone,
+  MapPin,
+  Settings,
+  Target,
+  Palette
 } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
+import { useDesignSystem } from '@/hooks/useDesignSystem';
 
 // Available icons for trust indicators and CTA buttons
 const availableIcons = [
@@ -62,7 +72,16 @@ const availableIcons = [
   { name: 'Calendar', icon: Calendar, label: 'Calendar' },
   { name: 'BookOpen', icon: BookOpen, label: 'Book' },
   { name: 'Gift', icon: Gift, label: 'Gift' },
-  { name: 'Rocket', icon: Rocket, label: 'Rocket' }
+  { name: 'Rocket', icon: Rocket, label: 'Rocket' },
+  { name: 'Trophy', icon: Trophy, label: 'Trophy' },
+  { name: 'Lock', icon: Lock, label: 'Lock' },
+  { name: 'Check', icon: Check, label: 'Check' },
+  { name: 'MessageCircle', icon: MessageCircle, label: 'Message Circle' },
+  { name: 'Smartphone', icon: Smartphone, label: 'Smartphone' },
+  { name: 'MapPin', icon: MapPin, label: 'Map Pin' },
+  { name: 'Settings', icon: Settings, label: 'Settings' },
+  { name: 'Target', icon: Target, label: 'Target' },
+  { name: 'Palette', icon: Palette, label: 'Palette' }
 ];
 
 interface TrustIndicator {
@@ -87,6 +106,7 @@ interface HomeHeroData {
   id?: number;
   heading: string;
   subheading: string;
+  backgroundColor: string;
   primaryCtaId: number | null;
   secondaryCtaId: number | null;
   isActive: boolean;
@@ -96,9 +116,12 @@ interface HomeHeroData {
 }
 
 const HomeHeroManager: React.FC = () => {
+  const { designSystem } = useDesignSystem();
+  
   const [heroData, setHeroData] = useState<HomeHeroData>({
     heading: 'Automate Conversations, Capture Leads, Serve Customers — All Without Code',
     subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
+    backgroundColor: '#FFFFFF',
     primaryCtaId: null,
     secondaryCtaId: null,
     isActive: true,
@@ -114,6 +137,29 @@ const HomeHeroManager: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+
+  // Get design system colors for color picker
+  const getDesignSystemColors = () => {
+    if (!designSystem) return [];
+    
+    return [
+      { name: 'Primary', value: designSystem.primaryColor, description: 'Main brand color' },
+      { name: 'Primary Light', value: designSystem.primaryColorLight, description: 'Light primary variant' },
+      { name: 'Primary Dark', value: designSystem.primaryColorDark, description: 'Dark primary variant' },
+      { name: 'Secondary', value: designSystem.secondaryColor, description: 'Secondary brand color' },
+      { name: 'Accent', value: designSystem.accentColor, description: 'Accent color' },
+      { name: 'Success', value: designSystem.successColor, description: 'Success state color' },
+      { name: 'Warning', value: designSystem.warningColor, description: 'Warning state color' },
+      { name: 'Error', value: designSystem.errorColor, description: 'Error state color' },
+      { name: 'Info', value: designSystem.infoColor, description: 'Info state color' },
+      { name: 'Background Primary', value: designSystem.backgroundPrimary, description: 'Primary background' },
+      { name: 'Background Secondary', value: designSystem.backgroundSecondary, description: 'Secondary background' },
+      { name: 'Background Dark', value: designSystem.backgroundDark, description: 'Dark background' },
+      { name: 'Gray Light', value: designSystem.grayLight, description: 'Light gray' },
+      { name: 'Gray Medium', value: designSystem.grayMedium, description: 'Medium gray' },
+      { name: 'Gray Dark', value: designSystem.grayDark, description: 'Dark gray' }
+    ];
+  };
 
   // Fetch hero data and available CTAs on component mount
   useEffect(() => {
@@ -143,9 +189,10 @@ const HomeHeroManager: React.FC = () => {
         const result = await response.json();
         // Handle the new API response format
         if (result.success && result.data) {
-          // Ensure trustIndicators is always an array
+          // Ensure trustIndicators is always an array and backgroundColor has a default
           const heroData = {
             ...result.data,
+            backgroundColor: result.data.backgroundColor || '#FFFFFF',
             trustIndicators: result.data.trustIndicators || []
           };
           setHeroData(heroData);
@@ -326,7 +373,10 @@ const HomeHeroManager: React.FC = () => {
 
       {previewMode ? (
         /* Preview Mode */
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8">
+        <div 
+          className="rounded-xl p-8"
+          style={{ backgroundColor: heroData.backgroundColor }}
+        >
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
               {heroData.heading}
@@ -413,6 +463,84 @@ const HomeHeroManager: React.FC = () => {
                   <label htmlFor="heroActive" className="text-sm font-medium text-gray-700">
                     Hero section is active
                   </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Styling */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                  <Palette className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Styling</h3>
+                  <p className="text-gray-600 text-sm">Customize the hero section appearance</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {/* Background Color */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Background Color
+                  </label>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Select a background color for the hero section.
+                  </p>
+                  
+                  {/* Design System Color Palette */}
+                  <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-4">
+                    {getDesignSystemColors().map((colorOption) => (
+                      <div
+                        key={colorOption.name}
+                        className={`cursor-pointer text-center ${
+                          heroData.backgroundColor === colorOption.value
+                            ? 'ring-2 ring-blue-500 ring-offset-2 rounded-lg'
+                            : 'hover:ring-2 hover:ring-gray-300 hover:ring-offset-2 rounded-lg'
+                        }`}
+                        onClick={() => setHeroData(prev => ({ ...prev, backgroundColor: colorOption.value }))}
+                      >
+                        <div
+                          className="w-12 h-12 rounded-lg shadow-sm border border-gray-200 mb-1 relative"
+                          style={{ backgroundColor: colorOption.value }}
+                        >
+                          {heroData.backgroundColor === colorOption.value && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-3 h-3 bg-white rounded-full border-2 border-blue-500" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-600 block truncate">
+                          {colorOption.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Custom Color Input */}
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-12 h-12 border-2 border-gray-300 rounded-lg cursor-pointer relative overflow-hidden"
+                      style={{ backgroundColor: heroData.backgroundColor }}
+                    >
+                      <input
+                        type="color"
+                        value={heroData.backgroundColor}
+                        onChange={(e) => setHeroData(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={heroData.backgroundColor}
+                        onChange={(e) => setHeroData(prev => ({ ...prev, backgroundColor: e.target.value }))}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#5243E9] focus:border-transparent font-mono text-sm"
+                        placeholder="#FFFFFF"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

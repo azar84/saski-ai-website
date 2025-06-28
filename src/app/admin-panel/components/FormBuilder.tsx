@@ -846,7 +846,7 @@ export default function FormBuilder() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: selectedForm.id,
-            ...selectedForm,
+        ...selectedForm,
             fields: reorderedFields
           }),
         });
@@ -1368,7 +1368,7 @@ export default function FormBuilder() {
                     <p className="text-sm text-gray-500">
                       Email notification settings can be configured after creating the form.
                     </p>
-                  </div>
+                      </div>
                 )}
                     </div>
 
@@ -1447,18 +1447,18 @@ export default function FormBuilder() {
                           <h5 className="text-sm font-medium text-blue-900">Auto-populate from Site Settings</h5>
                           <p className="text-xs text-blue-700">Fill contact information automatically from your site settings</p>
                         </div>
-                        <Button
+                      <Button
                           type="button"
-                          variant="outline"
-                          size="sm"
+                        variant="outline"
+                        size="sm"
                           onClick={() => autoPopulateFromSiteSettings(false)}
                           className="text-blue-600 border-blue-300 hover:bg-blue-100"
-                        >
+                      >
                           <Building2 className="w-4 h-4 mr-2" />
                           Auto-fill
-                        </Button>
-                      </div>
+                      </Button>
                     </div>
+                  </div>
                   )}
 
                   {/* Contact Text Customization */}
@@ -2164,7 +2164,7 @@ export default function FormBuilder() {
                     {/* Admin Email Template */}
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h5 className="text-sm font-medium text-gray-900 mb-3">Admin Notification Email</h5>
-                      <div className="space-y-3">
+              <div className="space-y-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Subject Line
@@ -2270,7 +2270,7 @@ export default function FormBuilder() {
                   />
                   <span className="text-sm font-medium text-gray-700">
                     Send data to webhook URL
-                  </span>
+                        </span>
                 </label>
                 {selectedForm.webhookUrl !== undefined && (
                   <div className="mt-2">
@@ -2282,7 +2282,7 @@ export default function FormBuilder() {
                     <p className="text-xs text-gray-500 mt-1">
                       Form data will be sent as JSON POST request
                     </p>
-                  </div>
+                      </div>
                 )}
               </div>
             </div>
@@ -2298,10 +2298,10 @@ export default function FormBuilder() {
             <div className="space-y-6">
               {/* Enable Captcha */}
               <div className="flex items-center justify-between">
-                <div>
+                      <div>
                   <h4 className="text-sm font-medium text-gray-900">Enable Captcha</h4>
                   <p className="text-sm text-gray-500">Add security verification to prevent spam submissions</p>
-                </div>
+                      </div>
                 <button
                   type="button"
                   onClick={() => setSelectedForm({...selectedForm, enableCaptcha: !selectedForm.enableCaptcha})}
@@ -2475,18 +2475,18 @@ export default function FormBuilder() {
                           <h5 className="text-sm font-medium text-blue-900">Auto-populate from Site Settings</h5>
                           <p className="text-xs text-blue-700">Fill contact information automatically from your site settings</p>
                         </div>
-                        <Button
+                      <Button
                           type="button"
-                          variant="outline"
-                          size="sm"
+                        variant="outline"
+                        size="sm"
                           onClick={() => autoPopulateFromSiteSettings(true)}
                           className="text-blue-600 border-blue-300 hover:bg-blue-100"
-                        >
+                      >
                           <Building2 className="w-4 h-4 mr-2" />
                           Auto-fill
-                        </Button>
-                      </div>
+                      </Button>
                     </div>
+                  </div>
                   )}
                   
                   {/* Contact Text Customization */}
@@ -2661,8 +2661,8 @@ export default function FormBuilder() {
                   </div>
                 </div>
           )}
-        </div>
-          </Card>
+              </div>
+            </Card>
 
           {/* Form Styling Configuration */}
           <Card className="p-6">
@@ -2828,11 +2828,11 @@ export default function FormBuilder() {
               
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                 <div className="relative">
-                  <input
-                    type="checkbox"
-                    id="required"
-                    checked={fieldData.isRequired}
-                    onChange={(e) => handleFieldInputChange('isRequired', e.target.checked)}
+                <input
+                  type="checkbox"
+                  id="required"
+                  checked={fieldData.isRequired}
+                  onChange={(e) => handleFieldInputChange('isRequired', e.target.checked)}
                     className="h-4 w-4 border-2 border-gray-300 rounded bg-white checked:bg-blue-600 checked:border-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer relative"
                     style={{
                       appearance: 'none',

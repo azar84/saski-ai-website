@@ -376,9 +376,9 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                         style={{ color: textColorClass }}
                       >
                         {siteSettings.footerCompanyName || 'Your Company'}
-                      </div>
+              </div>
                     )}
-                  </div>
+                    </div>
                   
                   {/* Company Description */}
                   {siteSettings.footerCompanyDescription && (
@@ -427,7 +427,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                           >
                             {siteSettings.companyPhone}
                           </a>
-                        </div>
+                    </div>
                       )}
                       {siteSettings.companyAddress && (
                         <div className="flex items-start space-x-2">
@@ -438,11 +438,11 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                           >
                             {siteSettings.companyAddress}
                           </p>
-                        </div>
+                    </div>
                       )}
                     </div>
                   )}
-                </div>
+              </div>
 
                 {/* Footer Menus with Elegant Dividers */}
                 {testMenus.length > 0 && testMenus.slice(0, 2).map((menu, index) => (
@@ -458,11 +458,11 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                       style={{ color: textColorClass }}
                     >
                       {menu.name}
-                    </h4>
+                  </h4>
                     <ul className="space-y-1">
                       {menu.items.slice(0, 5).map((item) => (
                         <li key={item.id}>
-                          <Link
+                        <Link
                             href={item.url}
                             target={item.target}
                             className="text-xs transition-colors hover:opacity-80"
@@ -477,10 +477,10 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                             }}
                           >
                             {item.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                   </div>
                 ))}
 
@@ -564,7 +564,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
 
         {/* Footer Content - Simplified without duplicates */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Bottom Section */}
+        {/* Bottom Section */}
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p 
               className="text-sm"
@@ -579,11 +579,11 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                 {socialLinks.map((social) => {
                   const IconComponent = social.icon;
                   return (
-                    <motion.a
-                      key={social.name}
+                  <motion.a
+                    key={social.name}
                       href={social.url || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    target="_blank"
+                    rel="noopener noreferrer"
                       className="p-2 rounded-full transition-all duration-200 hover:scale-110"
                       style={{ 
                         backgroundColor: `${textColorClass}20`,
@@ -593,17 +593,17 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                         backgroundColor: `${textColorClass}30`,
                         scale: 1.1 
                       }}
-                      whileTap={{ scale: 0.95 }}
-                    >
+                    whileTap={{ scale: 0.95 }}
+                  >
                       <IconComponent className="w-5 h-5" />
-                    </motion.a>
+                  </motion.a>
                   );
                 })}
               </div>
             )}
-          </div>
         </div>
-      </footer>
+      </div>
+    </footer>
     </>
   );
 };

@@ -42,6 +42,19 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: light !important; /* Force light mode on macOS */
+}
+
+/* Force light mode override for macOS dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light !important;
+  }
+  
+  body {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+  }
 }
 
 html {
