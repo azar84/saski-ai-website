@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import FeaturesSection from './FeaturesSection';
 import MediaSection from './MediaSection';
 import FAQSection from './FAQSection';
@@ -533,14 +534,14 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               Page Not Found
             </h2>
             <p className="text-gray-600 mb-4">
-              The page you're looking for doesn't exist or has no content.
+              The page you&apos;re looking for doesn&apos;t exist or has no content.
             </p>
-            <a 
+            <Link 
               href="/"
               className="bg-[#5243E9] text-white px-6 py-2 rounded-lg hover:bg-[#4338CA] transition-colors"
             >
               Go Home
-            </a>
+            </Link>
           </div>
         </div>
       </div>
