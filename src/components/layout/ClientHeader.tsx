@@ -605,7 +605,10 @@ export default function ClientHeader({
                     animate={{ rotate: 0, opacity: 1 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <X className="w-6 h-6 text-[var(--color-primary)] group-hover:text-[#7C3AED] transition-colors duration-300" />
+                    <X 
+                      className="w-6 h-6 group-hover:text-[#7C3AED] transition-colors duration-300" 
+                      style={{ color: designSystem?.grayLight || '#f8fafc' }}
+                    />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -613,7 +616,10 @@ export default function ClientHeader({
                     animate={{ rotate: 0, opacity: 1 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Menu className="w-6 h-6 text-gray-700 group-hover:text-[var(--color-primary)] transition-colors duration-300" />
+                    <Menu 
+                      className="w-6 h-6 group-hover:text-[var(--color-primary)] transition-colors duration-300" 
+                      style={{ color: designSystem?.grayLight || '#f8fafc' }}
+                    />
                   </motion.div>
                 )}
               </motion.div>
