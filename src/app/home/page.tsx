@@ -1,3 +1,4 @@
+import React from 'react';
 import { notFound } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -7,30 +8,56 @@ interface Page {
   id: number;
   slug: string;
   title: string;
-  metaTitle: string;
-  metaDesc: string;
+  metaTitle?: string;
+  metaDesc?: string;
+  description?: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 async function getPageBySlug(slug: string): Promise<Page | null> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/pages`, {
-      cache: 'no-store'
+    const response = await fetch(`/api/admin/pages`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
     
-    if (!response.ok) {
-      return null;
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.data) {
+        const page = result.data.find((p: any) => p.slug === slug);
+        if (page) {
+          return page;
+        }
+      }
     }
-    
-    const data = await response.json();
-    const pages = data.data || [];
-    
-    return pages.find((page: Page) => page.slug === slug) || null;
   } catch (error) {
-    console.error('Failed to fetch page:', error);
-    return null;
+    console.error('Error fetching page data:', error);
   }
+
+  // If no page found, fetch sections directly
+  try {
+    const response = await fetch(`/api/admin/page-sections?pageSlug=${slug}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success && result.data) {
+        return null;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching sections:', error);
+  }
+
+  return null;
 }
 
 async function getPageSections(pageSlug: string): Promise<Array<{ id: string; isVisible: boolean; sectionType: string }>> {
@@ -68,7 +95,32 @@ export async function generateMetadata() {
 }
 
 export default async function HomePage() {
-  const page = await getPageBySlug('home');
+  // Fetch page data
+  const fetchPageData = async () => {
+    try {
+      const response = await fetch(`/api/admin/pages`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const page = result.data.find((p: any) => p.slug === 'home');
+          if (page) {
+            return page;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching page data:', error);
+    }
+    return null;
+  };
+
+  const page = await fetchPageData();
   
   // Check if there are any sections for this page
   const sections = await getPageSections('home');
