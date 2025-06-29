@@ -2,11 +2,21 @@
 
 import { useEffect, useState } from 'react';
 
-export default function DynamicFavicon() {
-  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
+interface DynamicFaviconProps {
+  faviconUrl?: string | null;
+}
+
+export default function DynamicFavicon({ faviconUrl }: DynamicFaviconProps) {
+  const [dynamicFaviconUrl, setDynamicFaviconUrl] = useState<string | null>(faviconUrl || null);
 
   useEffect(() => {
-    // Fetch favicon data from API
+    // If faviconUrl is provided as prop, use it
+    if (faviconUrl) {
+      setDynamicFaviconUrl(faviconUrl);
+      return;
+    }
+
+    // Otherwise fetch favicon data from API
     const fetchFavicon = async () => {
       try {
         const response = await fetch('/api/admin/site-settings');
@@ -15,27 +25,27 @@ export default function DynamicFavicon() {
           if (data.success && data.data) {
             const settings = data.data;
             const favicon = settings.faviconDarkUrl || settings.faviconUrl || '/favicon.svg';
-            setFaviconUrl(favicon);
+            setDynamicFaviconUrl(favicon);
           }
         }
       } catch (error) {
         console.error('Failed to fetch favicon:', error);
-        setFaviconUrl('/favicon.svg');
+        setDynamicFaviconUrl('/favicon.svg');
       }
     };
 
     fetchFavicon();
-  }, []);
+  }, [faviconUrl]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !faviconUrl) return;
+    if (typeof window === 'undefined' || !dynamicFaviconUrl) return;
 
     // Remove existing favicon links
     const existingFavicons = document.querySelectorAll('link[rel*="icon"]');
     existingFavicons.forEach(link => link.remove());
 
     // Add new favicon links
-    const favicon = faviconUrl;
+    const favicon = dynamicFaviconUrl;
     
     // Main favicon
     const link1 = document.createElement('link');
@@ -66,7 +76,7 @@ export default function DynamicFavicon() {
     if (isAdminPanel) {
       console.log('✅ Admin panel confirmed using dark favicon:', favicon);
     }
-  }, [faviconUrl]);
+  }, [dynamicFaviconUrl]);
 
   return null; // This component doesn't render anything
 } 

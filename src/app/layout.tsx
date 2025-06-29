@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { prisma } from "../lib/db";
 import ErrorBoundary from "../components/ui/ErrorBoundary";
 import DesignSystemProvider from "../components/layout/DesignSystemProvider";
 import DynamicFavicon from "../components/layout/DynamicFavicon";
@@ -16,86 +17,120 @@ const manrope = Manrope({
   variable: "--font-manrope",
 });
 
-// Static metadata without database calls
-export const metadata: Metadata = {
-  title: "Saski AI - Transform Your Customer Communication with AI",
-  description: "Empower your business with intelligent conversations across WhatsApp, SMS, Telegram, and more. Automate responses, capture leads, and delight customers 24/7.",
-  keywords: "AI chatbot, customer service automation, WhatsApp business, multi-channel communication, lead generation",
-  authors: [{ name: "Saski AI" }],
-  creator: "Saski AI",
-  publisher: "Saski AI",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL("https://saskiai.com"),
-  alternates: {
-    canonical: "/",
-  },
-  icons: {
-    icon: [
-      {
-        url: '/favicon.svg',
-        sizes: '32x32',
-        type: 'image/svg+xml',
-      },
-      {
-        url: '/favicon.svg',
-        sizes: '16x16', 
-        type: 'image/svg+xml',
+// Function to get dynamic favicon
+async function getDynamicFavicon() {
+  try {
+    const siteSettings = await prisma.siteSettings.findFirst({
+      select: {
+        faviconUrl: true,
+        faviconLightUrl: true,
+        faviconDarkUrl: true
       }
-    ],
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
-  },
-  openGraph: {
+    });
+    
+    return {
+      default: siteSettings?.faviconDarkUrl || siteSettings?.faviconUrl || '/favicon.svg',
+      light: siteSettings?.faviconLightUrl,
+      dark: siteSettings?.faviconDarkUrl
+    };
+  } catch (error) {
+    console.error('Failed to fetch favicon from database:', error);
+    return {
+      default: '/favicon.svg',
+      light: null,
+      dark: null
+    };
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const faviconData = await getDynamicFavicon();
+  const defaultFavicon = faviconData.default;
+  
+  return {
     title: "Saski AI - Transform Your Customer Communication with AI",
     description: "Empower your business with intelligent conversations across WhatsApp, SMS, Telegram, and more. Automate responses, capture leads, and delight customers 24/7.",
-    url: "https://saskiai.com",
-    siteName: "Saski AI",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Saski AI - AI-Powered Customer Communication",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Saski AI - Transform Your Customer Communication with AI",
-    description: "Empower your business with intelligent conversations across WhatsApp, SMS, Telegram, and more.",
-    images: ["/og-image.jpg"],
-    creator: "@saskiai",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+    keywords: "AI chatbot, customer service automation, WhatsApp business, multi-channel communication, lead generation",
+    authors: [{ name: "Saski AI" }],
+    creator: "Saski AI",
+    publisher: "Saski AI",
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    metadataBase: new URL("https://saskiai.com"),
+    alternates: {
+      canonical: "/",
+    },
+    icons: {
+      icon: [
+        {
+          url: defaultFavicon,
+          sizes: '32x32',
+          type: defaultFavicon.endsWith('.svg') ? 'image/svg+xml' : 'image/x-icon',
+        },
+        {
+          url: defaultFavicon,
+          sizes: '16x16', 
+          type: defaultFavicon.endsWith('.svg') ? 'image/svg+xml' : 'image/x-icon',
+        }
+      ],
+      shortcut: defaultFavicon,
+      apple: defaultFavicon,
+    },
+    openGraph: {
+      title: "Saski AI - Transform Your Customer Communication with AI",
+      description: "Empower your business with intelligent conversations across WhatsApp, SMS, Telegram, and more. Automate responses, capture leads, and delight customers 24/7.",
+      url: "https://saskiai.com",
+      siteName: "Saski AI",
+      images: [
+        {
+          url: "/og-image.jpg",
+          width: 1200,
+          height: 630,
+          alt: "Saski AI - AI-Powered Customer Communication",
+        },
+      ],
+      locale: "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Saski AI - Transform Your Customer Communication with AI",
+      description: "Empower your business with intelligent conversations across WhatsApp, SMS, Telegram, and more.",
+      images: ["/og-image.jpg"],
+      creator: "@saskiai",
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-  },
-  verification: {
-    google: "your-google-verification-code",
-  },
-  other: {
-    'color-scheme': 'light'
-  },
-};
+    verification: {
+      google: "your-google-verification-code",
+    },
+    other: {
+      'color-scheme': 'light'
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Get favicon URL for dynamic injection
+  const faviconData = await getDynamicFavicon();
+  const faviconUrl = faviconData.default;
+
   return (
     <html lang="en" suppressHydrationWarning data-theme="light" style={{colorScheme: 'light'}}>
       <head>
@@ -110,7 +145,7 @@ export default async function RootLayout({
               enableSystem={false}
               disableTransitionOnChange={false}
             >
-              <DynamicFavicon />
+              <DynamicFavicon faviconUrl={faviconUrl} />
               {children}
             </ThemeProvider>
           </DesignSystemProvider>
