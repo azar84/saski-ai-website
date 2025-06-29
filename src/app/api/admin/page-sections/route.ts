@@ -112,6 +112,7 @@ export async function GET(request: NextRequest) {
             name: true,
             description: true,
             layoutType: true,
+            backgroundColor: true,
             isActive: true,
             items: {
               where: { isVisible: true },
@@ -398,6 +399,7 @@ export async function POST(request: NextRequest) {
             name: true,
             description: true,
             layoutType: true,
+            backgroundColor: true,
             isActive: true,
             items: {
               where: { isVisible: true },
@@ -633,6 +635,7 @@ export async function PUT(request: NextRequest) {
             name: true,
             description: true,
             layoutType: true,
+            backgroundColor: true,
             isActive: true,
             items: {
               select: {

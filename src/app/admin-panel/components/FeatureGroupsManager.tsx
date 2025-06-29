@@ -39,9 +39,11 @@ import {
   Eye,
   EyeOff,
   FileText,
-  Link
+  Link,
+  Palette
 } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
+import { useDesignSystem } from '@/hooks/useDesignSystem';
 
 // Available icons mapping
 const availableIcons = [
@@ -116,6 +118,7 @@ interface FeatureGroup {
   heading: string;
   subheading?: string;
   layoutType?: string;
+  backgroundColor?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -138,19 +141,141 @@ const FeatureGroupsManager: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [expandedGroup, setExpandedGroup] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'features' | 'pages'>('features');
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [formData, setFormData] = useState<{
     name: string;
     heading: string;
     subheading: string;
     layoutType: 'grid' | 'list';
+    backgroundColor: string;
     isActive: boolean;
   }>({
     name: '',
     heading: '',
     subheading: '',
     layoutType: 'grid',
+    backgroundColor: '#ffffff',
     isActive: true
   });
+
+  const { designSystem } = useDesignSystem();
+
+  // Get design system colors for color picker
+  const getDesignSystemColors = () => {
+    if (!designSystem) return [];
+    
+    return [
+      { name: 'Primary', value: designSystem.primaryColor, description: 'Main brand color' },
+      { name: 'Primary Light', value: designSystem.primaryColorLight, description: 'Light primary variant' },
+      { name: 'Primary Dark', value: designSystem.primaryColorDark, description: 'Dark primary variant' },
+      { name: 'Secondary', value: designSystem.secondaryColor, description: 'Secondary brand color' },
+      { name: 'Accent', value: designSystem.accentColor, description: 'Accent color' },
+      { name: 'Success', value: designSystem.successColor, description: 'Success state color' },
+      { name: 'Warning', value: designSystem.warningColor, description: 'Warning state color' },
+      { name: 'Error', value: designSystem.errorColor, description: 'Error state color' },
+      { name: 'Info', value: designSystem.infoColor, description: 'Info state color' },
+      { name: 'Background Primary', value: designSystem.backgroundPrimary, description: 'Primary background' },
+      { name: 'Background Secondary', value: designSystem.backgroundSecondary, description: 'Secondary background' },
+      { name: 'Background Dark', value: designSystem.backgroundDark, description: 'Dark background' },
+      { name: 'Gray Light', value: designSystem.grayLight, description: 'Light gray' },
+      { name: 'Gray Medium', value: designSystem.grayMedium, description: 'Medium gray' },
+      { name: 'Gray Dark', value: designSystem.grayDark, description: 'Dark gray' }
+    ];
+  };
+
+  // Color Picker Component
+  const ColorPicker: React.FC<{
+    label: string;
+    value: string;
+    onChange: (color: string) => void;
+  }> = ({ label, value, onChange }) => {
+    const [showPicker, setShowPicker] = useState(false);
+    const [customColor, setCustomColor] = useState(value.startsWith('#') ? value : '#000000');
+    const designSystemColors = getDesignSystemColors();
+
+    const presetColors = [
+      ...designSystemColors,
+      { name: 'White', value: '#FFFFFF', description: 'White' },
+      { name: 'Black', value: '#000000', description: 'Black' },
+    ];
+
+    const handlePresetClick = (color: string) => {
+      onChange(color);
+      setShowPicker(false);
+    };
+
+    const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newColor = e.target.value;
+      setCustomColor(newColor);
+      onChange(newColor);
+    };
+
+    return (
+      <div className="relative">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {label}
+        </label>
+        <div className="flex items-center">
+          <div className="w-12 h-12 rounded-lg border border-gray-300 flex items-center justify-center">
+            <div
+              style={{ backgroundColor: value }}
+              className="w-8 h-8 rounded-lg"
+            ></div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowPicker(!showPicker)}
+            className="text-gray-500 hover:text-gray-700 ml-2"
+          >
+            <Palette className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {showPicker && (
+          <div className="absolute top-full left-0 z-50 mt-2 p-4 bg-white border border-gray-300 rounded-lg shadow-lg min-w-64">
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Design System Colors</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {designSystemColors.map((color) => (
+                    <button
+                      key={color.name}
+                      type="button"
+                      onClick={() => handlePresetClick(color.value)}
+                      className="w-8 h-8 rounded border border-gray-300 hover:border-gray-400 transition-colors"
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Custom Color</label>
+                <input
+                  type="color"
+                  value={customColor}
+                  onChange={handleCustomColorChange}
+                  className="w-full h-10 border border-gray-300 rounded"
+                />
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowPicker(false)}
+                  className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const getIconComponent = (iconName: string) => {
     // Import the entire lucide-react library for dynamic icon access
@@ -377,6 +502,7 @@ const FeatureGroupsManager: React.FC = () => {
       heading: '',
       subheading: '',
       layoutType: 'grid',
+      backgroundColor: '#ffffff',
       isActive: true
     });
     setEditingGroup(null);
@@ -389,6 +515,7 @@ const FeatureGroupsManager: React.FC = () => {
       heading: group.heading,
       subheading: group.subheading || '',
       layoutType: (group as any).layoutType || 'grid',
+      backgroundColor: group.backgroundColor || '#ffffff',
       isActive: group.isActive
     });
     setEditingGroup(group);
@@ -525,6 +652,17 @@ const FeatureGroupsManager: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, subheading: e.target.value })}
                   placeholder="e.g., Simple. Smart. Built for growing businesses"
                   className="h-12"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Background Color
+                </label>
+                <ColorPicker
+                  label="Background Color"
+                  value={formData.backgroundColor}
+                  onChange={(color) => setFormData({ ...formData, backgroundColor: color })}
                 />
               </div>
             </div>

@@ -13,6 +13,7 @@ export async function GET() {
         name: true,
         description: true,
         layoutType: true,
+        backgroundColor: true,
         isActive: true,
         createdAt: true,
         updatedAt: true,
@@ -62,6 +63,7 @@ export async function GET() {
       name: group.name,             // Keep name for backward compatibility
       description: group.description, // Keep description for backward compatibility
       layoutType: group.layoutType,
+      backgroundColor: group.backgroundColor,
       isActive: group.isActive,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt,
@@ -116,6 +118,7 @@ export async function POST(request: NextRequest) {
         name: validatedData.name,
         description: validatedData.subheading || null,  // Map subheading -> description
         layoutType: validatedData.layoutType,
+        backgroundColor: validatedData.backgroundColor,
         isActive: validatedData.isActive
       } as any,
       include: {
@@ -155,6 +158,7 @@ export async function POST(request: NextRequest) {
       name: featureGroup.name,             // Keep name for backward compatibility
       description: featureGroup.description, // Keep description for backward compatibility
       layoutType: featureGroup.layoutType,
+      backgroundColor: featureGroup.backgroundColor,
       isActive: featureGroup.isActive,
       createdAt: featureGroup.createdAt,
       updatedAt: featureGroup.updatedAt,
@@ -255,6 +259,7 @@ export async function PUT(request: NextRequest) {
       name: featureGroup.name,             // Keep name for backward compatibility
       description: featureGroup.description, // Keep description for backward compatibility
       layoutType: featureGroup.layoutType,
+      backgroundColor: featureGroup.backgroundColor,
       isActive: featureGroup.isActive,
       createdAt: featureGroup.createdAt,
       updatedAt: featureGroup.updatedAt,

@@ -235,6 +235,7 @@ export const CreateFeatureGroupSchema = z.object({
   heading: z.string().min(1, 'Heading is required').max(200),
   subheading: z.string().max(500).optional(),
   layoutType: FeatureGroupLayoutEnum.default('grid'),
+  backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').default('#ffffff'),
   isActive: z.boolean().default(true),
 });
 
@@ -487,7 +488,7 @@ export const MediaSearchSchema = z.object({
 });
 
 // Page Builder Validation Schemas
-export const SectionTypeEnum = z.enum(['hero', 'features', 'media', 'testimonials', 'pricing', 'faq', 'form', 'cta', 'html', 'custom']);
+export const SectionTypeEnum = z.enum(['hero', 'home_hero', 'features', 'media', 'testimonials', 'pricing', 'faq', 'form', 'cta', 'html', 'custom']);
 
 export const CreatePageSectionSchema = z.object({
   pageId: IdSchema,

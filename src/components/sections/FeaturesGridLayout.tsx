@@ -20,12 +20,14 @@ interface FeaturesGridLayoutProps {
   features: GlobalFeature[];
   heading: string;
   subheading?: string;
+  backgroundColor?: string;
 }
 
 const FeaturesGridLayout: React.FC<FeaturesGridLayoutProps> = ({ 
   features, 
   heading, 
-  subheading 
+  subheading,
+  backgroundColor = '#ffffff'
 }) => {
   const getIconComponent = (iconName: string) => {
     const iconProps = { size: 40, strokeWidth: 2.5 };
@@ -38,7 +40,12 @@ const FeaturesGridLayout: React.FC<FeaturesGridLayoutProps> = ({
   const displayFeatures = features.slice(0, 6); // Show max 6 features
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 via-slate-100 to-gray-100">
+    <section 
+      className="w-full min-h-screen flex items-center justify-center"
+      style={{ 
+        backgroundColor: backgroundColor
+      }}
+    >
       {/* Elementor Container */}
       <div className="elementor-container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         <div className="elementor-column elementor-col-100">

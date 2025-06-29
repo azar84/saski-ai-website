@@ -23,6 +23,7 @@ interface FeaturesSectionProps {
   heading?: string;
   subheading?: string;
   layoutType?: 'grid' | 'list';
+  backgroundColor?: string;
 }
 
 // Default features fallback
@@ -68,7 +69,8 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
   pageSlug,
   heading: propHeading,
   subheading: propSubheading,
-  layoutType: propLayoutType
+  layoutType: propLayoutType,
+  backgroundColor
 }) => {
   console.log('🚀 FeaturesSection called with props:', {
     propFeatures: propFeatures.length,
@@ -76,7 +78,8 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
     pageSlug,
     propHeading,
     propSubheading,
-    propLayoutType
+    propLayoutType,
+    backgroundColor
   });
 
   const [features, setFeatures] = useState<GlobalFeature[]>(propFeatures);
@@ -84,6 +87,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
   const [groupHeading, setGroupHeading] = useState<string>('');
   const [groupSubheading, setGroupSubheading] = useState<string>('');
   const [layoutType, setLayoutType] = useState<'grid' | 'list'>(propLayoutType || 'grid');
+  const [finalBackgroundColor, setFinalBackgroundColor] = useState<string>(backgroundColor || '#ffffff');
 
   // Fetch features from API if not provided via props
   useEffect(() => {
@@ -92,6 +96,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
       setGroupHeading(propHeading || 'Why Saski AI?');
       setGroupSubheading(propSubheading || 'Simple. Smart. Built for growing businesses');
       setLayoutType(propLayoutType || 'grid');
+      setFinalBackgroundColor(backgroundColor || '#ffffff');
       setLoading(false);
       return;
     }
@@ -102,6 +107,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
         let heading = 'Why Saski AI?';
         let subheading = 'Simple. Smart. Built for growing businesses';
         let layout: 'grid' | 'list' = 'grid';
+        let bgColor = backgroundColor || '#ffffff';
 
         // Priority 1: Specific feature group ID
         if (featureGroupId) {
@@ -117,6 +123,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
               if (group) {
                 console.log('🎯 Found feature group:', group.name);
                 console.log('🎨 Layout type:', group.layoutType);
+                console.log('🎨 Background color from group:', group.backgroundColor);
                 
                 featuresData = group.groupItems
                   .filter((item: any) => item.isVisible)
@@ -125,6 +132,8 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                 heading = group.heading;
                 subheading = group.subheading || '';
                 layout = group.layoutType || 'grid';
+                bgColor = group.backgroundColor || backgroundColor || '#ffffff';
+                console.log('🎨 Setting background color from group:', bgColor);
               }
             }
           }
@@ -156,6 +165,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                       heading = pageGroup.featureGroup.heading;
                       subheading = pageGroup.featureGroup.subheading || '';
                       layout = pageGroup.featureGroup.layoutType || 'grid';
+                      bgColor = pageGroup.featureGroup.backgroundColor || backgroundColor || '#ffffff';
                     }
                   }
                 }
@@ -187,12 +197,14 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
         setGroupHeading(propHeading || heading);
         setGroupSubheading(propSubheading || subheading);
         setLayoutType(layout);
+        setFinalBackgroundColor(bgColor);
 
         console.log('✅ Final results:', {
           featuresCount: featuresData.length,
           heading,
           subheading,
-          layoutType: layout
+          layoutType: layout,
+          backgroundColor: bgColor
         });
 
       } catch (error) {
@@ -202,13 +214,14 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
         setGroupHeading(propHeading || 'Why Saski AI?');
         setGroupSubheading(propSubheading || 'Simple. Smart. Built for growing businesses');
         setLayoutType('grid');
+        setFinalBackgroundColor(backgroundColor || '#ffffff');
       } finally {
         setLoading(false);
       }
     };
 
     fetchFeatures();
-  }, [propFeatures, featureGroupId, pageSlug, propHeading, propSubheading, propLayoutType]);
+  }, [propFeatures, featureGroupId, pageSlug, propHeading, propSubheading, propLayoutType, backgroundColor]);
 
   // Show loading state
   if (loading) {
@@ -241,23 +254,25 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
 
   // Dynamic component selection based on layoutType
   if (layoutType === 'list') {
-    console.log('✅ Rendering FeaturesListLayout');
+    console.log('✅ Rendering FeaturesListLayout with background color:', finalBackgroundColor);
     return (
       <FeaturesListLayout 
         features={features}
         heading={groupHeading || 'Why Saski AI?'}
         subheading={groupSubheading}
+        backgroundColor={finalBackgroundColor}
       />
     );
   }
 
   // Default to grid layout
-  console.log('✅ Rendering FeaturesGridLayout (default)');
+  console.log('✅ Rendering FeaturesGridLayout (default) with background color:', finalBackgroundColor);
   return (
     <FeaturesGridLayout 
       features={features}
       heading={groupHeading || 'Why Saski AI?'}
       subheading={groupSubheading}
+      backgroundColor={finalBackgroundColor}
     />
   );
 };

@@ -404,17 +404,18 @@ model GlobalFeature {
 }
 
 model FeatureGroup {
-  id           Int                @id @default(autoincrement())
-  name         String
-  description  String?
-  layoutType   String             @default("grid")
-  sortOrder    Int                @default(0)
-  isActive     Boolean            @default(true)
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  items        FeatureGroupItem[]
-  pageGroups   PageFeatureGroup[]
-  pageSections PageSection[]
+  id             Int                @id @default(autoincrement())
+  name           String
+  description    String?
+  layoutType     String             @default("grid")
+  backgroundColor String            @default("#ffffff")
+  sortOrder      Int                @default(0)
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  items          FeatureGroupItem[]
+  pageGroups     PageFeatureGroup[]
+  pageSections   PageSection[]
 
   @@map("feature_groups")
 }

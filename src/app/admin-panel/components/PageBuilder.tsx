@@ -49,6 +49,7 @@ import { Button, Input } from '@/components/ui';
 
 // Section type icons mapping
 const sectionIcons = {
+  home_hero: Layout,
   hero: Layout,
   features: Zap,
   media: Image,
@@ -63,6 +64,7 @@ const sectionIcons = {
 
 // Section type labels
 const sectionLabels = {
+  home_hero: 'Home Hero',
   hero: 'Hero Section',
   features: 'Features',
   media: 'Media',
@@ -675,7 +677,7 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
 
   const resetForm = () => {
     setFormData({
-      sectionType: '',
+      sectionType: 'home_hero',
       title: '',
       subtitle: '',
       content: '',
@@ -914,6 +916,47 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ selectedPageId }) => {
                   })}
                 </div>
               </div>
+
+              {/* Home Hero Special Section */}
+              {formData.sectionType === 'home_hero' && (
+                <div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-medium text-green-900">Home Hero Section Selected</h4>
+                        <p className="text-sm text-green-700 mt-1">
+                          This is your special Home Hero section that's managed separately. 
+                          It will automatically use your configured Home Hero content and styling.
+                        </p>
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                          <div className="flex items-start space-x-2">
+                            <div className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0">💡</div>
+                            <div className="text-sm text-blue-800">
+                              <p className="font-medium">Want to customize this section?</p>
+                              <p className="mt-1">Head over to the <strong>Home Page Hero</strong> menu in your admin panel to configure the content, styling, and layout of your hero section.</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-3 p-3 bg-white rounded border border-green-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-gray-900">Home Hero</div>
+                              <div className="text-sm text-gray-600">Pre-configured hero section</div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                Auto-configured
+                              </span>
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Content Selection */}
               {formData.sectionType === 'hero' && (

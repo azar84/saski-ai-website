@@ -20,12 +20,14 @@ interface FeaturesListLayoutProps {
   features: GlobalFeature[];
   heading: string;
   subheading?: string;
+  backgroundColor?: string;
 }
 
 const FeaturesListLayout: React.FC<FeaturesListLayoutProps> = ({ 
   features, 
   heading, 
-  subheading 
+  subheading,
+  backgroundColor = '#ffffff'
 }) => {
   const { designSystem } = useDesignSystem();
   const sectionRef = useRef<HTMLElement>(null);
@@ -278,7 +280,7 @@ const FeaturesListLayout: React.FC<FeaturesListLayoutProps> = ({
       ref={sectionRef}
       className="relative py-20 overflow-hidden"
       style={{ 
-        backgroundColor: backgroundSecondary,
+        backgroundColor: backgroundColor,
         fontFamily: designSystem?.fontFamily || 'Manrope, sans-serif'
       }}
     >

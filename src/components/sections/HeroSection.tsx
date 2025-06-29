@@ -125,7 +125,6 @@ const HeroSection: React.FC = () => {
     offset: ["start start", "end start"]
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [0, -30]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   // Fetch hero data
@@ -354,11 +353,10 @@ const HeroSection: React.FC = () => {
     <motion.section 
       ref={heroRef}
       style={{ 
-        y, 
         opacity,
         backgroundColor: heroData?.backgroundColor || '#FFFFFF'
       }}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden -mt-4"
     >
       {/* Enhanced Background with Soft Radial Gradient */}
       <div 
@@ -383,7 +381,7 @@ const HeroSection: React.FC = () => {
         <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-[var(--color-primary-light)]/6 to-[#8B5CF6]/4 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full px-6 lg:px-8 py-8">
+      <div className="relative z-10 w-full px-6 lg:px-8 pt-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
           
           {/* Left Side - Refined Text & Actions */}

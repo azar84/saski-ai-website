@@ -36,7 +36,8 @@ import {
   Gift,
   Rocket
 } from 'lucide-react';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, IconPicker } from '@/components/ui';
+import { iconLibrary } from '@/components/ui/IconPicker';
 
 // Available icons for features
 const availableIcons = [
@@ -111,8 +112,15 @@ const FeaturesManager: React.FC = () => {
   });
 
   const getIconComponent = (iconName: string) => {
-    const iconData = availableIcons.find(icon => icon.name === iconName);
-    return iconData ? iconData.icon : MessageSquare;
+    // First try to find in the icon library
+    const iconData = iconLibrary.find(icon => icon.name === iconName);
+    if (iconData) {
+      return iconData.component;
+    }
+    
+    // Fallback to the old availableIcons array
+    const fallbackIcon = availableIcons.find(icon => icon.name === iconName);
+    return fallbackIcon ? fallbackIcon.icon : MessageSquare;
   };
 
   const fetchFeatures = async () => {
@@ -358,17 +366,10 @@ const FeaturesManager: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Icon
                 </label>
-                <select
+                <IconPicker
                   value={formData.iconName}
-                  onChange={(e) => setFormData({ ...formData, iconName: e.target.value })}
-                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
-                >
-                  {availableIcons.map((icon) => (
-                    <option key={icon.name} value={icon.name} className="bg-white text-gray-900">
-                      {icon.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setFormData({ ...formData, iconName: value })}
+                />
               </div>
 
               <div>

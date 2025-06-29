@@ -5,6 +5,7 @@ import FeaturesSection from './FeaturesSection';
 import MediaSection from './MediaSection';
 import FAQSection from './FAQSection';
 import DynamicHeroSection from './DynamicHeroSection';
+import HeroSection from './HeroSection';
 import PricingSection from './PricingSection';
 import ConfigurablePricingSection from './ConfigurablePricingSection';
 import FormSection from './FormSection';
@@ -68,6 +69,7 @@ interface PageSection {
     name: string;
     description?: string;
     layoutType?: 'grid' | 'list';
+    backgroundColor?: string;
     isActive: boolean;
     items: Array<{
       id: number;
@@ -248,6 +250,11 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         }
         break;
 
+      case 'home_hero':
+        return (
+          <HeroSection key={sectionKey} />
+        );
+
       case 'features':
         if (section.featureGroup) {
           // Transform API data structure to match layout component expectations
@@ -270,7 +277,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             features,
             heading: section.title || section.featureGroup.name, // API returns 'name', not 'heading'
             subheading: section.subtitle || section.featureGroup.description, // API returns 'description', not 'subheading'
-            layoutType: section.featureGroup.layoutType || 'grid'
+            layoutType: section.featureGroup.layoutType || 'grid',
+            backgroundColor: section.featureGroup.backgroundColor
           };
 
           console.log('🎨 Rendering features section with:', {
@@ -278,6 +286,7 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             heading: propsToPass.heading,
             subheading: propsToPass.subheading,
             layoutType: propsToPass.layoutType,
+            backgroundColor: propsToPass.backgroundColor,
             firstFeature: features[0] ? {
               title: features[0].title,
               iconName: features[0].iconName
