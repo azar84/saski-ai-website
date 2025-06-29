@@ -278,4 +278,23 @@ export function getAppropriateLogoUrl(
   
   // No logo available
   return null;
+}
+
+/**
+ * Get the base URL for server-side API calls
+ * Uses environment variables with fallbacks for different environments
+ */
+export function getBaseUrl(): string {
+  // In production (Vercel), use VERCEL_URL
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // Use BASE_URL environment variable if set
+  if (process.env.BASE_URL) {
+    return process.env.BASE_URL;
+  }
+  
+  // Fallback for local development
+  return 'http://localhost:3000';
 } 

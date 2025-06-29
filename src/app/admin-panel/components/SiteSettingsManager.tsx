@@ -91,6 +91,9 @@ interface SiteSettings {
   footerBackgroundColor?: string | null;
   footerTextColor?: string | null;
   
+  // Base URL
+  baseUrl?: string | null;
+  
   createdAt?: string;
   updatedAt?: string;
 }
@@ -442,6 +445,36 @@ export default function SiteSettingsManager() {
         <div className="space-y-8">
           {/* Settings Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Base URL Settings */}
+            <Card className="p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Globe className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Base URL</h3>
+                  <p className="text-gray-600 text-sm">The absolute base URL for server-side API calls (e.g., https://mysite.com)</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Base URL
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://mysite.com"
+                    value={settings.baseUrl || ''}
+                    onChange={(e) => handleInputChange('baseUrl', e.target.value)}
+                    className="h-12"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Used for server-side API calls. Leave blank to use environment default.
+                  </p>
+                </div>
+              </div>
+            </Card>
+
             {/* Light Logo Settings */}
             <Card className="p-6">
               <div className="flex items-center space-x-3 mb-6">

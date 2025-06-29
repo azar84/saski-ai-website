@@ -68,7 +68,7 @@ const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({});
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [fileTypeFilter, setFileTypeFilter] = useState<string>('all');
   const [selectedItems, setSelectedItems] = useState<MediaItem[]>(
     Array.isArray(selectedMedia) ? selectedMedia : selectedMedia ? [selectedMedia] : []

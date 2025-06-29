@@ -39,7 +39,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { logoUrl, faviconUrl } = body;
+    const { logoUrl, faviconUrl, baseUrl } = body;
 
     // Check if settings already exist
     const existingSettings = await prisma.siteSettings.findFirst();
@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
         data: {
           logoUrl: logoUrl || existingSettings.logoUrl,
           faviconUrl: faviconUrl || existingSettings.faviconUrl,
+          baseUrl: baseUrl !== undefined ? baseUrl : existingSettings.baseUrl,
         }
       });
     } else {
@@ -60,6 +61,13 @@ export async function POST(request: NextRequest) {
         data: {
           logoUrl,
           faviconUrl,
+          baseUrl: baseUrl || '',
+          smtpEnabled: false,
+          smtpPort: 587,
+          smtpSecure: true,
+          emailBrandingEnabled: true,
+          emailLoggingEnabled: true,
+          emailRateLimitPerHour: 100,
         }
       });
     }

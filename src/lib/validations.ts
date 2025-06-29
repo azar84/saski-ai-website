@@ -73,6 +73,7 @@ export const SiteSettingsSchema = z.object({
   footerCompanyDescription: optionalString,
   footerBackgroundColor: z.string().optional().nullable(),
   footerTextColor: z.string().optional().nullable(),
+  baseUrl: optionalUrl,
 });
 
 // Partial schema for updates - all fields are optional

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DynamicPageRenderer from '@/components/sections/DynamicPageRenderer';
+import { getBaseUrl } from '@/lib/utils';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -19,7 +20,8 @@ interface Page {
 
 async function getPageBySlug(slug: string): Promise<Page | null> {
   try {
-    const response = await fetch(`/api/admin/pages`, {
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}/api/admin/pages`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +43,8 @@ async function getPageBySlug(slug: string): Promise<Page | null> {
   
   // If no page found, fetch sections directly
   try {
-    const response = await fetch(`/api/admin/page-sections?pageSlug=${slug}`, {
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}/api/admin/page-sections?pageSlug=${slug}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -63,7 +66,8 @@ async function getPageBySlug(slug: string): Promise<Page | null> {
 
 async function getPageSections(pageSlug: string): Promise<Array<{ id: string; isVisible: boolean; sectionType: string }>> {
   try {
-    const response = await fetch(`/api/admin/page-sections?pageSlug=${pageSlug}`, {
+    const baseUrl = getBaseUrl();
+    const response = await fetch(`${baseUrl}/api/admin/page-sections?pageSlug=${pageSlug}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
