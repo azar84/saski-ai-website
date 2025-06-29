@@ -1,0 +1,119 @@
+// Development Prisma schema - uses SQLite for local development
+// This allows development without needing Neon credentials locally
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Copy all your models here, but with SQLite-compatible types
+model SiteSettings {
+  id                       Int      @id @default(autoincrement())
+  logoUrl                  String?
+  logoLightUrl             String?
+  logoDarkUrl              String?
+  faviconUrl               String?
+  faviconLightUrl          String?
+  faviconDarkUrl           String?
+  smtpEnabled              Boolean  @default(false)
+  smtpHost                 String?
+  smtpPort                 Int?     @default(587)
+  smtpSecure               Boolean  @default(true)
+  smtpUsername             String?
+  smtpPassword             String?
+  smtpFromEmail            String?
+  smtpFromName             String?
+  smtpReplyTo              String?
+  emailSignature           String?
+  emailFooterText          String?
+  emailBrandingEnabled     Boolean  @default(true)
+  adminNotificationEmail   String?
+  emailLoggingEnabled      Boolean  @default(true)
+  emailRateLimitPerHour    Int?     @default(100)
+  companyPhone             String?
+  companyEmail             String?
+  companyAddress           String?
+  socialFacebook           String?
+  socialTwitter            String?
+  socialLinkedin           String?
+  socialInstagram          String?
+  socialYoutube            String?
+  footerNewsletterFormId   Int?
+  footerCopyrightMessage   String?
+  footerMenuIds            String?
+  footerShowContactInfo    Boolean  @default(true)
+  footerShowSocialLinks    Boolean  @default(true)
+  footerCompanyName        String?
+  footerCompanyDescription String?
+  footerBackgroundColor    String?  @default("#F9FAFB")
+  footerTextColor          String?  @default("#374151")
+  baseUrl                  String?  @default("")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// Add other essential models here...
+model HeaderConfig {
+  id              Int                @id @default(autoincrement())
+  logoUrl         String?
+  logoAlt         String?
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  backgroundColor String?            @default("#ffffff")
+  menuActiveColor String?            @default("#5243E9")
+  menuHoverColor  String?            @default("#5243E9")
+  menuTextColor   String?            @default("#374151")
+
+  @@map("header_config")
+}
+
+model Menu {
+  id            Int                @id @default(autoincrement())
+  name          String
+  description   String?
+  isActive      Boolean            @default(true)
+  sortOrder     Int                @default(0)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  items         MenuItem[]
+}
+
+model MenuItem {
+  id        Int        @id @default(autoincrement())
+  menuId    Int
+  label     String
+  url       String?
+  icon      String?
+  target    String     @default("_self")
+  isActive  Boolean    @default(true)
+  sortOrder Int        @default(0)
+  parentId  Int?
+  pageId    Int?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  menu      Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parent    MenuItem?  @relation("MenuItemHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  MenuItem[] @relation("MenuItemHierarchy")
+}
+
+model Page {
+  id              Int      @id @default(autoincrement())
+  slug            String   @unique
+  title           String
+  metaTitle       String?
+  metaDesc        String?
+  sortOrder       Int      @default(0)
+  showInHeader    Boolean  @default(false)
+  showInFooter    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("pages")
+} 

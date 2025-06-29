@@ -13,7 +13,8 @@
     "clean": "rm -rf .next",
     "analyze": "ANALYZE=true npm run build",
     "seed:postgres": "node seed-postgres.js",
-    "seed:neon": "node seed-neon.js"
+    "seed:neon": "node seed-neon.js",
+    "dev-setup": "node scripts/dev-setup.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
