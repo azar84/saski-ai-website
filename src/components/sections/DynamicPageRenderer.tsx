@@ -554,7 +554,7 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
   if (sections.length === 0 && pageExists === true) {
     return (
-      <div className={`py-24 ${className}`}>
+      <div className={`min-h-[calc(100vh-80px-96px)] flex items-center justify-center ${className}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="text-blue-500 mb-4">
