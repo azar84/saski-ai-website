@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { prisma } from "../lib/db";
 import ErrorBoundary from "../components/ui/ErrorBoundary";
 import DesignSystemProvider from "../components/layout/DesignSystemProvider";
 import DynamicFavicon from "../components/layout/DynamicFavicon";
@@ -17,36 +16,7 @@ const manrope = Manrope({
   variable: "--font-manrope",
 });
 
-// Function to get dynamic favicon
-async function getDynamicFavicon() {
-  try {
-    const siteSettings = await prisma.siteSettings.findFirst({
-      select: {
-        faviconUrl: true,
-        faviconLightUrl: true,
-        faviconDarkUrl: true
-      }
-    });
-    
-    return {
-      default: siteSettings?.faviconDarkUrl || siteSettings?.faviconUrl || '/favicon.svg',
-      light: siteSettings?.faviconLightUrl,
-      dark: siteSettings?.faviconDarkUrl
-    };
-  } catch (error) {
-    console.error('Failed to fetch favicon from database:', error);
-    return {
-      default: '/favicon.svg',
-      light: null,
-      dark: null
-    };
-  }
-}
-
 export async function generateMetadata(): Promise<Metadata> {
-  const faviconData = await getDynamicFavicon();
-  const defaultFavicon = faviconData.default;
-  
   return {
     title: "Saski AI - Transform Your Customer Communication with AI",
     description: "Empower your business with intelligent conversations across WhatsApp, SMS, Telegram, and more. Automate responses, capture leads, and delight customers 24/7.",
@@ -66,18 +36,18 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: [
         {
-          url: defaultFavicon,
+          url: '/favicon.svg',
           sizes: '32x32',
-          type: defaultFavicon.endsWith('.svg') ? 'image/svg+xml' : 'image/x-icon',
+          type: 'image/svg+xml',
         },
         {
-          url: defaultFavicon,
+          url: '/favicon.svg',
           sizes: '16x16', 
-          type: defaultFavicon.endsWith('.svg') ? 'image/svg+xml' : 'image/x-icon',
+          type: 'image/svg+xml',
         }
       ],
-      shortcut: defaultFavicon,
-      apple: defaultFavicon,
+      shortcut: '/favicon.svg',
+      apple: '/favicon.svg',
     },
     openGraph: {
       title: "Saski AI - Transform Your Customer Communication with AI",
@@ -127,10 +97,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Get favicon URL for dynamic injection
-  const faviconData = await getDynamicFavicon();
-  const faviconUrl = faviconData.default;
-
   return (
     <html lang="en" suppressHydrationWarning data-theme="light" style={{colorScheme: 'light'}}>
       <head>
@@ -145,7 +111,7 @@ export default async function RootLayout({
               enableSystem={false}
               disableTransitionOnChange={false}
             >
-              <DynamicFavicon faviconUrl={faviconUrl} />
+              <DynamicFavicon />
               {children}
             </ThemeProvider>
           </DesignSystemProvider>
