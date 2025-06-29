@@ -3,6 +3,10 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DynamicPageRenderer from '@/components/sections/DynamicPageRenderer';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface Page {
   id: number;
   slug: string;
@@ -76,23 +80,6 @@ async function getPageSections(pageSlug: string): Promise<Array<{ id: string; is
     console.error('Error fetching page sections:', error);
     return [];
   }
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const page = await getPageBySlug(slug);
-  
-  if (!page) {
-    return {
-      title: 'Page Not Found',
-      description: 'The requested page could not be found.'
-    };
-  }
-  
-  return {
-    title: page.metaTitle || page.title,
-    description: page.metaDesc || `Learn more about ${page.title}`,
-  };
 }
 
 export default async function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {

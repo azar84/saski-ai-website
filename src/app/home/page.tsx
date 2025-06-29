@@ -4,6 +4,16 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DynamicPageRenderer from '@/components/sections/DynamicPageRenderer';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+// Static metadata
+export const metadata = {
+  title: 'Home',
+  description: 'Welcome to our website.'
+};
+
 interface Page {
   id: number;
   slug: string;
@@ -76,22 +86,6 @@ async function getPageSections(pageSlug: string): Promise<Array<{ id: string; is
     console.error('Error fetching page sections:', error);
     return [];
   }
-}
-
-export async function generateMetadata() {
-  const page = await getPageBySlug('home');
-  
-  if (!page) {
-    return {
-      title: 'Home',
-      description: 'Welcome to our website.'
-    };
-  }
-  
-  return {
-    title: page.metaTitle || page.title || 'Home',
-    description: page.metaDesc || 'Welcome to our website.',
-  };
 }
 
 export default async function HomePage() {
