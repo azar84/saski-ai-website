@@ -299,7 +299,7 @@ export const AlignmentEnum = z.enum(['left', 'center', 'right']);
 export const MediaTypeEnum = z.enum(['image', 'video']);
 export const MediaSizeEnum = z.enum(['sm', 'md', 'lg', 'full']);
 export const MediaPositionEnum = z.enum(['left', 'right']);
-export const AnimationTypeEnum = z.enum(['fade', 'slide', 'zoom', 'none']);
+export const AnimationTypeEnum = z.enum(['fade', 'slide', 'zoom', 'pulse', 'rotate', 'none']);
 export const BackgroundStyleEnum = z.enum(['solid', 'gradient', 'radial', 'none']);
 export const ContainerMaxWidthEnum = z.enum(['xl', '2xl', 'full']);
 

@@ -210,7 +210,7 @@ model MediaSection {
   ctaUrl                  String?
   ctaStyle                String                @default("primary")
   enableScrollAnimations  Boolean               @default(false)
-  animationType           String                @default("none")// allowed: none, fade, slide, zoom, pulse, rotate
+  animationType           String                @default("none")
   backgroundStyle         String                @default("solid")
   backgroundColor         String                @default("#F6F8FC")
   textColor               String                @default("#0F1A2A")

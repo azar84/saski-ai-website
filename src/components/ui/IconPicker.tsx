@@ -233,6 +233,7 @@ const IconPicker: React.FC<IconPickerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [recentlyUsed, setRecentlyUsed] = useState<string[]>([]);
 
   const categories = useMemo(() => {
     const cats = Array.from(new Set(iconLibrary.map(icon => icon.category)));
@@ -263,12 +264,23 @@ const IconPicker: React.FC<IconPickerProps> = ({
     onChange(iconName);
     setIsOpen(false);
     setSearchTerm('');
+    
+    // Add to recently used
+    setRecentlyUsed(prev => {
+      const newRecent = [iconName, ...prev.filter(name => name !== iconName)].slice(0, 8);
+      return newRecent;
+    });
   };
 
   const clearSelection = () => {
     onChange('');
     setIsOpen(false);
   };
+
+  // Get recently used icons
+  const recentlyUsedIcons = recentlyUsed
+    .map(name => iconLibrary.find(icon => icon.name === name))
+    .filter(Boolean);
 
   return (
     <div className={`relative ${className}`}>
@@ -287,8 +299,41 @@ const IconPicker: React.FC<IconPickerProps> = ({
         <div className="flex items-center space-x-2">
           {selectedIcon ? (
             <>
-              <selectedIcon.component className="w-4 h-4" />
-              <span>{selectedIcon.name}</span>
+              <div className={`
+                ${(() => {
+                  switch (selectedIcon.category) {
+                    case 'actions': return 'text-blue-600';
+                    case 'arrows': return 'text-gray-600';
+                    case 'media': return 'text-purple-600';
+                    case 'communication': return 'text-green-600';
+                    case 'navigation': return 'text-indigo-600';
+                    case 'business': return 'text-emerald-600';
+                    case 'technology': return 'text-cyan-600';
+                    case 'social': return 'text-pink-600';
+                    case 'status': return 'text-orange-600';
+                    case 'time': return 'text-yellow-600';
+                    case 'files': return 'text-slate-600';
+                    case 'security': return 'text-red-600';
+                    case 'tools': return 'text-amber-600';
+                    case 'special': return 'text-violet-600';
+                    case 'weather': return 'text-sky-600';
+                    case 'design': return 'text-rose-600';
+                    case 'productivity': return 'text-lime-600';
+                    case 'gaming': return 'text-fuchsia-600';
+                    case 'health': return 'text-teal-600';
+                    case 'transport': return 'text-blue-500';
+                    case 'food': return 'text-orange-500';
+                    case 'development': return 'text-gray-700';
+                    default: return 'text-gray-600';
+                  }
+                })()}
+              `}>
+                <selectedIcon.component className="w-4 h-4" />
+              </div>
+              <span className="font-medium">{selectedIcon.name}</span>
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                {selectedIcon.category}
+              </span>
             </>
           ) : (
             <span className="text-gray-500">{placeholder}</span>
@@ -298,7 +343,7 @@ const IconPicker: React.FC<IconPickerProps> = ({
       </Button>
 
       {isOpen && (
-        <Card className="absolute top-full left-0 right-0 z-50 mt-1 p-4 max-h-96 overflow-hidden shadow-lg border">
+        <Card className="absolute top-full left-0 right-0 z-50 mt-1 p-4 max-h-96 overflow-hidden shadow-lg border min-w-96">
           <div className="space-y-3 mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -339,36 +384,148 @@ const IconPicker: React.FC<IconPickerProps> = ({
 
           <div className="overflow-y-auto max-h-64">
             {filteredIcons.length > 0 ? (
-              <div className="grid grid-cols-6 gap-2">
-                {filteredIcons.map((icon) => {
-                  const IconComponent = icon.component;
-                  const isSelected = value === icon.name;
-                  
-                  return (
-                    <button
-                      key={icon.name}
-                      type="button"
-                      onClick={() => handleIconSelect(icon.name)}
-                      className={`
-                        p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105
-                        flex flex-col items-center justify-center space-y-1 group relative
-                        ${isSelected 
-                          ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              <div className="space-y-4">
+                {/* Recently Used Section */}
+                {recentlyUsedIcons.length > 0 && searchTerm === '' && selectedCategory === 'all' && (
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Recently Used</h4>
+                    <div className="grid grid-cols-8 gap-2 mb-4">
+                      {recentlyUsedIcons.map((icon) => {
+                        const IconComponent = icon!.component;
+                        const isSelected = value === icon!.name;
+                        
+                        const getIconColor = (category: string) => {
+                          switch (category) {
+                            case 'actions': return 'text-blue-600';
+                            case 'arrows': return 'text-gray-600';
+                            case 'media': return 'text-purple-600';
+                            case 'communication': return 'text-green-600';
+                            case 'navigation': return 'text-indigo-600';
+                            case 'business': return 'text-emerald-600';
+                            case 'technology': return 'text-cyan-600';
+                            case 'social': return 'text-pink-600';
+                            case 'status': return 'text-orange-600';
+                            case 'time': return 'text-yellow-600';
+                            case 'files': return 'text-slate-600';
+                            case 'security': return 'text-red-600';
+                            case 'tools': return 'text-amber-600';
+                            case 'special': return 'text-violet-600';
+                            case 'weather': return 'text-sky-600';
+                            case 'design': return 'text-rose-600';
+                            case 'productivity': return 'text-lime-600';
+                            case 'gaming': return 'text-fuchsia-600';
+                            case 'health': return 'text-teal-600';
+                            case 'transport': return 'text-blue-500';
+                            case 'food': return 'text-orange-500';
+                            case 'development': return 'text-gray-700';
+                            default: return 'text-gray-600';
+                          }
+                        };
+                        
+                        return (
+                          <button
+                            key={icon!.name}
+                            type="button"
+                            onClick={() => handleIconSelect(icon!.name)}
+                            className={`
+                              p-2 rounded-lg border-2 transition-all duration-200 hover:scale-105
+                              flex flex-col items-center justify-center space-y-1 group relative
+                              ${isSelected 
+                                ? 'border-blue-500 bg-blue-50 shadow-md' 
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm'
+                              }
+                            `}
+                            title={`${icon!.name} (${icon!.category})`}
+                          >
+                            <div className={`
+                              ${isSelected ? 'text-blue-600' : getIconColor(icon!.category)}
+                              transition-colors duration-200
+                            `}>
+                              <IconComponent className="w-4 h-4" />
+                            </div>
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full"></div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* All Icons Section */}
+                <div>
+                  <h4 className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                    {selectedCategory === 'all' ? 'All Icons' : selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
+                  </h4>
+                  <div className="grid grid-cols-8 gap-2">
+                    {filteredIcons.map((icon) => {
+                      const IconComponent = icon.component;
+                      const isSelected = value === icon.name;
+                      
+                      // Color scheme based on category
+                      const getIconColor = (category: string) => {
+                        switch (category) {
+                          case 'actions': return 'text-blue-600';
+                          case 'arrows': return 'text-gray-600';
+                          case 'media': return 'text-purple-600';
+                          case 'communication': return 'text-green-600';
+                          case 'navigation': return 'text-indigo-600';
+                          case 'business': return 'text-emerald-600';
+                          case 'technology': return 'text-cyan-600';
+                          case 'social': return 'text-pink-600';
+                          case 'status': return 'text-orange-600';
+                          case 'time': return 'text-yellow-600';
+                          case 'files': return 'text-slate-600';
+                          case 'security': return 'text-red-600';
+                          case 'tools': return 'text-amber-600';
+                          case 'special': return 'text-violet-600';
+                          case 'weather': return 'text-sky-600';
+                          case 'design': return 'text-rose-600';
+                          case 'productivity': return 'text-lime-600';
+                          case 'gaming': return 'text-fuchsia-600';
+                          case 'health': return 'text-teal-600';
+                          case 'transport': return 'text-blue-500';
+                          case 'food': return 'text-orange-500';
+                          case 'development': return 'text-gray-700';
+                          default: return 'text-gray-600';
                         }
-                      `}
-                      title={icon.name}
-                    >
-                      <IconComponent className="w-5 h-5" />
-                      <span className="text-xs text-center leading-tight max-w-full truncate">
-                        {icon.name}
-                      </span>
-                      {isSelected && (
-                        <Check className="w-3 h-3 text-blue-600 absolute top-1 right-1" />
-                      )}
-                    </button>
-                  );
-                })}
+                      };
+                      
+                      return (
+                        <button
+                          key={icon.name}
+                          type="button"
+                          onClick={() => handleIconSelect(icon.name)}
+                          className={`
+                            p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105
+                            flex flex-col items-center justify-center space-y-2 group relative
+                            ${isSelected 
+                              ? 'border-blue-500 bg-blue-50 shadow-md' 
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm'
+                            }
+                          `}
+                          title={`${icon.name} (${icon.category})`}
+                        >
+                          <div className={`
+                            ${isSelected ? 'text-blue-600' : getIconColor(icon.category)}
+                            transition-colors duration-200
+                          `}>
+                            <IconComponent className="w-5 h-5" />
+                          </div>
+                          <span className="text-xs text-center leading-tight max-w-full truncate font-medium">
+                            {icon.name}
+                          </span>
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
+                              <Check className="w-2 h-2 text-white" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">

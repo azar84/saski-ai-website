@@ -35,28 +35,28 @@ async function quickSeed() {
       await prisma.globalFeature.createMany({
         data: [
           {
-            title: 'Multi-Channel Support',
+            name: 'Multi-Channel Support',
             description: 'Connect with customers across WhatsApp, SMS, voice, web chat, and social media',
-            iconName: 'MessageSquare',
+            iconUrl: 'MessageSquare',
             category: 'integration',
             sortOrder: 1,
-            isVisible: true
+            isActive: true
           },
           {
-            title: 'AI-Powered Automation',
+            name: 'AI-Powered Automation',
             description: 'Intelligent conversations that handle inquiries, bookings, and support automatically',
-            iconName: 'Zap',
+            iconUrl: 'Zap',
             category: 'ai', 
             sortOrder: 2,
-            isVisible: true
+            isActive: true
           },
           {
-            title: 'Smart Booking System',
+            name: 'Smart Booking System',
             description: 'Automatically schedule appointments and manage calendars',
-            iconName: 'Calendar',
+            iconUrl: 'Calendar',
             category: 'automation',
             sortOrder: 3,
-            isVisible: true
+            isActive: true
           }
         ]
       });

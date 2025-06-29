@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { 
   Play, 
   CheckCircle, 
@@ -22,7 +23,119 @@ import {
   Monitor,
   Smartphone,
   Wifi,
-  Lock
+  Lock,
+  // Additional icons from the full library
+  ArrowLeft,
+  ArrowUp,
+  ArrowDown,
+  Plus,
+  Minus,
+  X,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Pause,
+  Download,
+  Upload,
+  Share,
+  Share2,
+  Image,
+  Music,
+  Film,
+  Mail,
+  Phone,
+  Video,
+  Send,
+  Home,
+  Menu,
+  Settings,
+  Search,
+  ExternalLink,
+  DollarSign,
+  CreditCard,
+  ShoppingCart,
+  TrendingUp,
+  BarChart,
+  Cloud,
+  Terminal,
+  Bug,
+  Component,
+  Box,
+  User,
+  ThumbsUp,
+  ThumbsDown,
+  Flag,
+  Bookmark,
+  XCircle,
+  AlertCircle,
+  Info,
+  Loader,
+  Loader2,
+  RefreshCw,
+  RotateCcw,
+  RotateCw,
+  Calendar,
+  Timer,
+  Hourglass,
+  CalendarDays,
+  CalendarCheck,
+  File,
+  FileText,
+  Folder,
+  Archive,
+  Package,
+  Key,
+  Eye,
+  EyeOff,
+  Fingerprint,
+  Edit,
+  Edit2,
+  Copy,
+  Save,
+  Trash2,
+  Wrench,
+  Hammer,
+  Scissors,
+  Paintbrush,
+  Pen,
+  PenTool,
+  Crown,
+  Diamond,
+  Flame,
+  Sun,
+  Moon,
+  Layout,
+  Grid,
+  Palette,
+  CheckSquare,
+  Clipboard,
+  Book,
+  BookOpen,
+  Lightbulb,
+  Bell,
+  BellOff,
+  Coffee,
+  Gamepad,
+  Dice1,
+  Dice2,
+  Dice3,
+  Activity,
+  Thermometer,
+  Pill,
+  Car,
+  Plane,
+  Train,
+  Truck,
+  Bike,
+  Bus,
+  Ship,
+  Pizza,
+  Apple,
+  Cherry,
+  Grape,
+  GitBranch,
+  GitCommit,
+  GitMerge
 } from 'lucide-react';
 
 interface MediaSectionFeature {
@@ -66,6 +179,7 @@ interface MediaSectionProps {
 }
 
 const MediaSection: React.FC<MediaSectionProps> = ({
+  id,
   headline,
   subheading,
   mediaUrl,
@@ -75,7 +189,6 @@ const MediaSection: React.FC<MediaSectionProps> = ({
   badgeColor = '#5243E9',
   alignment,
   mediaSize,
-  mediaPosition,
   showBadge,
   showCtaButton,
   ctaText,
@@ -114,11 +227,290 @@ const MediaSection: React.FC<MediaSectionProps> = ({
     Monitor,
     Smartphone,
     Wifi,
-    Lock
+    Lock,
+    ArrowLeft,
+    ArrowUp,
+    ArrowDown,
+    Plus,
+    Minus,
+    X,
+    Check,
+    ChevronDown,
+    ChevronUp,
+    Pause,
+    Download,
+    Upload,
+    Share,
+    Share2,
+    Image,
+    Music,
+    Film,
+    Mail,
+    Phone,
+    Video,
+    Send,
+    Home,
+    Menu,
+    Settings,
+    Search,
+    ExternalLink,
+    DollarSign,
+    CreditCard,
+    ShoppingCart,
+    TrendingUp,
+    BarChart,
+    Cloud,
+    Terminal,
+    Bug,
+    Component,
+    Box,
+    User,
+    ThumbsUp,
+    ThumbsDown,
+    Flag,
+    Bookmark,
+    XCircle,
+    AlertCircle,
+    Info,
+    Loader,
+    Loader2,
+    RefreshCw,
+    RotateCcw,
+    RotateCw,
+    Calendar,
+    Timer,
+    Hourglass,
+    CalendarDays,
+    CalendarCheck,
+    File,
+    FileText,
+    Folder,
+    Archive,
+    Package,
+    Key,
+    Eye,
+    EyeOff,
+    Fingerprint,
+    Edit,
+    Edit2,
+    Copy,
+    Save,
+    Trash2,
+    Wrench,
+    Hammer,
+    Scissors,
+    Paintbrush,
+    Pen,
+    PenTool,
+    Crown,
+    Diamond,
+    Flame,
+    Sun,
+    Moon,
+    Layout,
+    Grid,
+    Palette,
+    CheckSquare,
+    Clipboard,
+    Book,
+    BookOpen,
+    Lightbulb,
+    Bell,
+    BellOff,
+    Coffee,
+    Gamepad,
+    Dice1,
+    Dice2,
+    Dice3,
+    Activity,
+    Thermometer,
+    Pill,
+    Car,
+    Plane,
+    Train,
+    Truck,
+    Bike,
+    Bus,
+    Ship,
+    Pizza,
+    Apple,
+    Cherry,
+    Grape,
+    GitBranch,
+    GitCommit,
+    GitMerge
   };
 
   const getIconComponent = (iconName: string) => {
     return availableIcons[iconName] || MessageSquare;
+  };
+
+  // Get icon category color for consistent styling
+  const getIconCategoryColor = (iconName: string) => {
+    // Map icons to their categories (same as in admin panel)
+    const iconCategories: { [key: string]: string } = {
+      MessageSquare: 'communication',
+      Users: 'social',
+      Shield: 'security',
+      Clock: 'time',
+      Zap: 'special',
+      Star: 'social',
+      Target: 'business',
+      Layers: 'design',
+      Globe: 'navigation',
+      Heart: 'social',
+      Sparkles: 'special',
+      Rocket: 'special',
+      Award: 'business',
+      Briefcase: 'business',
+      Code: 'technology',
+      Database: 'technology',
+      Monitor: 'technology',
+      Smartphone: 'technology',
+      Wifi: 'technology',
+      Lock: 'security',
+      // Additional mappings for new icons
+      ArrowRight: 'arrows',
+      ArrowLeft: 'arrows',
+      ArrowUp: 'arrows',
+      ArrowDown: 'arrows',
+      Plus: 'actions',
+      Minus: 'actions',
+      X: 'actions',
+      Check: 'actions',
+      ChevronDown: 'arrows',
+      ChevronUp: 'arrows',
+      Pause: 'media',
+      Download: 'actions',
+      Upload: 'actions',
+      Share: 'actions',
+      Share2: 'social',
+      Image: 'media',
+      Music: 'media',
+      Film: 'media',
+      Mail: 'communication',
+      Phone: 'communication',
+      Video: 'communication',
+      Send: 'communication',
+      Home: 'navigation',
+      Menu: 'navigation',
+      Settings: 'navigation',
+      Search: 'navigation',
+      ExternalLink: 'navigation',
+      DollarSign: 'business',
+      CreditCard: 'business',
+      ShoppingCart: 'business',
+      TrendingUp: 'business',
+      BarChart: 'business',
+      Cloud: 'technology',
+      Terminal: 'technology',
+      Bug: 'technology',
+      Component: 'technology',
+      Box: 'technology',
+      User: 'social',
+      ThumbsUp: 'social',
+      ThumbsDown: 'social',
+      Flag: 'social',
+      Bookmark: 'social',
+      XCircle: 'status',
+      AlertCircle: 'status',
+      Info: 'status',
+      Loader: 'status',
+      Loader2: 'status',
+      RefreshCw: 'status',
+      RotateCcw: 'status',
+      RotateCw: 'status',
+      Calendar: 'time',
+      Timer: 'time',
+      Hourglass: 'time',
+      CalendarDays: 'time',
+      CalendarCheck: 'time',
+      File: 'files',
+      FileText: 'files',
+      Folder: 'files',
+      Archive: 'files',
+      Package: 'files',
+      Key: 'security',
+      Eye: 'security',
+      EyeOff: 'security',
+      Fingerprint: 'security',
+      Edit: 'tools',
+      Edit2: 'tools',
+      Copy: 'tools',
+      Save: 'tools',
+      Trash2: 'tools',
+      Wrench: 'tools',
+      Hammer: 'tools',
+      Scissors: 'tools',
+      Paintbrush: 'tools',
+      Pen: 'tools',
+      PenTool: 'tools',
+      Crown: 'special',
+      Diamond: 'special',
+      Flame: 'special',
+      Sun: 'weather',
+      Moon: 'weather',
+      Layout: 'design',
+      Grid: 'design',
+      Palette: 'design',
+      CheckSquare: 'productivity',
+      Clipboard: 'productivity',
+      Book: 'productivity',
+      BookOpen: 'productivity',
+      Lightbulb: 'productivity',
+      Bell: 'productivity',
+      BellOff: 'productivity',
+      Coffee: 'productivity',
+      Gamepad: 'gaming',
+      Dice1: 'gaming',
+      Dice2: 'gaming',
+      Dice3: 'gaming',
+      Activity: 'health',
+      Thermometer: 'health',
+      Pill: 'health',
+      Car: 'transport',
+      Plane: 'transport',
+      Train: 'transport',
+      Truck: 'transport',
+      Bike: 'transport',
+      Bus: 'transport',
+      Ship: 'transport',
+      Pizza: 'food',
+      Apple: 'food',
+      Cherry: 'food',
+      Grape: 'food',
+      GitBranch: 'development',
+      GitCommit: 'development',
+      GitMerge: 'development'
+    };
+
+    const category = iconCategories[iconName] || 'actions';
+    
+    switch (category) {
+      case 'actions': return 'text-blue-600';
+      case 'arrows': return 'text-gray-600';
+      case 'media': return 'text-purple-600';
+      case 'communication': return 'text-green-600';
+      case 'navigation': return 'text-indigo-600';
+      case 'business': return 'text-emerald-600';
+      case 'technology': return 'text-cyan-600';
+      case 'social': return 'text-pink-600';
+      case 'status': return 'text-orange-600';
+      case 'time': return 'text-yellow-600';
+      case 'files': return 'text-slate-600';
+      case 'security': return 'text-red-600';
+      case 'tools': return 'text-amber-600';
+      case 'special': return 'text-violet-600';
+      case 'weather': return 'text-sky-600';
+      case 'design': return 'text-rose-600';
+      case 'productivity': return 'text-lime-600';
+      case 'gaming': return 'text-fuchsia-600';
+      case 'health': return 'text-teal-600';
+      case 'transport': return 'text-blue-500';
+      case 'food': return 'text-orange-500';
+      case 'development': return 'text-gray-700';
+      default: return 'text-gray-600';
+    }
   };
 
   const getVideoId = (url: string) => {
@@ -221,38 +613,96 @@ const MediaSection: React.FC<MediaSectionProps> = ({
     );
   };
 
+  // --- Animation variants for features ---
+  const featureVariants = {
+    slide: {
+      animate: {
+        x: [0, -40, 0],
+        opacity: [0, 0, 1]
+      }
+    },
+    fade: {
+      animate: {
+        opacity: [0, 1, 0]
+      }
+    },
+    zoom: {
+      animate: {
+        scale: [0.7, 1, 0.7],
+        opacity: [0, 1, 0]
+      }
+    },
+    pulse: {
+      animate: {
+        scale: [1, 1.08, 1],
+        boxShadow: [
+          '0 0 0px rgba(0,0,0,0.08)',
+          '0 0 12px rgba(80,80,255,0.10)',
+          '0 0 0px rgba(0,0,0,0.08)'
+        ]
+      }
+    },
+    rotate: {
+      animate: {
+        rotate: [0, 360]
+      }
+    }
+  };
+
+  // --- Render features with selected animation ---
   const renderFeatures = () => {
     if (features.length === 0) return null;
-
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
         {features
           .sort((a, b) => a.sortOrder - b.sortOrder)
-          .map((feature) => {
+          .map((feature, i) => {
             const IconComponent = getIconComponent(feature.icon);
+            
+            // All animations are continuous
+            const transition = animationType === 'pulse'
+              ? { duration: 6, repeat: Infinity, delay: i * 0.12 }
+              : animationType === 'rotate'
+              ? { repeat: Infinity, duration: 8, delay: i * 0.12 }
+              : animationType === 'fade'
+              ? { repeat: Infinity, duration: 5, delay: i * 0.12 }
+              : animationType === 'slide'
+              ? { repeat: Infinity, duration: 7, delay: i * 0.12 }
+              : animationType === 'zoom'
+              ? { repeat: Infinity, duration: 5, delay: i * 0.12 }
+              : { duration: 0.6, delay: i * 0.1 };
+              
+            // For rotation, determine direction based on index (alternating)
+            const rotationDirection = animationType === 'rotate' ? (i % 2 === 0 ? [0, 360] : [360, 0]) : undefined;
+              
             return (
-            <div key={feature.id} className="flex items-center space-x-3">
-              <div 
-                  className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: feature.color }}
+              <motion.div
+                key={feature.id}
+                className="flex items-center space-x-3"
+                animate={animationType === 'rotate' 
+                  ? { rotate: rotationDirection }
+                  : featureVariants[animationType as keyof typeof featureVariants]?.animate
+                }
+                transition={transition}
               >
-                  <IconComponent className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-sm font-medium" style={{ color: textColor }}>
-                {feature.label}
-              </span>
-            </div>
+                <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
+                  <IconComponent className="w-4 h-4" style={{ color: feature.color }} />
+                </div>
+                <span className="text-sm font-medium" style={{ color: textColor }}>
+                  {feature.label}
+                </span>
+              </motion.div>
             );
           })}
       </div>
     );
   };
 
-  const isMediaLeft = mediaPosition === 'left';
+  const isMediaLeft = layoutType === 'media_left';
   const isStacked = layoutType === 'stacked';
 
   return (
-    <section 
+    <section
       className={`py-24 ${className} ${enableScrollAnimations ? 'scroll-animation' : ''}`}
       data-animation-type={animationType}
       style={{

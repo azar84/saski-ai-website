@@ -37,6 +37,8 @@ import {
   Lock
 } from 'lucide-react';
 import MediaSelector from '@/components/ui/MediaSelector';
+import IconPicker from '@/components/ui/IconPicker';
+import { useDesignSystem } from '@/hooks/useDesignSystem';
 
 // Types
 interface MediaItem {
@@ -61,6 +63,16 @@ interface MediaSectionFeature {
   sortOrder: number;
 }
 
+interface CTA {
+  id: number;
+  text: string;
+  url: string;
+  icon?: string;
+  style: string;
+  target: string;
+  isActive: boolean;
+}
+
 interface MediaSection {
   id?: number;
   position: number;
@@ -82,7 +94,7 @@ interface MediaSection {
   ctaUrl?: string;
   ctaStyle: 'primary' | 'secondary' | 'link';
   enableScrollAnimations: boolean;
-  animationType: 'fade' | 'slide' | 'zoom' | 'none';
+  animationType: 'fade' | 'slide' | 'zoom' | 'none' | 'pulse' | 'rotate';
   backgroundStyle: 'solid' | 'gradient' | 'radial' | 'none';
   backgroundColor: string;
   textColor: string;
@@ -102,6 +114,8 @@ const MediaSectionsManager: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<MediaSection | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+  const [availableCTAs, setAvailableCTAs] = useState<CTA[]>([]);
+  const { designSystem } = useDesignSystem();
 
   // Form state
   const [formData, setFormData] = useState<MediaSection>({
@@ -135,33 +149,129 @@ const MediaSectionsManager: React.FC = () => {
     features: []
   });
 
-  // Available icons for features
-  const availableIcons = [
-    { name: 'MessageSquare', component: MessageSquare },
-    { name: 'Users', component: Users },
-    { name: 'Shield', component: Shield },
-    { name: 'Clock', component: Clock },
-    { name: 'Zap', component: Zap },
-    { name: 'Star', component: Star },
-    { name: 'Target', component: Target },
-    { name: 'Layers', component: Layers },
-    { name: 'Globe', component: Globe },
-    { name: 'Heart', component: Heart },
-    { name: 'Sparkles', component: Sparkles },
-    { name: 'Rocket', component: Rocket },
-    { name: 'Award', component: Award },
-    { name: 'Briefcase', component: Briefcase },
-    { name: 'Code', component: Code },
-    { name: 'Database', component: Database },
-    { name: 'Monitor', component: Monitor },
-    { name: 'Smartphone', component: Smartphone },
-    { name: 'Wifi', component: Wifi },
-    { name: 'Lock', component: Lock }
-  ];
+  // Get design system colors for color picker
+  const getDesignSystemColors = () => {
+    if (!designSystem) return [];
+    
+    return [
+      { name: 'Primary', value: designSystem.primaryColor, description: 'Main brand color' },
+      { name: 'Primary Light', value: designSystem.primaryColorLight, description: 'Light primary variant' },
+      { name: 'Primary Dark', value: designSystem.primaryColorDark, description: 'Dark primary variant' },
+      { name: 'Secondary', value: designSystem.secondaryColor, description: 'Secondary brand color' },
+      { name: 'Accent', value: designSystem.accentColor, description: 'Accent color' },
+      { name: 'Success', value: designSystem.successColor, description: 'Success state color' },
+      { name: 'Warning', value: designSystem.warningColor, description: 'Warning state color' },
+      { name: 'Error', value: designSystem.errorColor, description: 'Error state color' },
+      { name: 'Info', value: designSystem.infoColor, description: 'Info state color' },
+      { name: 'Background Primary', value: designSystem.backgroundPrimary, description: 'Primary background' },
+      { name: 'Background Secondary', value: designSystem.backgroundSecondary, description: 'Secondary background' },
+      { name: 'Background Dark', value: designSystem.backgroundDark, description: 'Dark background' },
+      { name: 'Gray Light', value: designSystem.grayLight, description: 'Light gray' },
+      { name: 'Gray Medium', value: designSystem.grayMedium, description: 'Medium gray' },
+      { name: 'Gray Dark', value: designSystem.grayDark, description: 'Dark gray' }
+    ];
+  };
 
-  const getIconComponent = (iconName: string) => {
-    const icon = availableIcons.find(i => i.name === iconName);
-    return icon ? icon.component : MessageSquare;
+  // Color Picker Component
+  const ColorPicker: React.FC<{
+    label: string;
+    value: string;
+    onChange: (color: string) => void;
+    allowTransparent?: boolean;
+  }> = ({ label, value, onChange, allowTransparent = false }) => {
+    const [showPicker, setShowPicker] = useState(false);
+    const [customColor, setCustomColor] = useState(value.startsWith('#') ? value : '#000000');
+    const designSystemColors = getDesignSystemColors();
+
+    const presetColors = [
+      ...designSystemColors,
+      { name: 'White', value: '#FFFFFF', description: 'White' },
+      { name: 'Black', value: '#000000', description: 'Black' },
+    ];
+
+    if (allowTransparent) {
+      presetColors.push({ name: 'Transparent', value: 'transparent', description: 'Transparent' });
+    }
+
+    const handlePresetClick = (color: string) => {
+      onChange(color);
+      setShowPicker(false);
+    };
+
+    const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newColor = e.target.value;
+      setCustomColor(newColor);
+      onChange(newColor);
+    };
+
+    return (
+      <div className="relative">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </label>
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={() => setShowPicker(!showPicker)}
+            className="w-10 h-10 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:border-gray-400 transition-colors"
+            style={{ backgroundColor: value }}
+          >
+            {value === 'transparent' && (
+              <div className="w-full h-full bg-checkerboard rounded-lg" />
+            )}
+          </button>
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+            placeholder="#000000"
+          />
+        </div>
+
+        {showPicker && (
+          <div className="absolute top-full left-0 z-50 mt-2 p-4 bg-white border border-gray-300 rounded-lg shadow-lg min-w-64">
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Design System Colors</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {designSystemColors.map((color) => (
+                    <button
+                      key={color.name}
+                      type="button"
+                      onClick={() => handlePresetClick(color.value)}
+                      className="w-8 h-8 rounded border border-gray-300 hover:border-gray-400 transition-colors"
+                      style={{ backgroundColor: color.value }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Custom Color</label>
+                <input
+                  type="color"
+                  value={customColor}
+                  onChange={handleCustomColorChange}
+                  className="w-full h-10 border border-gray-300 rounded"
+                />
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowPicker(false)}
+                  className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   // Fetch media sections
@@ -185,8 +295,111 @@ const MediaSectionsManager: React.FC = () => {
     }
   };
 
+  // Fetch available CTAs
+  const fetchAvailableCTAs = async () => {
+    try {
+      const response = await fetch('/api/admin/cta-buttons');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && Array.isArray(result.data)) {
+          setAvailableCTAs(result.data.filter((cta: CTA) => cta.isActive));
+        } else {
+          setAvailableCTAs([]);
+        }
+      } else {
+        setAvailableCTAs([]);
+      }
+    } catch (error) {
+      console.error('Error fetching CTAs:', error);
+      setAvailableCTAs([]);
+    }
+  };
+
+  // Get icon component for display
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: React.ComponentType<any> } = {
+      MessageSquare,
+      Users,
+      Shield,
+      Clock,
+      Zap,
+      Star,
+      Target,
+      Layers,
+      Globe,
+      Heart,
+      Sparkles,
+      Rocket,
+      Award,
+      Briefcase,
+      Code,
+      Database,
+      Monitor,
+      Smartphone,
+      Wifi,
+      Lock
+    };
+    return iconMap[iconName] || MessageSquare;
+  };
+
+  // Get icon category color
+  const getIconCategoryColor = (iconName: string) => {
+    // Map icons to their categories
+    const iconCategories: { [key: string]: string } = {
+      MessageSquare: 'communication',
+      Users: 'social',
+      Shield: 'security',
+      Clock: 'time',
+      Zap: 'special',
+      Star: 'social',
+      Target: 'business',
+      Layers: 'design',
+      Globe: 'navigation',
+      Heart: 'social',
+      Sparkles: 'special',
+      Rocket: 'special',
+      Award: 'business',
+      Briefcase: 'business',
+      Code: 'technology',
+      Database: 'technology',
+      Monitor: 'technology',
+      Smartphone: 'technology',
+      Wifi: 'technology',
+      Lock: 'security'
+    };
+
+    const category = iconCategories[iconName] || 'actions';
+    
+    switch (category) {
+      case 'actions': return 'text-blue-600';
+      case 'arrows': return 'text-gray-600';
+      case 'media': return 'text-purple-600';
+      case 'communication': return 'text-green-600';
+      case 'navigation': return 'text-indigo-600';
+      case 'business': return 'text-emerald-600';
+      case 'technology': return 'text-cyan-600';
+      case 'social': return 'text-pink-600';
+      case 'status': return 'text-orange-600';
+      case 'time': return 'text-yellow-600';
+      case 'files': return 'text-slate-600';
+      case 'security': return 'text-red-600';
+      case 'tools': return 'text-amber-600';
+      case 'special': return 'text-violet-600';
+      case 'weather': return 'text-sky-600';
+      case 'design': return 'text-rose-600';
+      case 'productivity': return 'text-lime-600';
+      case 'gaming': return 'text-fuchsia-600';
+      case 'health': return 'text-teal-600';
+      case 'transport': return 'text-blue-500';
+      case 'food': return 'text-orange-500';
+      case 'development': return 'text-gray-700';
+      default: return 'text-gray-600';
+    }
+  };
+
   useEffect(() => {
     fetchMediaSections();
+    fetchAvailableCTAs();
   }, []);
 
   // Handle form submission
@@ -332,6 +545,12 @@ const MediaSectionsManager: React.FC = () => {
     setExpandedSections(newExpanded);
   };
 
+  // YouTube URL Input for Video Type
+  const getVideoId = (url: string) => {
+    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
+    return match ? match[1] : null;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -394,6 +613,12 @@ const MediaSectionsManager: React.FC = () => {
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       <span className="capitalize">{section.mediaType}</span>
                       <span className="capitalize">{section.layoutType.replace('_', ' ')}</span>
+                      {section.mediaType === 'video' && (section.mediaUrl.includes('youtube.com') || section.mediaUrl.includes('youtu.be')) && (
+                        <span className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+                          <Video className="w-3 h-3" />
+                          YouTube
+                        </span>
+                      )}
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         section.isActive 
                           ? 'bg-green-100 text-green-800' 
@@ -433,7 +658,16 @@ const MediaSectionsManager: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                     <div>
                       <span className="font-medium text-gray-700">Media URL:</span>
-                      <p className="text-gray-600 truncate">{section.mediaUrl}</p>
+                      {section.mediaType === 'video' && (section.mediaUrl.includes('youtube.com') || section.mediaUrl.includes('youtu.be')) ? (
+                        <div className="space-y-1">
+                          <p className="text-gray-600 truncate">{section.mediaUrl}</p>
+                          <p className="text-xs text-blue-600">
+                            Video ID: {getVideoId(section.mediaUrl)}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-gray-600 truncate">{section.mediaUrl}</p>
+                      )}
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">Background:</span>
@@ -461,8 +695,7 @@ const MediaSectionsManager: React.FC = () => {
                           return (
                             <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
                               <IconComponent 
-                                className="w-4 h-4" 
-                                style={{ color: feature.color }}
+                                className={`w-4 h-4 ${getIconCategoryColor(feature.icon)}`}
                               />
                               <span className="text-sm text-gray-700">{feature.label}</span>
                             </div>
@@ -577,14 +810,11 @@ const MediaSectionsManager: React.FC = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Badge Color
-                      </label>
-                      <input
-                        type="color"
+                      <ColorPicker
+                        label="Badge Color"
                         value={formData.badgeColor}
-                        onChange={(e) => setFormData({ ...formData, badgeColor: e.target.value })}
-                        className="w-full h-10 border border-gray-300 rounded-lg"
+                        onChange={(color) => setFormData({ ...formData, badgeColor: color })}
+                        allowTransparent={false}
                       />
                     </div>
                   </div>
@@ -666,6 +896,44 @@ const MediaSectionsManager: React.FC = () => {
                   />
                 </div>
 
+                {/* YouTube URL Input for Video Type */}
+                {formData.mediaType === 'video' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      YouTube URL (Alternative)
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.mediaUrl}
+                      onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })}
+                      placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter a YouTube URL directly (supports watch URLs, short URLs, and embed URLs)
+                    </p>
+                    
+                    {/* YouTube Preview */}
+                    {formData.mediaUrl && (formData.mediaUrl.includes('youtube.com') || formData.mediaUrl.includes('youtu.be')) && (
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Preview
+                        </label>
+                        <div className="relative w-full max-w-md pb-[56.25%] h-0 overflow-hidden rounded-lg border border-gray-200">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${getVideoId(formData.mediaUrl)}`}
+                            title="YouTube Preview"
+                            className="absolute top-0 left-0 w-full h-full"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Media Alt Text
@@ -697,46 +965,66 @@ const MediaSectionsManager: React.FC = () => {
                 </div>
 
                 {formData.features && formData.features.length > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {formData.features.map((feature, index) => {
                       const IconComponent = getIconComponent(feature.icon);
                       return (
-                        <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <select
-                              value={feature.icon}
-                              onChange={(e) => updateFeature(index, 'icon', e.target.value)}
-                              className="px-2 py-1 border border-gray-300 rounded text-sm"
-                            >
-                              {availableIcons.map(icon => (
-                                <option key={icon.name} value={icon.name}>{icon.name}</option>
-                              ))}
-                            </select>
-                            <IconComponent className="w-4 h-4" style={{ color: feature.color }} />
+                        <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                            <div className="md:col-span-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Icon
+                              </label>
+                              <IconPicker
+                                value={feature.icon}
+                                onChange={(iconName) => updateFeature(index, 'icon', iconName)}
+                                placeholder="Select icon"
+                                showLabel={false}
+                                className="w-full"
+                              />
+                            </div>
+                            
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Feature Label
+                              </label>
+                              <input
+                                type="text"
+                                value={feature.label}
+                                onChange={(e) => updateFeature(index, 'label', e.target.value)}
+                                placeholder="Enter feature description"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            
+                            <div className="md:col-span-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Color
+                              </label>
+                              <ColorPicker
+                                label=""
+                                value={feature.color}
+                                onChange={(color) => updateFeature(index, 'color', color)}
+                                allowTransparent={false}
+                              />
+                            </div>
                           </div>
                           
-                          <input
-                            type="text"
-                            value={feature.label}
-                            onChange={(e) => updateFeature(index, 'label', e.target.value)}
-                            placeholder="Feature label"
-                            className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                          />
-                          
-                          <input
-                            type="color"
-                            value={feature.color}
-                            onChange={(e) => updateFeature(index, 'color', e.target.value)}
-                            className="w-8 h-8 border border-gray-300 rounded"
-                          />
-                          
-                          <button
-                            type="button"
-                            onClick={() => removeFeature(index)}
-                            className="p-1 text-red-600 hover:text-red-800 transition-colors"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+                            <div className="flex items-center gap-2">
+                              <IconComponent className={`w-4 h-4 ${getIconCategoryColor(feature.icon)}`} />
+                              <span className="text-sm text-gray-600">{feature.label || 'Preview'}</span>
+                            </div>
+                            
+                            <button
+                              type="button"
+                              onClick={() => removeFeature(index)}
+                              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Remove feature"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -764,48 +1052,81 @@ const MediaSectionsManager: React.FC = () => {
                 </div>
 
                 {formData.showCtaButton && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        CTA Text
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.ctaText}
-                        onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        CTA URL
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.ctaUrl}
-                        onChange={(e) => setFormData({ ...formData, ctaUrl: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="https://example.com, /page, or #section"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Enter a full URL, relative path, or anchor link (e.g., #pricing, #contact)
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        CTA Style
+                        Select CTA from Library
                       </label>
                       <select
-                        value={formData.ctaStyle}
-                        onChange={(e) => setFormData({ ...formData, ctaStyle: e.target.value as any })}
+                        value=""
+                        onChange={(e) => {
+                          const selectedCTA = availableCTAs.find(cta => cta.id === parseInt(e.target.value));
+                          if (selectedCTA) {
+                            setFormData({
+                              ...formData,
+                              ctaText: selectedCTA.text,
+                              ctaUrl: selectedCTA.url,
+                              ctaStyle: selectedCTA.style as 'primary' | 'secondary' | 'link'
+                            });
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        <option value="primary">Primary</option>
-                        <option value="secondary">Secondary</option>
-                        <option value="link">Link</option>
+                        <option value="">Select a CTA from library...</option>
+                        {availableCTAs.map(cta => (
+                          <option key={cta.id} value={cta.id}>
+                            {cta.text} ({cta.url})
+                          </option>
+                        ))}
                       </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Choose from existing CTAs or customize below
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          CTA Text
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.ctaText}
+                          onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          CTA URL
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.ctaUrl}
+                          onChange={(e) => setFormData({ ...formData, ctaUrl: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="https://example.com, /page, or #section"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Enter a full URL, relative path, or anchor link (e.g., #pricing, #contact)
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          CTA Style
+                        </label>
+                        <select
+                          value={formData.ctaStyle}
+                          onChange={(e) => setFormData({ ...formData, ctaStyle: e.target.value as any })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="primary">Primary</option>
+                          <option value="secondary">Secondary</option>
+                          <option value="link">Link</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -863,6 +1184,8 @@ const MediaSectionsManager: React.FC = () => {
                       <option value="fade">Fade</option>
                       <option value="slide">Slide</option>
                       <option value="zoom">Zoom</option>
+                      <option value="pulse">Pulse</option>
+                      <option value="rotate">Rotate</option>
                     </select>
                   </div>
                   
@@ -884,26 +1207,20 @@ const MediaSectionsManager: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Background Color
-                    </label>
-                    <input
-                      type="color"
+                    <ColorPicker
+                      label="Background Color"
                       value={formData.backgroundColor}
-                      onChange={(e) => setFormData({ ...formData, backgroundColor: e.target.value })}
-                      className="w-full h-10 border border-gray-300 rounded-lg"
+                      onChange={(color) => setFormData({ ...formData, backgroundColor: color })}
+                      allowTransparent={true}
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Text Color
-                    </label>
-                    <input
-                      type="color"
+                    <ColorPicker
+                      label="Text Color"
                       value={formData.textColor}
-                      onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
-                      className="w-full h-10 border border-gray-300 rounded-lg"
+                      onChange={(color) => setFormData({ ...formData, textColor: color })}
+                      allowTransparent={false}
                     />
                   </div>
                   
