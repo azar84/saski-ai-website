@@ -520,7 +520,31 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
   }
 
   if (sections.length === 0) {
-    return null;
+    return (
+      <div className={`py-24 ${className}`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="text-gray-400 mb-4">
+              <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Page Not Found
+            </h2>
+            <p className="text-gray-600 mb-4">
+              The page you're looking for doesn't exist or has no content.
+            </p>
+            <a 
+              href="/"
+              className="bg-[#5243E9] text-white px-6 py-2 rounded-lg hover:bg-[#4338CA] transition-colors"
+            >
+              Go Home
+            </a>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
