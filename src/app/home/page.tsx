@@ -62,7 +62,7 @@ async function getPageBySlug(slug: string): Promise<Page | null> {
 
 async function getPageSections(pageSlug: string): Promise<Array<{ id: string; isVisible: boolean; sectionType: string }>> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/page-sections?pageSlug=${pageSlug}`, {
+    const response = await fetch(`/api/admin/page-sections?pageSlug=${pageSlug}`, {
       cache: 'no-store'
     });
     
