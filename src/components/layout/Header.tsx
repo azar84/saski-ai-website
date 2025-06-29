@@ -65,8 +65,9 @@ export default function Header() {
           setHeaderConfig(headerData[0]); // Get the first active config
         }
         
-        if (settingsData.success && settingsData.data) {
-          setSiteSettings(settingsData.data);
+        // Handle site settings response (returns data directly, not wrapped in data property)
+        if (settingsData && !settingsData.error) {
+          setSiteSettings(settingsData);
         }
 
         // Debug info only in development
@@ -85,7 +86,7 @@ export default function Header() {
               console.log('Header - Menu items:', config.menus[0]?.menu?.items?.length || 0);
             }
           }
-          console.log('Header - Site settings fetched:', settingsData.data ? 'FOUND' : 'NOT FOUND');
+          console.log('Header - Site settings fetched:', settingsData ? 'FOUND' : 'NOT FOUND');
           console.log('==============================');
         }
       } catch (error) {
