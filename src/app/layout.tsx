@@ -33,22 +33,6 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: "/",
     },
-    icons: {
-      icon: [
-        {
-          url: '/favicon.svg',
-          sizes: '32x32',
-          type: 'image/svg+xml',
-        },
-        {
-          url: '/favicon.svg',
-          sizes: '16x16', 
-          type: 'image/svg+xml',
-        }
-      ],
-      shortcut: '/favicon.svg',
-      apple: '/favicon.svg',
-    },
     openGraph: {
       title: "Saski AI - Transform Your Customer Communication with AI",
       description: "Empower your business with intelligent conversations across WhatsApp, SMS, Telegram, and more. Automate responses, capture leads, and delight customers 24/7.",

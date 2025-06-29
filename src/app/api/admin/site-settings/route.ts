@@ -39,7 +39,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { logoUrl, faviconUrl, baseUrl } = body;
+    const { logoUrl, faviconUrl, faviconLightUrl, faviconDarkUrl, baseUrl } = body;
 
     // Check if settings already exist
     const existingSettings = await prisma.siteSettings.findFirst();
@@ -52,6 +52,8 @@ export async function POST(request: NextRequest) {
         data: {
           logoUrl: logoUrl || existingSettings.logoUrl,
           faviconUrl: faviconUrl || existingSettings.faviconUrl,
+          faviconLightUrl: faviconLightUrl || existingSettings.faviconLightUrl,
+          faviconDarkUrl: faviconDarkUrl || existingSettings.faviconDarkUrl,
           baseUrl: baseUrl !== undefined ? baseUrl : existingSettings.baseUrl,
         }
       });
@@ -61,6 +63,8 @@ export async function POST(request: NextRequest) {
         data: {
           logoUrl,
           faviconUrl,
+          faviconLightUrl,
+          faviconDarkUrl,
           baseUrl: baseUrl || '',
           smtpEnabled: false,
           smtpPort: 587,

@@ -24,9 +24,18 @@ export default function DynamicFavicon({ faviconUrl }: DynamicFaviconProps) {
           const data = await response.json();
           if (data.success && data.data) {
             const settings = data.data;
-            const favicon = settings.faviconDarkUrl || settings.faviconUrl || '/favicon.svg';
+            // Try to get the most appropriate favicon
+            const favicon = settings.faviconDarkUrl || settings.faviconLightUrl || settings.faviconUrl || '/favicon.svg';
+            setDynamicFaviconUrl(favicon);
+          } else {
+            // If no data structure, try to use the response directly
+            const settings = data;
+            const favicon = settings.faviconDarkUrl || settings.faviconLightUrl || settings.faviconUrl || '/favicon.svg';
             setDynamicFaviconUrl(favicon);
           }
+        } else {
+          console.warn('Failed to fetch site settings, using default favicon');
+          setDynamicFaviconUrl('/favicon.svg');
         }
       } catch (error) {
         console.error('Failed to fetch favicon:', error);
@@ -67,15 +76,6 @@ export default function DynamicFavicon({ faviconUrl }: DynamicFaviconProps) {
     document.head.appendChild(link3);
 
     console.log('Dynamic favicon injected:', favicon);
-    
-    // Additional debug for admin panel
-    const isAdminPanel = window.location.pathname.includes('/admin-panel');
-    console.log('Current page:', window.location.pathname);
-    console.log('Is admin panel:', isAdminPanel);
-    
-    if (isAdminPanel) {
-      console.log('✅ Admin panel confirmed using dark favicon:', favicon);
-    }
   }, [dynamicFaviconUrl]);
 
   return null; // This component doesn't render anything
