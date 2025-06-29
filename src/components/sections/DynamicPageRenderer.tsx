@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import FeaturesSection from './FeaturesSection';
 import MediaSection from './MediaSection';
@@ -197,6 +197,27 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
   const [sections, setSections] = useState<PageSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pageExists, setPageExists] = useState<boolean | null>(null);
+  const [companyName, setCompanyName] = useState<string>('Your Company');
+
+  // Fetch company name from site settings
+  useEffect(() => {
+    const fetchCompanyName = async () => {
+      try {
+        const response = await fetch('/api/admin/site-settings');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.footerCompanyName) {
+            setCompanyName(data.footerCompanyName);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch company name:', error);
+      }
+    };
+
+    fetchCompanyName();
+  }, []);
 
   useEffect(() => {
     const fetchPageSections = async () => {
@@ -205,12 +226,21 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         const response = await fetch(`/api/admin/page-sections?pageSlug=${pageSlug}`);
         
         if (!response.ok) {
-          throw new Error('Failed to fetch page sections');
+          if (response.status === 404) {
+            setPageExists(false);
+            setError('Page not found');
+          } else {
+            throw new Error('Failed to fetch page sections');
+          }
+          return;
         }
         
         const result = await response.json();
         
         if (result.success && result.data) {
+          // Page exists, check if it has content
+          setPageExists(true);
+          
           // Filter visible sections and sort by sortOrder
           const visibleSections = result.data
             .filter((section: PageSection) => section.isVisible)
@@ -218,7 +248,9 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           
           setSections(visibleSections);
         } else {
-          throw new Error(result.message || 'Failed to load page content');
+          // Page exists but no data structure
+          setPageExists(true);
+          setSections([]);
         }
       } catch (err) {
         console.error('Error fetching page sections:', err);
@@ -520,12 +552,43 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
     );
   }
 
-  if (sections.length === 0) {
+  if (sections.length === 0 && pageExists === true) {
     return (
       <div className={`py-24 ${className}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="text-gray-400 mb-4">
+            <div className="text-blue-500 mb-4">
+              <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              We're Still Working on This Page
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Thank you for being interested in {companyName}! We're currently building this page to make it prettier and more informative.
+            </p>
+            <p className="text-gray-500 text-sm mb-6">
+              Check back soon for updates, or explore our other pages in the meantime.
+            </p>
+            <Link 
+              href="/"
+              className="bg-[#5243E9] text-white px-6 py-2 rounded-lg hover:bg-[#4338CA] transition-colors"
+            >
+              Go Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (pageExists === false) {
+    return (
+      <div className={`py-24 ${className}`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="text-red-600 mb-4">
               <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33" />
               </svg>
@@ -534,7 +597,7 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               Page Not Found
             </h2>
             <p className="text-gray-600 mb-4">
-              The page you&apos;re looking for doesn&apos;t exist or has no content.
+              The page you&apos;re looking for doesn&apos;t exist.
             </p>
             <Link 
               href="/"

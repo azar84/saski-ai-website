@@ -1,14 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("saski_DATABASE_URL")
-  directUrl = env("saski_POSTGRES_URL_NON_POOLING")
+  provider = "sqlite"
+  url = "file:./dev.db"
 }
 
 model SiteSettings {
@@ -51,7 +47,6 @@ model SiteSettings {
   footerCompanyDescription String?
   footerBackgroundColor    String?  @default("#F9FAFB")
   footerTextColor          String?  @default("#374151")
-  baseUrl                  String?  @default("")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 
@@ -215,7 +210,7 @@ model MediaSection {
   ctaUrl                  String?
   ctaStyle                String                @default("primary")
   enableScrollAnimations  Boolean               @default(false)
-  animationType           String                @default("none")// allowed: none, fade, slide, zoom, pulse, rotate
+  animationType           String                @default("none")
   backgroundStyle         String                @default("solid")
   backgroundColor         String                @default("#F6F8FC")
   textColor               String                @default("#0F1A2A")
@@ -409,18 +404,18 @@ model GlobalFeature {
 }
 
 model FeatureGroup {
-  id             Int                @id @default(autoincrement())
-  name           String
-  description    String?
-  layoutType     String             @default("grid")
-  backgroundColor String            @default("#ffffff")
-  sortOrder      Int                @default(0)
-  isActive       Boolean            @default(true)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  items          FeatureGroupItem[]
-  pageGroups     PageFeatureGroup[]
-  pageSections   PageSection[]
+  id           Int                @id @default(autoincrement())
+  name         String
+  description  String?
+  layoutType   String             @default("grid")
+  sortOrder    Int                @default(0)
+  isActive     Boolean            @default(true)
+  backgroundColor String?         @default("#FFFFFF")
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  items        FeatureGroupItem[]
+  pageGroups   PageFeatureGroup[]
+  pageSections PageSection[]
 
   @@map("feature_groups")
 }
