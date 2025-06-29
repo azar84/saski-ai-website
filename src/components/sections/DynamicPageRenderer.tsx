@@ -11,6 +11,7 @@ import PricingSection from './PricingSection';
 import ConfigurablePricingSection from './ConfigurablePricingSection';
 import FormSection from './FormSection';
 import HtmlSection from './HtmlSection';
+import { useLayoutHeights } from '@/hooks/useLayoutHeights';
 
 interface PageSection {
   id: number;
@@ -199,6 +200,7 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [pageExists, setPageExists] = useState<boolean | null>(null);
   const [companyName, setCompanyName] = useState<string>('Your Company');
+  const { headerHeight, footerHeight } = useLayoutHeights();
 
   // Fetch company name from site settings
   useEffect(() => {
@@ -554,7 +556,12 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
   if (sections.length === 0 && pageExists === true) {
     return (
-      <div className={`min-h-[calc(100vh-80px-96px)] flex items-center justify-center ${className}`}>
+      <div 
+        className={`flex items-center justify-center ${className}`}
+        style={{ 
+          minHeight: `calc(100vh - ${headerHeight}px - ${footerHeight}px)` 
+        }}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="text-blue-500 mb-4">

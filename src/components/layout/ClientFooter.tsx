@@ -347,10 +347,15 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
 
   return (
     <>
-      {/* Main Footer */}
+      <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+      
       <footer 
-        className="border-t border-gray-200 dark:border-gray-700"
-        style={{ backgroundColor: footerBgColor }}
+        data-footer
+        className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden"
+        style={{
+          backgroundColor: siteSettings?.footerBackgroundColor || undefined,
+          color: siteSettings?.footerTextColor || undefined
+        }}
       >
         {/* Newsletter Section - Embedded within Footer */}
         {newsletterForm && (
@@ -427,7 +432,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                           >
                             {siteSettings.companyPhone}
                           </a>
-                    </div>
+                        </div>
                       )}
                       {siteSettings.companyAddress && (
                         <div className="flex items-start space-x-2">
@@ -438,7 +443,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                           >
                             {siteSettings.companyAddress}
                           </p>
-                    </div>
+                        </div>
                       )}
                     </div>
                   )}

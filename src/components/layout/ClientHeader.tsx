@@ -216,48 +216,35 @@ export default function ClientHeader({
           .btn-outline {
             background-color: transparent;
             color: var(--color-primary);
-            border: 2px solid var(--color-primary);
+            border: 1px solid var(--color-primary);
           }
           .btn-outline:hover {
-            background-color: var(--color-primary-light, rgba(99, 102, 241, 0.1));
+            background-color: var(--color-primary);
+            color: white;
             transform: scale(1.02);
           }
           .btn-muted {
-            background-color: var(--color-bg-secondary);
-            color: var(--color-text-muted);
-            border: 1px solid var(--color-border-medium);
-            cursor: not-allowed;
-            opacity: 0.5;
+            background-color: var(--color-muted);
+            color: var(--color-text-primary);
+            border: none;
           }
-        ` 
+          .btn-muted:hover {
+            background-color: var(--color-muted-dark, var(--color-muted));
+            transform: scale(1.02);
+          }
+        `
       }} />
       
-      <motion.header
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ 
-          y: 0, 
-          opacity: 1,
-          // Subtle floating animation
-          ...(isScrolled ? {} : {
-            y: [0, -2, 0],
-            transition: {
-              y: {
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }
-            }
-          })
-        }}
-        transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+      <header 
+        data-header
         className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out',
-          isScrolled 
-            ? 'backdrop-blur-xl shadow-xl border-b border-gray-100/50' 
-            : 'backdrop-blur-lg'
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+          isScrolled ? "bg-white/95 backdrop-blur-md shadow-lg" : "bg-transparent",
+          "border-b border-gray-200/50"
         )}
         style={{
-          backgroundColor: backgroundColor // Consistent color regardless of scroll state
+          backgroundColor: isScrolled ? `${backgroundColor}95` : backgroundColor,
+          borderBottomColor: isScrolled ? `${finalMenuTextColor}20` : 'transparent'
         }}
       >
       {/* Subtle border animation */}
@@ -927,7 +914,7 @@ export default function ClientHeader({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
     </>
   );
 } 
