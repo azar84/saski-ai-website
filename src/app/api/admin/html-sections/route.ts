@@ -58,7 +58,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching HTML sections:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch HTML sections', details: error.message },
+      { error: 'Failed to fetch HTML sections', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     console.error('Error creating HTML section:', error);
     return NextResponse.json(
-      { error: 'Failed to create HTML section', details: error.message },
+      { error: 'Failed to create HTML section', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -182,7 +182,7 @@ export async function PUT(request: NextRequest) {
 
     console.error('Error updating HTML section:', error);
     return NextResponse.json(
-      { error: 'Failed to update HTML section', details: error.message },
+      { error: 'Failed to update HTML section', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -236,7 +236,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error deleting HTML section:', error);
     return NextResponse.json(
-      { error: 'Failed to delete HTML section', details: error.message },
+      { error: 'Failed to delete HTML section', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

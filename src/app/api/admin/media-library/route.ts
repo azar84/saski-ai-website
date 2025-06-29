@@ -8,9 +8,7 @@ import {
   validateAndTransform,
   type ApiResponse 
 } from '@/lib/validations';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/cloudinary';
 
 // GET - Fetch media library items with search and filtering
 export async function GET(request: NextRequest) {
@@ -70,7 +68,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate pagination
-    const skip = (validatedSearch.page - 1) * validatedSearch.limit;
+    const skip = ((validatedSearch.page || 1) - 1) * (validatedSearch.limit || 50);
 
     // Get total count
     const totalCount = await prisma.mediaLibrary.count({ where });
@@ -95,28 +93,29 @@ export async function GET(request: NextRequest) {
         }
       },
       orderBy: {
-        [validatedSearch.sortBy]: validatedSearch.sortOrder
+        [validatedSearch.sortBy as string]: validatedSearch.sortOrder
       },
       skip,
-      take: validatedSearch.limit
+      take: validatedSearch.limit || 50
     });
 
     // Calculate pagination info
-    const totalPages = Math.ceil(totalCount / validatedSearch.limit);
-    const hasNextPage = validatedSearch.page < totalPages;
-    const hasPreviousPage = validatedSearch.page > 1;
+    const totalPages = Math.ceil(totalCount / (validatedSearch.limit || 50));
+    const currentPage = validatedSearch.page || 1;
+    const hasNextPage = currentPage < totalPages;
+    const hasPrevPage = currentPage > 1;
 
     const response: ApiResponse = {
       success: true,
       data: {
         items: mediaItems,
         pagination: {
-          page: validatedSearch.page,
-          limit: validatedSearch.limit,
+          page: currentPage,
+          limit: validatedSearch.limit || 50,
           totalCount,
           totalPages,
           hasNextPage,
-          hasPreviousPage
+          hasPrevPage
         }
       }
     };
@@ -190,89 +189,88 @@ async function handleFileUpload(request: NextRequest) {
   
   // Determine file type
   let fileType = 'other';
-  if (mimeType.startsWith('image/')) fileType = 'image';
-  else if (mimeType.startsWith('video/')) fileType = 'video';
-  else if (mimeType.startsWith('audio/')) fileType = 'audio';
-  else if (mimeType.includes('pdf') || mimeType.includes('document') || mimeType.includes('text')) fileType = 'document';
-
-  // Generate unique filename
-  const timestamp = Date.now();
-  const extension = filename.split('.').pop();
-  const uniqueFilename = `${timestamp}-${Math.random().toString(36).substring(2)}.${extension}`;
-  
-  // Create upload directory
-  const uploadDir = join(process.cwd(), 'public', 'uploads', 'media');
-  if (!existsSync(uploadDir)) {
-    await mkdir(uploadDir, { recursive: true });
+  let resourceType: 'image' | 'video' | 'raw' = 'raw';
+  if (mimeType.startsWith('image/')) {
+    fileType = 'image';
+    resourceType = 'image';
+  } else if (mimeType.startsWith('video/')) {
+    fileType = 'video';
+    resourceType = 'video';
+  } else if (mimeType.startsWith('audio/')) {
+    fileType = 'audio';
+    resourceType = 'raw';
+  } else if (mimeType.includes('pdf') || mimeType.includes('document') || mimeType.includes('text')) {
+    fileType = 'document';
+    resourceType = 'raw';
   }
 
-  // Save file
-  const filepath = join(uploadDir, uniqueFilename);
-  const bytes = await file.arrayBuffer();
-  await writeFile(filepath, Buffer.from(bytes));
+  try {
+    // Upload to Cloudinary
+    const cloudinaryResult = await uploadToCloudinary(file, {
+      folder: 'saski-ai/media',
+      resource_type: resourceType,
+    });
 
-  // Generate URLs
-  const publicUrl = `/uploads/media/${uniqueFilename}`;
-  
-  // Get optional metadata from form
-  const title = formData.get('title')?.toString();
-  const description = formData.get('description')?.toString();
-  const alt = formData.get('alt')?.toString();
-  const folderId = formData.get('folderId') ? parseInt(formData.get('folderId')!.toString()) : null;
-  const tagsString = formData.get('tags')?.toString();
-  const tags = tagsString ? JSON.stringify(tagsString.split(',').map(tag => tag.trim())) : null;
+    // Get optional metadata from form
+    const title = formData.get('title')?.toString();
+    const description = formData.get('description')?.toString();
+    const alt = formData.get('alt')?.toString();
+    const folderId = formData.get('folderId') ? parseInt(formData.get('folderId')!.toString()) : null;
+    const tagsString = formData.get('tags')?.toString();
+    const tags = tagsString ? JSON.stringify(tagsString.split(',').map(tag => tag.trim())) : null;
 
-  // Get image/video dimensions if applicable
-  let width, height, duration;
-  if (fileType === 'image') {
-    // For production, you'd use a library like sharp to get dimensions
-    // For now, we'll leave these as null
-  }
+    // Create media record
+    const mediaData = {
+      filename,
+      title: title || filename,
+      description,
+      alt,
+      fileType,
+      mimeType,
+      fileSize: cloudinaryResult.bytes,
+      width: cloudinaryResult.width,
+      height: cloudinaryResult.height,
+      duration: undefined, // Cloudinary doesn't provide duration for all files
+      originalUrl: cloudinaryResult.secure_url,
+      localPath: cloudinaryResult.public_id, // Store Cloudinary public_id instead of local path
+      publicUrl: cloudinaryResult.secure_url,
+      folderId,
+      tags,
+      uploadSource: 'upload' as const,
+      isActive: true,
+      isPublic: true
+    };
 
-  // Create media record
-  const mediaData = {
-    filename,
-    title: title || filename,
-    description,
-    alt,
-    fileType,
-    mimeType,
-    fileSize,
-    width,
-    height,
-    duration,
-    originalUrl: publicUrl,
-    localPath: filepath,
-    publicUrl,
-    folderId,
-    tags,
-    uploadSource: 'upload' as const,
-    isActive: true,
-    isPublic: true
-  };
+    const validatedData = validateAndTransform(CreateMediaLibrarySchema, mediaData);
 
-  const validatedData = validateAndTransform(CreateMediaLibrarySchema, mediaData);
-
-  const mediaItem = await prisma.mediaLibrary.create({
-    data: validatedData,
-    include: {
-      folder: {
-        select: {
-          id: true,
-          name: true,
-          color: true
+    const mediaItem = await prisma.mediaLibrary.create({
+      data: validatedData,
+      include: {
+        folder: {
+          select: {
+            id: true,
+            name: true,
+            color: true
+          }
         }
       }
-    }
-  });
+    });
 
-  const response: ApiResponse = {
-    success: true,
-    data: mediaItem,
-    message: 'File uploaded successfully'
-  };
+    const response: ApiResponse = {
+      success: true,
+      data: mediaItem,
+      message: 'File uploaded successfully'
+    };
 
-  return NextResponse.json(response);
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    const response: ApiResponse = {
+      success: false,
+      message: 'Failed to upload file to Cloudinary'
+    };
+    return NextResponse.json(response, { status: 500 });
+  }
 }
 
 // Handle URL import
@@ -280,109 +278,113 @@ async function handleUrlImport(request: NextRequest) {
   const body = await request.json();
   const validatedData = validateAndTransform(MediaUrlImportSchema, body);
 
-  // Download file from URL
-  const response = await fetch(validatedData.url);
-  if (!response.ok) {
-    const apiResponse: ApiResponse = {
-      success: false,
-      message: 'Failed to download file from URL'
+  try {
+    // Download file from URL
+    const response = await fetch(validatedData.url);
+    if (!response.ok) {
+      const apiResponse: ApiResponse = {
+        success: false,
+        message: 'Failed to download file from URL'
+      };
+      return NextResponse.json(apiResponse, { status: 400 });
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    const contentLength = parseInt(response.headers.get('content-length') || '0');
+
+    // Validate file size
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (contentLength > maxSize) {
+      const apiResponse: ApiResponse = {
+        success: false,
+        message: 'File size exceeds 50MB limit'
+      };
+      return NextResponse.json(apiResponse, { status: 400 });
+    }
+
+    // Determine file type and resource type
+    let fileType = 'other';
+    let resourceType: 'image' | 'video' | 'raw' = 'raw';
+    
+    if (contentType.startsWith('image/')) {
+      fileType = 'image';
+      resourceType = 'image';
+    } else if (contentType.startsWith('video/')) {
+      fileType = 'video';
+      resourceType = 'video';
+    } else if (contentType.startsWith('audio/')) {
+      fileType = 'audio';
+      resourceType = 'raw';
+    }
+
+    // Get file buffer
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Upload to Cloudinary
+    const cloudinaryResult = await uploadToCloudinary(buffer, {
+      folder: 'saski-ai/media',
+      resource_type: resourceType,
+    });
+
+    // Extract filename from URL
+    const urlParts = validatedData.url.split('/');
+    const originalFilename = urlParts[urlParts.length - 1] || 'imported-file';
+
+    const tags = validatedData.tags ? JSON.stringify(validatedData.tags) : null;
+
+    // Create media record
+    const mediaData = {
+      filename: originalFilename,
+      title: validatedData.title || originalFilename,
+      description: validatedData.description,
+      alt: validatedData.alt,
+      fileType,
+      mimeType: contentType,
+      fileSize: cloudinaryResult.bytes,
+      width: cloudinaryResult.width,
+      height: cloudinaryResult.height,
+      duration: undefined,
+      originalUrl: validatedData.url,
+      localPath: cloudinaryResult.public_id, // Store Cloudinary public_id
+      publicUrl: cloudinaryResult.secure_url,
+      folderId: validatedData.folderId,
+      tags,
+      uploadSource: 'url_import' as const,
+      isActive: true,
+      isPublic: true
     };
-    return NextResponse.json(apiResponse, { status: 400 });
-  }
 
-  const contentType = response.headers.get('content-type') || '';
-  const contentLength = parseInt(response.headers.get('content-length') || '0');
+    const validatedMediaData = validateAndTransform(CreateMediaLibrarySchema, mediaData);
 
-  // Validate file size
-  const maxSize = 50 * 1024 * 1024; // 50MB
-  if (contentLength > maxSize) {
-    const apiResponse: ApiResponse = {
-      success: false,
-      message: 'File size exceeds 50MB limit'
-    };
-    return NextResponse.json(apiResponse, { status: 400 });
-  }
-
-  // Determine file type and extension
-  let fileType = 'other';
-  let extension = 'bin';
-  
-  if (contentType.startsWith('image/')) {
-    fileType = 'image';
-    extension = contentType.split('/')[1];
-  } else if (contentType.startsWith('video/')) {
-    fileType = 'video';
-    extension = contentType.split('/')[1];
-  } else if (contentType.startsWith('audio/')) {
-    fileType = 'audio';
-    extension = contentType.split('/')[1];
-  }
-
-  // Generate unique filename
-  const timestamp = Date.now();
-  const uniqueFilename = `${timestamp}-imported.${extension}`;
-  
-  // Create upload directory
-  const uploadDir = join(process.cwd(), 'public', 'uploads', 'media');
-  if (!existsSync(uploadDir)) {
-    await mkdir(uploadDir, { recursive: true });
-  }
-
-  // Save file
-  const filepath = join(uploadDir, uniqueFilename);
-  const arrayBuffer = await response.arrayBuffer();
-  await writeFile(filepath, Buffer.from(arrayBuffer));
-
-  // Generate URLs
-  const publicUrl = `/uploads/media/${uniqueFilename}`;
-  
-  // Extract filename from URL
-  const urlParts = validatedData.url.split('/');
-  const originalFilename = urlParts[urlParts.length - 1] || uniqueFilename;
-
-  const tags = validatedData.tags ? JSON.stringify(validatedData.tags) : null;
-
-  // Create media record
-  const mediaData = {
-    filename: originalFilename,
-    title: validatedData.title || originalFilename,
-    description: validatedData.description,
-    alt: validatedData.alt,
-    fileType,
-    mimeType: contentType,
-    fileSize: contentLength,
-    originalUrl: validatedData.url,
-    localPath: filepath,
-    publicUrl,
-    folderId: validatedData.folderId,
-    tags,
-    uploadSource: 'url_import' as const,
-    isActive: true,
-    isPublic: true
-  };
-
-  const validatedMediaData = validateAndTransform(CreateMediaLibrarySchema, mediaData);
-
-  const mediaItem = await prisma.mediaLibrary.create({
-    data: validatedMediaData,
-    include: {
-      folder: {
-        select: {
-          id: true,
-          name: true,
-          color: true
+    const mediaItem = await prisma.mediaLibrary.create({
+      data: validatedMediaData,
+      include: {
+        folder: {
+          select: {
+            id: true,
+            name: true,
+            color: true
+          }
         }
       }
-    }
-  });
+    });
 
-  const apiResponse: ApiResponse = {
-    success: true,
-    data: mediaItem,
-    message: 'File imported from URL successfully'
-  };
+    const apiResponse: ApiResponse = {
+      success: true,
+      data: mediaItem,
+      message: 'File imported from URL successfully'
+    };
 
-  return NextResponse.json(apiResponse);
+    return NextResponse.json(apiResponse);
+  } catch (error) {
+    console.error('URL import error:', error);
+    const apiResponse: ApiResponse = {
+      success: false,
+      message: 'Failed to import file from URL'
+    };
+    return NextResponse.json(apiResponse, { status: 500 });
+  }
 }
 
 // PUT - Update media item
@@ -487,13 +489,20 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(response, { status: 400 });
     }
 
-    // Delete the media item
+    // Delete from Cloudinary if it's a Cloudinary upload
+    if (existingItem.localPath && !existingItem.localPath.startsWith('/')) {
+      try {
+        await deleteFromCloudinary(existingItem.localPath);
+      } catch (cloudinaryError) {
+        console.error('Failed to delete from Cloudinary:', cloudinaryError);
+        // Continue with database deletion even if Cloudinary deletion fails
+      }
+    }
+
+    // Delete the media item from database
     await prisma.mediaLibrary.delete({
       where: { id: parseInt(id) }
     });
-
-    // TODO: Delete physical file from filesystem
-    // For production, you might want to move files to a trash folder instead
 
     const response: ApiResponse = {
       success: true,

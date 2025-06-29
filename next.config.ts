@@ -6,7 +6,12 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ['image/webp', 'image/avif'],
-    domains: ['saskiai-backend-00cf6a2d4e4f.herokuapp.com', 'saskiai.com', 'api.producthunt.com'],
+    domains: [
+      'saskiai-backend-00cf6a2d4e4f.herokuapp.com', 
+      'saskiai.com', 
+      'api.producthunt.com',
+      'res.cloudinary.com'
+    ],
     remotePatterns: [
       {
         protocol: 'https',
@@ -25,6 +30,12 @@ const nextConfig: NextConfig = {
         hostname: 'api.producthunt.com',
         port: '',
         pathname: '/widgets/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
       },
     ],
   },

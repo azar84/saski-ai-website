@@ -37,17 +37,8 @@ export default function NotFound() {
             >
               Page Not Found
             </h2>
-            <p 
-              className="mb-8"
-              style={{
-                fontSize: '1.25rem',
-                color: 'var(--color-text-secondary)',
-                fontFamily: 'var(--font-family-sans)',
-                fontWeight: 'var(--font-weight-normal)',
-                lineHeight: 'var(--line-height-base)'
-              }}
-            >
-              Sorry, the page you are looking for doesn't exist.
+            <p className="text-lg text-gray-600 mb-8">
+              We couldn&apos;t find the page you&apos;re looking for.
             </p>
             <Link
               href="/"
@@ -58,12 +49,6 @@ export default function NotFound() {
                 fontFamily: 'var(--font-family-sans)',
                 color: '#FFFFFF',
                 backgroundColor: 'var(--color-primary)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-primary-dark)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-primary)';
               }}
             >
               Go back home

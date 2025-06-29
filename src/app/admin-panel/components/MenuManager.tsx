@@ -2865,7 +2865,7 @@ export default function MenuManager() {
                     <input
                       type="color"
                       value={siteSettings?.footerBackgroundColor || '#F9FAFB'}
-                      onChange={(e) => setSiteSettings(prev => ({ ...prev, footerBackgroundColor: e.target.value }))}
+                      onChange={(e) => setSiteSettings((prev: any) => ({ ...prev, footerBackgroundColor: e.target.value }))}
                       className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
                     />
                   </div>
@@ -2934,7 +2934,7 @@ export default function MenuManager() {
                     <input
                       type="color"
                       value={siteSettings?.footerTextColor || '#374151'}
-                      onChange={(e) => setSiteSettings(prev => ({ ...prev, footerTextColor: e.target.value }))}
+                      onChange={(e) => setSiteSettings((prev: any) => ({ ...prev, footerTextColor: e.target.value }))}
                       className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
                     />
                   </div>

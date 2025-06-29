@@ -316,7 +316,7 @@ const HtmlSectionsManager: React.FC = () => {
                     </button>
                     {section.cssContent && (
                       <button
-                        onClick={() => copyToClipboard(section.cssContent)}
+                        onClick={() => copyToClipboard(section.cssContent || '')}
                         className="text-xs text-gray-600 hover:text-gray-800 flex items-center gap-1"
                       >
                         <Copy className="w-3 h-3" />
@@ -325,7 +325,7 @@ const HtmlSectionsManager: React.FC = () => {
                     )}
                     {section.jsContent && (
                       <button
-                        onClick={() => copyToClipboard(section.jsContent)}
+                        onClick={() => copyToClipboard(section.jsContent || '')}
                         className="text-xs text-gray-600 hover:text-gray-800 flex items-center gap-1"
                       >
                         <Copy className="w-3 h-3" />
@@ -522,11 +522,6 @@ const HtmlSectionsManager: React.FC = () => {
                           <div className="border border-gray-300 rounded-lg p-4 h-64 overflow-auto bg-gray-50">
                             <div 
                               dangerouslySetInnerHTML={{ __html: formData.htmlContent }}
-                              style={{ 
-                                ...(formData.cssContent && {
-                                  style: formData.cssContent
-                                })
-                              }}
                             />
                           </div>
                         </div>

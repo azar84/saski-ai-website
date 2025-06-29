@@ -380,7 +380,7 @@ export default function ContactSectionsManager() {
                   size="sm"
                   onClick={() => handleDelete(section.id)}
                   className="text-red-600 hover:text-red-700"
-                  disabled={section._count?.submissions && section._count.submissions > 0}
+                  disabled={Boolean(section._count?.submissions && section._count.submissions > 0)}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

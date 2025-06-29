@@ -108,16 +108,10 @@ export async function POST(request: NextRequest) {
       for (const recipient of allRecipients) {
         try {
           const result = await emailService.sendFormSubmissionNotification(
-            recipient,
-            submission.form.title,
             formData,
-            {
-              submissionId: submission.id,
-              submittedAt: submission.createdAt.toISOString(),
-              formName: submission.form.name,
-            }
+            submission.form.title
           );
-          emailResults.push({ recipient, success: true, messageId: result.messageId });
+          emailResults.push({ recipient, success: result });
         } catch (error) {
           console.error(`Failed to send email to ${recipient}:`, error);
           emailResults.push({ 
@@ -138,7 +132,7 @@ export async function POST(request: NextRequest) {
               submitterEmail,
               formData.first_name || formData.name || 'there'
             );
-            submitterEmailResult = { success: true, messageId: result.messageId };
+            submitterEmailResult = { success: result };
           } catch (error) {
             console.error(`Failed to send confirmation email to ${submitterEmail}:`, error);
             submitterEmailResult = { 
@@ -164,7 +158,6 @@ export async function POST(request: NextRequest) {
         where: { id: submissionId },
         data: {
           emailStatus,
-          emailMessageId: emailResults.find(r => r.success)?.messageId || null,
           emailRecipients: allRecipients.join(','),
           emailSubject: `New ${submission.form.title} Submission`,
           emailSentAt: allEmailsSucceeded ? new Date() : null,
@@ -179,7 +172,6 @@ export async function POST(request: NextRequest) {
           ? 'Email sent successfully' 
           : 'Some emails failed to send',
         emailDetails: {
-          messageId: emailResults.find(r => r.success)?.messageId,
           recipients: allRecipients,
           subject: `New ${submission.form.title} Submission`,
           sentAt: allEmailsSucceeded ? new Date().toISOString() : undefined,
@@ -220,4 +212,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

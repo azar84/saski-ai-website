@@ -33,7 +33,7 @@ async function getPageBySlug(slug: string): Promise<Page | null> {
   }
 }
 
-async function getPageSections(pageSlug: string): Promise<any[]> {
+async function getPageSections(pageSlug: string): Promise<Array<{ id: string; isVisible: boolean; sectionType: string }>> {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/page-sections?pageSlug=${pageSlug}`, {
       cache: 'no-store'
@@ -44,15 +44,9 @@ async function getPageSections(pageSlug: string): Promise<any[]> {
     }
     
     const result = await response.json();
-    
-    if (result.success && result.data) {
-      // Filter visible sections
-      return result.data.filter((section: any) => section.isVisible);
-    }
-    
-    return [];
+    return result.data || [];
   } catch (error) {
-    console.error('Failed to fetch page sections:', error);
+    console.error('Error fetching page sections:', error);
     return [];
   }
 }
@@ -84,7 +78,7 @@ export default async function DynamicPage({ params }: { params: Promise<{ slug: 
   
   // Check if there are any sections for this page
   const sections = await getPageSections(page.slug);
-  const hasSections = sections.length > 0;
+  const hasSections = sections.filter((section) => section.isVisible).length > 0;
   
   return (
     <main className="min-h-screen bg-white">

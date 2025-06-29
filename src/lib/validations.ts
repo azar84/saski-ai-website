@@ -369,12 +369,12 @@ export function validateAndTransform<T>(schema: z.ZodSchema<T>, data: unknown): 
 // API Response wrapper
 export const ApiResponseSchema = z.object({
   success: z.boolean(),
-  data: z.any().optional(),
+  data: z.unknown().optional(),
   message: z.string().optional(),
   error: z.string().optional(),
 });
 
-export type ApiResponse<T = any> = {
+export type ApiResponse<T = unknown> = {
   success: boolean;
   data?: T;
   message?: string;

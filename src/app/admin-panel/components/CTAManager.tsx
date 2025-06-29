@@ -1,15 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { IconPicker } from '@/components/ui/index';
 import { 
-  Plus, Edit2, Trash2, Save, X, ExternalLink, Eye, EyeOff,
-  ArrowRight, Play, CheckCircle, Sparkles, MessageSquare, Zap, Mail, Star, Users, Globe, Shield, TrendingUp, 
-  Layers, Award, Clock, Send, User, Code, Timer, CheckCircle2, Heart, Download, Phone, Video, Calendar, BookOpen, Gift, Rocket
+  Plus, 
+  Edit, 
+  Trash2, 
+  Save, 
+  X, 
+  Copy,
+  ExternalLink,
+  Target,
+  MousePointer,
+  Smartphone,
+  Monitor,
+  Tablet,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 // Import the icon library for getIconComponent
@@ -664,7 +675,7 @@ export default function CTAManager() {
                       onClick={() => startEdit(cta)}
                       className="p-1 text-gray-600 hover:text-gray-700"
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit className="w-4 h-4" />
                     </Button>
                     <Button
                       size="sm"

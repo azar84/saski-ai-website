@@ -40,17 +40,19 @@ export function useAdminApi() {
   // Generic CRUD operations
   const get = useCallback(<T>(url: string) => apiCall<T>(url), [apiCall]);
   
-  const post = useCallback(<T>(url: string, data: any) => 
-    apiCall<T>(url, {
+  const post = useCallback(<T>(url: string, data: unknown) =>
+    fetch(url, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-    }), [apiCall]);
+    }).then(res => res.json() as Promise<T>), []);
   
-  const put = useCallback(<T>(url: string, data: any) => 
-    apiCall<T>(url, {
+  const put = useCallback(<T>(url: string, data: unknown) =>
+    fetch(url, {
       method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-    }), [apiCall]);
+    }).then(res => res.json() as Promise<T>), []);
   
   const del = useCallback(<T>(url: string) => 
     apiCall<T>(url, { method: 'DELETE' }), [apiCall]);

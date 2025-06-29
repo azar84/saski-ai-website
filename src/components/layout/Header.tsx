@@ -3,6 +3,15 @@ import Image from 'next/image';
 import { prisma } from '@/lib/db';
 import ClientHeader from './ClientHeader';
 
+// Import the CTAButton type from ClientHeader
+interface CTAButton {
+  text: string;
+  url: string;
+  icon?: string;
+  style: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
+  target: '_self' | '_blank';
+}
+
 interface Page {
   id: number;
   slug: string;
@@ -126,7 +135,7 @@ export default async function Header() {
 
   // Generate navigation items from header configuration
   let navigationItems: Array<{name: string; href: string; isActive: boolean; children?: Array<{name: string; href: string; isActive: boolean}>}> = [];
-  let ctaButtons: Array<{text: string; url: string; icon?: string; style: string; target: string}> = [];
+  let ctaButtons: CTAButton[] = [];
   let backgroundColor = '#ffffff'; // Default background color
   let menuTextColor = '#374151'; // Default menu text color
   let menuHoverColor = '#5243E9'; // Default menu hover color
@@ -167,8 +176,8 @@ export default async function Header() {
       text: item.cta.text,
       url: item.cta.url,
       ...(item.cta.icon && { icon: item.cta.icon }),
-      style: item.cta.style,
-      target: item.cta.target
+      style: item.cta.style as "info" | "primary" | "secondary" | "accent" | "ghost" | "destructive" | "success" | "outline" | "muted",
+      target: item.cta.target as "_self" | "_blank"
     }));
 
     // Debug the mapped data
@@ -195,6 +204,10 @@ export default async function Header() {
         href: page.slug === 'home' ? '/' : `/${page.slug}`,
         isActive: false
       }));
+  }
+
+  if (!siteSettings) {
+    return null;
   }
 
   return (

@@ -79,7 +79,7 @@ export default function PricingSection() {
         setBillingCycles(activeCycles);
 
         // Set default billing cycle
-        const defaultCycle = activeCycles.find(c => c.isDefault) || activeCycles[0];
+        const defaultCycle = activeCycles.find((c: any) => c.isDefault) || activeCycles[0];
         if (defaultCycle) {
           setSelectedBillingCycleId(defaultCycle.id);
         }

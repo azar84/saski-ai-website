@@ -51,13 +51,13 @@ export async function GET(request: NextRequest) {
         ipAddress: submission.ipAddress || undefined,
       },
       emailStatus: submission.emailStatus || 'not_configured',
-      emailDetails: submission.emailDetails ? {
+      emailDetails: {
         messageId: submission.emailMessageId || undefined,
         recipients: submission.emailRecipients ? submission.emailRecipients.split(',') : [],
         subject: submission.emailSubject || undefined,
         sentAt: submission.emailSentAt?.toISOString() || undefined,
         error: submission.emailError || undefined,
-      } : undefined,
+      },
       createdAt: submission.createdAt.toISOString(),
       updatedAt: submission.updatedAt.toISOString(),
       form: submission.form,

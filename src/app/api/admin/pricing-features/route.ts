@@ -22,9 +22,9 @@ const updateFeatureSchema = z.object({
 
 export async function GET() {
   try {
-    const features = await prisma.pricingFeature.findMany({
+    const features = await prisma.basicFeature.findMany({
       orderBy: {
-        position: 'asc',
+        sortOrder: 'asc',
       },
     });
 
@@ -43,8 +43,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = createFeatureSchema.parse(body);
 
-    const feature = await prisma.pricingFeature.create({
-      data,
+    const feature = await prisma.basicFeature.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        sortOrder: data.position,
+        isActive: data.isActive,
+      },
     });
 
     return NextResponse.json(feature, { status: 201 });
@@ -78,9 +83,14 @@ export async function PUT(request: NextRequest) {
 
     const data = updateFeatureSchema.parse(updateData);
 
-    const feature = await prisma.pricingFeature.update({
+    const feature = await prisma.basicFeature.update({
       where: { id },
-      data,
+      data: {
+        name: data.name,
+        description: data.description,
+        sortOrder: data.position,
+        isActive: data.isActive,
+      },
     });
 
     return NextResponse.json(feature);
@@ -103,7 +113,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const id = parseInt(searchParams.get('id') || '');
+    const id = searchParams.get('id');
 
     if (!id) {
       return NextResponse.json(
@@ -112,7 +122,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await prisma.pricingFeature.delete({
+    await prisma.basicFeature.delete({
       where: { id },
     });
 
