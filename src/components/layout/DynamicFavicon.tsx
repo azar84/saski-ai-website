@@ -1,21 +1,41 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-interface DynamicFaviconProps {
-  faviconUrl?: string | null;
-}
+export default function DynamicFavicon() {
+  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
 
-export default function DynamicFavicon({ faviconUrl }: DynamicFaviconProps) {
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Fetch favicon data from API
+    const fetchFavicon = async () => {
+      try {
+        const response = await fetch('/api/admin/site-settings');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            const settings = data.data;
+            const favicon = settings.faviconDarkUrl || settings.faviconUrl || '/favicon.svg';
+            setFaviconUrl(favicon);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch favicon:', error);
+        setFaviconUrl('/favicon.svg');
+      }
+    };
+
+    fetchFavicon();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !faviconUrl) return;
 
     // Remove existing favicon links
     const existingFavicons = document.querySelectorAll('link[rel*="icon"]');
     existingFavicons.forEach(link => link.remove());
 
     // Add new favicon links
-    const favicon = faviconUrl || '/favicon.ico';
+    const favicon = faviconUrl;
     
     // Main favicon
     const link1 = document.createElement('link');
@@ -37,7 +57,6 @@ export default function DynamicFavicon({ faviconUrl }: DynamicFaviconProps) {
     document.head.appendChild(link3);
 
     console.log('Dynamic favicon injected:', favicon);
-    console.log('Using dark favicon as requested:', faviconUrl);
     
     // Additional debug for admin panel
     const isAdminPanel = window.location.pathname.includes('/admin-panel');

@@ -46,6 +46,10 @@ import ContactManager from './components/ContactManager';
 import HtmlSectionsManager from './components/HtmlSectionsManager';
 import MenuManager from './components/MenuManager';
 
+// Force dynamic rendering to prevent static generation
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features-management' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'menu-management' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
 
 const navigation = [
