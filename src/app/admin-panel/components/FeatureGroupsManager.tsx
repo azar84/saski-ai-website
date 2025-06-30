@@ -42,8 +42,9 @@ import {
   Link,
   Palette
 } from 'lucide-react';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, IconPicker } from '@/components/ui';
 import { useDesignSystem } from '@/hooks/useDesignSystem';
+import { renderIcon } from '@/lib/iconUtils';
 
 // Available icons mapping
 const availableIcons = [
@@ -278,10 +279,10 @@ const FeatureGroupsManager: React.FC = () => {
   };
 
   const getIconComponent = (iconName: string) => {
-    // Import the entire lucide-react library for dynamic icon access
-    const LucideIcons = require('lucide-react');
-    const IconComponent = LucideIcons[iconName];
-    return IconComponent || LucideIcons.MessageSquare;
+    // Use the universal renderIcon utility
+    // If iconName doesn't include a library prefix, assume it's a Lucide icon
+    const iconString = iconName.includes(':') ? iconName : `lucide:${iconName}`;
+    return renderIcon(iconString, { className: 'w-4 h-4 text-blue-600' }) || renderIcon('lucide:MessageSquare', { className: 'w-4 h-4 text-blue-600' });
   };
 
   const fetchFeatureGroups = async () => {
@@ -812,7 +813,6 @@ const FeatureGroupsManager: React.FC = () => {
                       {group.groupItems && group.groupItems.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {group.groupItems.map((item) => {
-                            const IconComponent = getIconComponent(item.feature.iconName);
                             return (
                               <div
                                 key={item.id}
@@ -821,7 +821,7 @@ const FeatureGroupsManager: React.FC = () => {
                                 <div className="flex items-center gap-3">
                                   <GripVertical className="w-4 h-4 text-gray-400" />
                                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <IconComponent className="w-4 h-4 text-blue-600" />
+                                    {getIconComponent(item.feature.iconName)}
                                   </div>
                                   <div>
                                     <h6 className="font-medium text-gray-900">{item.feature.title}</h6>
@@ -861,7 +861,6 @@ const FeatureGroupsManager: React.FC = () => {
                         {availableFeatures
                           .filter(feature => !group.groupItems?.some(item => item.featureId === feature.id))
                           .map((feature) => {
-                            const IconComponent = getIconComponent(feature.iconName);
                             return (
                               <div
                                 key={feature.id}
@@ -869,7 +868,7 @@ const FeatureGroupsManager: React.FC = () => {
                               >
                                 <div className="flex items-center gap-3">
                                   <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                                    <IconComponent className="w-4 h-4 text-gray-600" />
+                                    {getIconComponent(feature.iconName)}
                                   </div>
                                   <div>
                                     <h6 className="font-medium text-gray-900">{feature.title}</h6>

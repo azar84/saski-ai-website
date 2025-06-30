@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import * as Icons from 'lucide-react';
+import { renderIcon } from '@/lib/iconUtils';
 
 interface GlobalFeature {
   id: number;
@@ -30,11 +30,10 @@ const FeaturesGridLayout: React.FC<FeaturesGridLayoutProps> = ({
   backgroundColor = '#ffffff'
 }) => {
   const getIconComponent = (iconName: string) => {
-    const iconProps = { size: 40, strokeWidth: 2.5 };
-    
-    // Dynamically get icon component from lucide-react
-    const IconComponent = (Icons as any)[iconName];
-    return IconComponent ? <IconComponent {...iconProps} /> : <Icons.Star {...iconProps} />;
+    // Use the universal renderIcon utility
+    // If iconName doesn't include a library prefix, assume it's a Lucide icon
+    const iconString = iconName.includes(':') ? iconName : `lucide:${iconName}`;
+    return renderIcon(iconString, { className: 'w-10 h-10' }) || renderIcon('lucide:Star', { className: 'w-10 h-10' });
   };
 
   const displayFeatures = features.slice(0, 6); // Show max 6 features

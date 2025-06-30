@@ -37,7 +37,7 @@ import {
   Rocket
 } from 'lucide-react';
 import { Button, Input, IconPicker } from '@/components/ui';
-import { iconLibrary } from '@/components/ui/IconPicker';
+import { renderIcon } from '@/lib/iconUtils';
 
 // Available icons for features
 const availableIcons = [
@@ -105,22 +105,17 @@ const FeaturesManager: React.FC = () => {
   }>({
     title: '',
     description: '',
-    iconName: 'MessageSquare',
+    iconName: 'lucide:MessageSquare',
     category: 'integration',
     sortOrder: 0,
     isVisible: true
   });
 
   const getIconComponent = (iconName: string) => {
-    // First try to find in the icon library
-    const iconData = iconLibrary.find(icon => icon.name === iconName);
-    if (iconData) {
-      return iconData.component;
-    }
-    
-    // Fallback to the old availableIcons array
-    const fallbackIcon = availableIcons.find(icon => icon.name === iconName);
-    return fallbackIcon ? fallbackIcon.icon : MessageSquare;
+    // Use the universal renderIcon utility
+    // If iconName doesn't include a library prefix, assume it's a Lucide icon
+    const iconString = iconName.includes(':') ? iconName : `lucide:${iconName}`;
+    return renderIcon(iconString, { className: 'w-5 h-5 text-blue-600' }) || renderIcon('lucide:Star', { className: 'w-5 h-5 text-blue-600' });
   };
 
   const fetchFeatures = async () => {
@@ -216,7 +211,7 @@ const FeaturesManager: React.FC = () => {
     setFormData({
       title: '',
       description: '',
-      iconName: 'MessageSquare',
+      iconName: 'lucide:MessageSquare',
       category: 'integration',
       sortOrder: 0,
       isVisible: true
@@ -427,7 +422,6 @@ const FeaturesManager: React.FC = () => {
       {/* Features List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {features.map((feature) => {
-          const IconComponent = getIconComponent(feature.iconName);
           return (
             <div
               key={feature.id}
@@ -465,7 +459,7 @@ const FeaturesManager: React.FC = () => {
 
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <IconComponent className="w-5 h-5 text-blue-600" />
+                  {getIconComponent(feature.iconName)}
                 </div>
                 <h4 className="font-semibold text-gray-900">{feature.title}</h4>
               </div>

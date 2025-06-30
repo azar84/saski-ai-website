@@ -25,7 +25,14 @@ export async function GET() {
     // Remove sensitive data before sending to client
     const { smtpPassword, ...safeSiteSettings } = siteSettings;
 
-    return NextResponse.json(safeSiteSettings);
+    const response = NextResponse.json(safeSiteSettings);
+    
+    // Add cache-busting headers
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    
+    return response;
   } catch (error) {
     console.error('Error fetching site settings:', error);
     return NextResponse.json(

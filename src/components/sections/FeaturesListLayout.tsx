@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useDesignSystem } from '@/hooks/useDesignSystem';
-import * as Icons from 'lucide-react';
+import { renderIcon } from '@/lib/iconUtils';
 
 interface GlobalFeature {
   id: number;
@@ -56,10 +56,12 @@ const FeaturesListLayout: React.FC<FeaturesListLayoutProps> = ({
     fetchFavicon();
   }, []);
 
-  // Get icon component
+  // Get icon component using universal renderIcon utility
   const getIconComponent = (iconName: string) => {
-    const IconComponent = (Icons as any)[iconName];
-    return IconComponent ? <IconComponent size={32} /> : <Icons.Star size={32} />;
+    // Use the universal renderIcon utility
+    // If iconName doesn't include a library prefix, assume it's a Lucide icon
+    const iconString = iconName.includes(':') ? iconName : `lucide:${iconName}`;
+    return renderIcon(iconString, { className: 'w-8 h-8' }) || renderIcon('lucide:Star', { className: 'w-8 h-8' });
   };
 
   // Use design system colors with fallbacks

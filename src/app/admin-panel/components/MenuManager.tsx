@@ -1214,13 +1214,15 @@ export default function MenuManager() {
         footerTextColor: siteSettings?.footerTextColor
       };
 
-      const response = await put('/api/admin/site-settings', payload);
+      console.log('Saving footer config with payload:', payload);
 
-      if (response) {
-        setSiteSettings(response);
+      const response = await put<{ success: boolean; data: any; message: string }>('/api/admin/site-settings', payload);
+
+      if (response && response.success) {
+        setSiteSettings(response.data);
         setFooterSaveSuccess(true);
         setError(null);
-        console.log('Footer configuration saved successfully');
+        console.log('Footer configuration saved successfully:', response);
         
         // Hide success message after 3 seconds
         setTimeout(() => {

@@ -147,9 +147,21 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
 
   const fetchSiteSettings = async () => {
     try {
-      const response = await fetch('/api/admin/site-settings');
+      // Add cache-busting to prevent browser caching
+      const response = await fetch(`/api/admin/site-settings?t=${Date.now()}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       if (response.ok) {
         const settings = await response.json();
+        console.log('Fetched site settings with footer colors:', {
+          footerBackgroundColor: settings.footerBackgroundColor,
+          footerTextColor: settings.footerTextColor
+        });
         setSiteSettings(settings);
         
         // Fetch footer menus if configured
@@ -345,270 +357,273 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
     }
   ] : footerMenus;
 
+  // Early return if no settings
+  if (!siteSettings) {
+    return null; // Loading state
+  }
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
       
       <footer 
         data-footer
-        className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden"
-        style={{
-          backgroundColor: siteSettings?.footerBackgroundColor || undefined,
-          color: siteSettings?.footerTextColor || undefined
-        }}
+        className="border-t border-gray-200 dark:border-gray-700"
+        style={{ backgroundColor: footerBgColor }}
+        data-footer-bg={siteSettings?.footerBackgroundColor}
+        data-footer-text={siteSettings?.footerTextColor}
       >
-        {/* Newsletter Section - Embedded within Footer */}
-        {newsletterForm && (
-          <div className="border-b" style={{ borderColor: isLightColor(footerBgColor) ? '#E2E8F0' : '#334155' }}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-0 items-start">
-                {/* Logo and Contact Info */}
-                <div className="space-y-4 lg:pr-6">
-                  {/* Logo */}
-                  <div className="flex items-center space-x-2">
-                    {logoUrl ? (
-                      <img 
-                        src={logoUrl} 
-                        alt="Logo" 
-                        className="h-10 w-auto"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div 
-                        className="text-lg font-bold"
-                        style={{ color: textColorClass }}
-                      >
-                        {siteSettings.footerCompanyName || 'Your Company'}
-              </div>
-                    )}
-                    </div>
-                  
-                  {/* Company Description */}
-                  {siteSettings.footerCompanyDescription && (
-                    <p 
-                      className="text-sm leading-relaxed"
-                      style={{ color: lightTextColor }}
-                    >
-                      {siteSettings.footerCompanyDescription}
-                    </p>
-                  )}
-
-                  {/* Contact Information */}
-                  {siteSettings.footerShowContactInfo && (
-                    <div className="space-y-2">
-                      {siteSettings.companyEmail && (
-                        <div className="flex items-center space-x-2">
-                          <Mail className="w-3 h-3" style={{ color: lightTextColor }} />
-                          <a 
-                            href={`mailto:${siteSettings.companyEmail}`}
-                            className="text-xs transition-colors hover:opacity-80"
-                            style={{ color: lightTextColor }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = hoverTextColor;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = lightTextColor;
-                            }}
-                          >
-                            {siteSettings.companyEmail}
-                          </a>
-                        </div>
-                      )}
-                      {siteSettings.companyPhone && (
-                        <div className="flex items-center space-x-2">
-                          <Phone className="w-3 h-3" style={{ color: lightTextColor }} />
-                          <a 
-                            href={`tel:${siteSettings.companyPhone}`}
-                            className="text-xs transition-colors hover:opacity-80"
-                            style={{ color: lightTextColor }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = hoverTextColor;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = lightTextColor;
-                            }}
-                          >
-                            {siteSettings.companyPhone}
-                          </a>
-                        </div>
-                      )}
-                      {siteSettings.companyAddress && (
-                        <div className="flex items-start space-x-2">
-                          <MapPin className="w-3 h-3 mt-0.5" style={{ color: lightTextColor }} />
-                          <p 
-                            className="text-xs"
-                            style={{ color: lightTextColor }}
-                          >
-                            {siteSettings.companyAddress}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-              </div>
-
-                {/* Footer Menus with Elegant Dividers */}
-                {testMenus.length > 0 && testMenus.slice(0, 2).map((menu, index) => (
-                  <div 
-                    key={menu.id} 
-                    className="lg:px-6 lg:border-l py-4 lg:py-0"
-                    style={{ 
-                      borderColor: isLightColor(footerBgColor) ? '#E2E8F0' : '#334155'
+        {/* Main Footer Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-0 items-start">
+            {/* Logo and Contact Info */}
+            <div className="space-y-4 lg:pr-6">
+              {/* Logo */}
+              <div className="flex items-center space-x-2">
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt="Logo" 
+                    className="h-10 w-auto"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
                     }}
+                  />
+                ) : (
+                  <div 
+                    className="text-lg font-bold"
+                    style={{ color: textColorClass }}
                   >
-                    <h4 
-                      className="text-sm font-semibold mb-3"
-                      style={{ color: textColorClass }}
-                    >
-                      {menu.name}
-                  </h4>
-                    <ul className="space-y-1">
-                      {menu.items.slice(0, 5).map((item) => (
-                        <li key={item.id}>
-                        <Link
-                            href={item.url}
-                            target={item.target}
-                            className="text-xs transition-colors hover:opacity-80"
-                            style={{ 
-                              color: lightTextColor,
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.color = hoverTextColor;
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.color = lightTextColor;
-                            }}
-                          >
-                            {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                    {siteSettings.footerCompanyName || 'Your Company'}
                   </div>
-                ))}
-
-                {/* Newsletter Form */}
-                <div 
-                  className="lg:col-span-2 lg:pl-6 lg:border-l"
-                  style={{
-                    borderColor: isLightColor(footerBgColor) ? '#E2E8F0' : '#334155'
-                  }}
+                )}
+              </div>
+              
+              {/* Company Description */}
+              {siteSettings.footerCompanyDescription && (
+                <p 
+                  className="text-sm leading-relaxed"
+                  style={{ color: lightTextColor }}
                 >
-                  <form onSubmit={handleNewsletterSubmit}>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        type="email"
-                        placeholder={
-                          newsletterForm.fields?.find((field: any) => 
-                            field.fieldType === 'email' || field.fieldName?.toLowerCase().includes('email')
-                          )?.placeholder || 'Enter your email'
-                        }
-                        value={newsletterEmail}
-                        onChange={(e) => setNewsletterEmail(e.target.value)}
-                        required
-                        className="flex-1 px-4 py-3 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                        style={{
-                          borderColor: isLightColor(footerBgColor) ? '#D1D5DB' : '#4B5563',
-                          backgroundColor: isLightColor(footerBgColor) ? '#FFFFFF' : '#374151',
-                          color: isLightColor(footerBgColor) ? '#1F2937' : '#F9FAFB'
+                  {siteSettings.footerCompanyDescription}
+                </p>
+              )}
+
+              {/* Contact Information */}
+              {siteSettings.footerShowContactInfo && (
+                <div className="space-y-2">
+                  {siteSettings.companyEmail && (
+                    <div className="flex items-center space-x-2">
+                      <Mail className="w-3 h-3" style={{ color: lightTextColor }} />
+                      <a 
+                        href={`mailto:${siteSettings.companyEmail}`}
+                        className="text-xs transition-colors hover:opacity-80"
+                        style={{ color: lightTextColor }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = hoverTextColor;
                         }}
-                      />
-                      <button
-                        type="submit"
-                        disabled={newsletterLoading}
-                        className="px-6 py-3 text-white font-medium text-sm rounded-lg transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 whitespace-nowrap"
-                        style={{
-                          backgroundColor: 'var(--color-primary, #3B82F6)'
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = lightTextColor;
                         }}
                       >
-                        {newsletterLoading ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            <span>Sending...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>Subscribe</span>
-                            <Send className="w-4 h-4" />
-                          </>
-                        )}
-                      </button>
+                        {siteSettings.companyEmail}
+                      </a>
                     </div>
-                    
-                    {newsletterMessage && (
-                      <div className={`mt-3 p-2 rounded-lg text-xs flex items-center space-x-2 ${
-                        newsletterMessage.type === 'success' 
-                          ? 'bg-green-50 border border-green-200 text-green-800' 
-                          : 'bg-red-50 border border-red-200 text-red-800'
-                      }`}>
-                        <div className={`w-3 h-3 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          newsletterMessage.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-                        }`}>
-                          <div className={`w-1.5 h-1.5 bg-white rounded-full ${
-                            newsletterMessage.type === 'error' ? 'h-0.5' : ''
-                          }`}></div>
-                        </div>
-                        <span>{newsletterMessage.text}</span>
-                      </div>
-                    )}
-                  </form>
-                  
-                  <p 
-                    className="text-sm mt-3"
-                    style={{ color: lightTextColor }}
-                  >
-                    {newsletterForm.subheading || 'Subscribe to our newsletter and get the latest updates delivered to your inbox.'}
-                  </p>
+                  )}
+                  {siteSettings.companyPhone && (
+                    <div className="flex items-center space-x-2">
+                      <Phone className="w-3 h-3" style={{ color: lightTextColor }} />
+                      <a 
+                        href={`tel:${siteSettings.companyPhone}`}
+                        className="text-xs transition-colors hover:opacity-80"
+                        style={{ color: lightTextColor }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = hoverTextColor;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = lightTextColor;
+                        }}
+                      >
+                        {siteSettings.companyPhone}
+                      </a>
+                    </div>
+                  )}
+                  {siteSettings.companyAddress && (
+                    <div className="flex items-start space-x-2">
+                      <MapPin className="w-3 h-3 mt-0.5" style={{ color: lightTextColor }} />
+                      <p 
+                        className="text-xs"
+                        style={{ color: lightTextColor }}
+                      >
+                        {siteSettings.companyAddress}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
-          </div>
-        )}
 
-        {/* Footer Content - Simplified without duplicates */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Bottom Section */}
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p 
-              className="text-sm"
-              style={{ color: lightTextColor }}
-            >
-              {copyrightMessage}
-            </p>
-            
-            {/* Social Links */}
-            {siteSettings.footerShowSocialLinks && socialLinks.length > 0 && (
-              <div className="flex space-x-4">
-                {socialLinks.map((social) => {
-                  const IconComponent = social.icon;
-                  return (
-                  <motion.a
-                    key={social.name}
-                      href={social.url || '#'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                      className="p-2 rounded-full transition-all duration-200 hover:scale-110"
-                      style={{ 
-                        backgroundColor: `${textColorClass}20`,
-                        color: lightTextColor 
+            {/* Footer Menus with Elegant Dividers */}
+            {testMenus.length > 0 && testMenus.slice(0, 2).map((menu, index) => (
+              <div 
+                key={menu.id} 
+                className="lg:px-6 lg:border-l py-4 lg:py-0"
+                style={{ 
+                  borderColor: isLightColor(footerBgColor) ? '#E2E8F0' : '#334155'
+                }}
+              >
+                <h4 
+                  className="text-sm font-semibold mb-3"
+                  style={{ color: textColorClass }}
+                >
+                  {menu.name}
+                </h4>
+                <ul className="space-y-1">
+                  {menu.items.slice(0, 5).map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        href={item.url}
+                        target={item.target}
+                        className="text-xs transition-colors hover:opacity-80"
+                        style={{ 
+                          color: lightTextColor,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = hoverTextColor;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = lightTextColor;
+                        }}
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+
+            {/* Newsletter Form - Only show if configured */}
+            {newsletterForm && (
+              <div 
+                className="lg:col-span-2 lg:pl-6 lg:border-l"
+                style={{
+                  borderColor: isLightColor(footerBgColor) ? '#E2E8F0' : '#334155'
+                }}
+              >
+                <form onSubmit={handleNewsletterSubmit}>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="email"
+                      placeholder={
+                        newsletterForm.fields?.find((field: any) => 
+                          field.fieldType === 'email' || field.fieldName?.toLowerCase().includes('email')
+                        )?.placeholder || 'Enter your email'
+                      }
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                      required
+                      className="flex-1 px-4 py-3 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                      style={{
+                        borderColor: isLightColor(footerBgColor) ? '#D1D5DB' : '#4B5563',
+                        backgroundColor: isLightColor(footerBgColor) ? '#FFFFFF' : '#374151',
+                        color: isLightColor(footerBgColor) ? '#1F2937' : '#F9FAFB'
                       }}
-                      whileHover={{ 
-                        backgroundColor: `${textColorClass}30`,
-                        scale: 1.1 
+                    />
+                    <button
+                      type="submit"
+                      disabled={newsletterLoading}
+                      className="px-6 py-3 text-white font-medium text-sm rounded-lg transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 whitespace-nowrap"
+                      style={{
+                        backgroundColor: 'var(--color-primary, #3B82F6)'
                       }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                      <IconComponent className="w-5 h-5" />
-                  </motion.a>
-                  );
-                })}
+                    >
+                      {newsletterLoading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Sending...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Subscribe</span>
+                          <Send className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  {newsletterMessage && (
+                    <div className={`mt-3 p-2 rounded-lg text-xs flex items-center space-x-2 ${
+                      newsletterMessage.type === 'success' 
+                        ? 'bg-green-50 border border-green-200 text-green-800' 
+                        : 'bg-red-50 border border-red-200 text-red-800'
+                    }`}>
+                      <div className={`w-3 h-3 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        newsletterMessage.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+                      }`}>
+                        <div className={`w-1.5 h-1.5 bg-white rounded-full ${
+                          newsletterMessage.type === 'error' ? 'h-0.5' : ''
+                        }`}></div>
+                      </div>
+                      <span>{newsletterMessage.text}</span>
+                    </div>
+                  )}
+                </form>
+                
+                <p 
+                  className="text-sm mt-3"
+                  style={{ color: lightTextColor }}
+                >
+                  {newsletterForm.subheading || 'Subscribe to our newsletter and get the latest updates delivered to your inbox.'}
+                </p>
               </div>
             )}
+          </div>
         </div>
-      </div>
-    </footer>
+
+        {/* Footer Bottom Section */}
+        <div className="border-t" style={{ borderColor: isLightColor(footerBgColor) ? '#E2E8F0' : '#334155' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+              <p 
+                className="text-sm"
+                style={{ color: lightTextColor }}
+              >
+                {copyrightMessage}
+              </p>
+              
+              {/* Social Links */}
+              {siteSettings.footerShowSocialLinks && socialLinks.length > 0 && (
+                <div className="flex space-x-4">
+                  {socialLinks.map((social) => {
+                    const IconComponent = social.icon;
+                    return (
+                      <motion.a
+                        key={social.name}
+                        href={social.url || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-full transition-all duration-200 hover:scale-110"
+                        style={{ 
+                          backgroundColor: `${textColorClass}20`,
+                          color: lightTextColor 
+                        }}
+                        whileHover={{ 
+                          backgroundColor: `${textColorClass}30`,
+                          scale: 1.1 
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <IconComponent className="w-5 h-5" />
+                      </motion.a>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </footer>
     </>
   );
 };
