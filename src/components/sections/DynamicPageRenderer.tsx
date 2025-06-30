@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+
 import FeaturesSection from './FeaturesSection';
 import MediaSection from './MediaSection';
 import FAQSection from './FAQSection';

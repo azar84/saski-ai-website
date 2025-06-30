@@ -7,21 +7,26 @@ import DynamicPageRenderer from '@/components/sections/DynamicPageRenderer';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default async function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  
-  // Check if the page exists by making a server-side request
+async function checkPageExists(slug: string): Promise<boolean> {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/page-sections?pageSlug=${slug}`, {
       cache: 'no-store'
     });
     
-    if (response.status === 404) {
-      notFound();
-    }
+    return response.ok;
   } catch (error) {
     console.error('Error checking page existence:', error);
-    // If there's an error checking, let the component handle it
+    return true; // If there's an error, let the component handle it
+  }
+}
+
+export default async function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  
+  // Check if page exists - if not, trigger 404
+  const pageExists = await checkPageExists(slug);
+  if (!pageExists) {
+    notFound();
   }
   
   return (
