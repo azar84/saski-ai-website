@@ -233,7 +233,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             setPageExists(false);
             setError('Page not found');
           } else {
-            throw new Error('Failed to fetch page sections');
+            const errorText = await response.text();
+            throw new Error(`Failed to fetch page sections: ${response.status} ${errorText}`);
           }
           return;
         }
@@ -268,15 +269,42 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
     }
   }, [pageSlug]);
 
-  const renderSection = (section: PageSection) => {
+  // Helper function to generate 3-digit section ID
+  const generateSectionId = (section: PageSection, index: number) => {
+    try {
+      // Use section.id padded to 3 digits, or fallback to index-based ID
+      const baseId = section.id || (index + 1);
+      return String(baseId).padStart(3, '0');
+    } catch (error) {
+      console.error('Error generating section ID:', error);
+      // Fallback to index-based ID
+      return String(index + 1).padStart(3, '0');
+    }
+  };
+
+  const renderSection = (section: PageSection, index: number) => {
     const sectionKey = `${section.sectionType}-${section.id}`;
+    const sectionId = generateSectionId(section, index);
+    
+    const wrapWithSectionDiv = (content: React.ReactNode) => {
+      try {
+        return (
+          <div id={`section-${sectionId}`} key={sectionKey}>
+            {content}
+          </div>
+        );
+      } catch (error) {
+        console.error('❌ Error wrapping section with div:', error, { sectionId, sectionKey, sectionType: section.sectionType });
+        // Fallback: return content without wrapper
+        return content;
+      }
+    };
     
     switch (section.sectionType) {
       case 'hero':
         if (section.heroSection) {
-          return (
+          return wrapWithSectionDiv(
             <DynamicHeroSection
-              key={sectionKey}
               heroSection={section.heroSection}
               overrideTitle={section.title}
               overrideSubtitle={section.subtitle}
@@ -287,8 +315,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         break;
 
       case 'home_hero':
-        return (
-          <HeroSection key={sectionKey} />
+        return wrapWithSectionDiv(
+          <HeroSection />
         );
 
       case 'features':
@@ -329,9 +357,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             } : null
           });
 
-          return (
+          return wrapWithSectionDiv(
             <FeaturesSection
-              key={sectionKey}
               {...propsToPass}
             />
           );
@@ -343,9 +370,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           const media = section.mediaSection;
           
           // Use universal MediaSection component that can render any media section type
-          return (
+          return wrapWithSectionDiv(
             <MediaSection
-              key={sectionKey}
               {...media}
               className={className}
             />
@@ -355,9 +381,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
       case 'faq':
         const sectionCategories = section.faqSection?.sectionCategories?.map(sc => sc.categoryId) || [];
-        return (
+        return wrapWithSectionDiv(
           <FAQSection
-            key={sectionKey}
             heading={section.title || section.faqSection?.heading || 'Frequently Asked Questions'}
             subheading={section.subtitle || section.faqSection?.subheading}
             heroTitle={section.faqSection?.heroTitle}
@@ -376,9 +401,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
       case 'form':
         if (section.form || section.formId) {
-          return (
+          return wrapWithSectionDiv(
             <FormSection
-              key={sectionKey}
               formId={section.form?.id || section.formId!}
               title={section.title || section.form?.title}
               subtitle={section.subtitle || section.form?.subheading}
@@ -390,9 +414,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
       case 'html':
         if (section.htmlSection) {
-          return (
+          return wrapWithSectionDiv(
             <HtmlSection
-              key={sectionKey}
               htmlSection={section.htmlSection}
               className={className}
             />
@@ -401,8 +424,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         break;
 
       case 'testimonials':
-        return (
-          <section key={sectionKey} className="bg-white">
+        return wrapWithSectionDiv(
+          <section className="bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -418,9 +441,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
       case 'pricing':
         if (section.pricingSection) {
-          return (
+          return wrapWithSectionDiv(
             <ConfigurablePricingSection
-              key={sectionKey}
               heading={section.title || section.pricingSection.heading}
               subheading={section.subtitle || section.pricingSection.subheading}
               pricingSectionId={section.pricingSection.id}
@@ -428,8 +450,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             />
           );
         }
-        return (
-          <section key={sectionKey} className="bg-gray-50">
+        return wrapWithSectionDiv(
+          <section className="bg-gray-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -444,8 +466,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         );
 
       case 'cta':
-        return (
-          <section key={sectionKey} className="bg-[#5243E9]">
+        return wrapWithSectionDiv(
+          <section className="bg-[#5243E9]">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-white mb-4">
@@ -463,8 +485,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         );
 
       case 'custom':
-        return (
-          <section key={sectionKey} className="bg-white">
+        return wrapWithSectionDiv(
+          <section className="bg-white">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -488,8 +510,8 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         );
 
       default:
-        return (
-          <section key={sectionKey} className="bg-gray-50">
+        return wrapWithSectionDiv(
+          <section className="bg-gray-50">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -621,7 +643,7 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
   return (
     <div className={className}>
-      {sections.map(section => renderSection(section))}
+      {sections.map((section, index) => renderSection(section, index))}
     </div>
   );
 };

@@ -28,9 +28,9 @@ export default function Footer() {
           const footerPages = data.data.filter((page: any) => page.showInFooter);
           console.log('🚀 Footer - Filtered footer pages:', footerPages);
           setPages(footerPages);
-          
-          // Debug info only in development
-          if (process.env.NODE_ENV === 'development') {
+
+        // Debug info only in development
+        if (process.env.NODE_ENV === 'development') {
             console.log('🚀 Footer - Final pages state:', footerPages);
           }
         }
@@ -48,6 +48,6 @@ export default function Footer() {
 
   // Always render ClientFooter, even during loading and with empty pages
   console.log('🚀 Footer - Rendering with loading:', loading, 'pages:', pages.length);
-  
+
   return <ClientFooter pages={pages} />;
 } 
