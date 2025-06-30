@@ -37,8 +37,9 @@ import {
   Lock
 } from 'lucide-react';
 import MediaSelector from '@/components/ui/MediaSelector';
-import IconPicker from '@/components/ui/IconPicker';
+import { IconPicker } from '@/components/ui';
 import { useDesignSystem } from '@/hooks/useDesignSystem';
+import { renderIcon } from '@/lib/iconUtils';
 
 // Types
 interface MediaItem {
@@ -317,6 +318,18 @@ const MediaSectionsManager: React.FC = () => {
 
   // Get icon component for display
   const getIconComponent = (iconName: string) => {
+    // Handle new universal icon format (library:iconName)
+    if (iconName && iconName.includes(':')) {
+      const [library, icon] = iconName.split(':');
+      
+      // Return a component that renders the universal icon
+      const IconComponent = (props: any) => {
+        return renderIcon(iconName, props);
+      };
+      return IconComponent;
+    }
+    
+    // Fallback to old format for backward compatibility
     const iconMap: { [key: string]: React.ComponentType<any> } = {
       MessageSquare,
       Users,
@@ -975,13 +988,14 @@ const MediaSectionsManager: React.FC = () => {
                               <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Icon
                               </label>
-                              <IconPicker
-                                value={feature.icon}
-                                onChange={(iconName) => updateFeature(index, 'icon', iconName)}
-                                placeholder="Select icon"
-                                showLabel={false}
-                                className="w-full"
-                              />
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <IconPicker
+                                  value={feature.icon}
+                                  onChange={(iconName, iconComponent, library) => updateFeature(index, 'icon', iconName)}
+                                  placeholder="Select icon"
+                                  className="w-full"
+                                />
+                              </div>
                             </div>
                             
                             <div className="md:col-span-2">

@@ -137,6 +137,7 @@ import {
   GitCommit,
   GitMerge
 } from 'lucide-react';
+import { renderIcon } from '@/lib/iconUtils';
 
 interface MediaSectionFeature {
   id: number;
@@ -342,6 +343,18 @@ const MediaSection: React.FC<MediaSectionProps> = ({
   };
 
   const getIconComponent = (iconName: string) => {
+    // Handle new universal icon format (library:iconName)
+    if (iconName && iconName.includes(':')) {
+      const [library, icon] = iconName.split(':');
+      
+      // Return a component that renders the universal icon
+      const IconComponent = (props: any) => {
+        return renderIcon(iconName, props);
+      };
+      return IconComponent;
+    }
+    
+    // Fallback to old format for backward compatibility
     return availableIcons[iconName] || MessageSquare;
   };
 

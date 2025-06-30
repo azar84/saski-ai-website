@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { IconPicker } from '@/components/ui/index';
+import UniversalIconPicker from '@/components/ui/UniversalIconPicker';
+import { renderIcon } from '@/lib/iconUtils';
 import { 
   Plus, 
   Edit, 
@@ -22,9 +23,6 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-
-// Import the icon library for getIconComponent
-import * as LucideIcons from 'lucide-react';
 
 interface CTA {
   id: number;
@@ -71,13 +69,6 @@ export default function CTAManager() {
     target: '_self',
     isActive: true
   });
-
-  // Function to get icon component from icon name
-  const getIconComponent = (iconName: string | undefined) => {
-    if (!iconName) return null;
-    const IconComponent = (LucideIcons as any)[iconName];
-    return IconComponent || null;
-  };
 
   const fetchCtas = async () => {
     try {
@@ -200,9 +191,11 @@ export default function CTAManager() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'toggleCtaVisibility',
-          headerCtaId,
-          isVisible: !currentVisibility
+          headerCTAs: headerCtas.map(hcta => 
+            hcta.id === headerCtaId 
+              ? { ...hcta, isVisible: !currentVisibility }
+              : hcta
+          )
         })
       });
 
@@ -210,18 +203,24 @@ export default function CTAManager() {
         await fetchHeaderConfig();
       }
     } catch (error) {
-      console.error('Error toggling CTA visibility:', error);
+      console.error('Error toggling header visibility:', error);
     }
   };
 
   const addToHeader = async (ctaId: number) => {
     try {
+      const newHeaderCta = {
+        headerConfigId: 1, // Assuming first header config
+        ctaId: ctaId,
+        sortOrder: headerCtas.length + 1,
+        isVisible: true
+      };
+
       const response = await fetch('/api/admin/header-config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'addCta',
-          ctaId
+          headerCTAs: [...headerCtas, newHeaderCta]
         })
       });
 
@@ -239,8 +238,7 @@ export default function CTAManager() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'removeCta',
-          headerCtaId
+          headerCTAs: headerCtas.filter(hcta => hcta.id !== headerCtaId)
         })
       });
 
@@ -279,22 +277,22 @@ export default function CTAManager() {
   };
 
   const getStyleColor = (style: string) => {
-    switch (style) {
-      case 'primary': return 'bg-blue-100 text-blue-800';
-      case 'secondary': return 'bg-purple-100 text-purple-800';
-      case 'accent': return 'bg-indigo-100 text-indigo-800';
-      case 'ghost': return 'bg-gray-100 text-gray-600';
-      case 'destructive': return 'bg-red-100 text-red-800';
-      case 'success': return 'bg-green-100 text-green-800';
-      case 'info': return 'bg-cyan-100 text-cyan-800';
-      case 'outline': return 'bg-slate-100 text-slate-800';
-      case 'muted': return 'bg-gray-50 text-gray-500';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+    const colors: { [key: string]: string } = {
+      primary: 'bg-blue-100 text-blue-800',
+      secondary: 'bg-gray-100 text-gray-800',
+      accent: 'bg-purple-100 text-purple-800',
+      ghost: 'bg-gray-100 text-gray-600',
+      destructive: 'bg-red-100 text-red-800',
+      success: 'bg-green-100 text-green-800',
+      info: 'bg-blue-100 text-blue-800',
+      outline: 'bg-white text-gray-800 border border-gray-300',
+      muted: 'bg-gray-100 text-gray-500'
+    };
+    return colors[style] || colors.primary;
   };
 
   const isCtaInHeader = (ctaId: number) => {
-    return headerCtas.some(hc => hc.ctaId === ctaId);
+    return headerCtas.some(headerCta => headerCta.ctaId === ctaId);
   };
 
   if (isLoading) {
@@ -474,12 +472,11 @@ export default function CTAManager() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Icon
                 </label>
-                <IconPicker
+                <UniversalIconPicker
                   value={formData.icon}
-                  onChange={(value) => setFormData({ ...formData, icon: value })}
+                  onChange={(iconName) => setFormData({ ...formData, icon: iconName })}
                   placeholder="Select an icon"
-                  label=""
-                  showLabel={false}
+                  className="w-full"
                 />
               </div>
             </div>
@@ -498,10 +495,7 @@ export default function CTAManager() {
                         size="md"
                         className="pointer-events-none"
                         disabled={formData.style === 'muted'}
-                        leftIcon={formData.icon ? (() => {
-                          const IconComponent = getIconComponent(formData.icon);
-                          return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
-                        })() : undefined}
+                        leftIcon={formData.icon ? renderIcon(formData.icon, { className: 'w-4 h-4' }) : undefined}
                       >
                         {formData.text || 'Button Text'}
                       </Button>
@@ -517,10 +511,7 @@ export default function CTAManager() {
                         size="md"
                         className="pointer-events-none"
                         disabled={formData.style === 'muted'}
-                        leftIcon={formData.icon ? (() => {
-                          const IconComponent = getIconComponent(formData.icon);
-                          return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
-                        })() : undefined}
+                        leftIcon={formData.icon ? renderIcon(formData.icon, { className: 'w-4 h-4' }) : undefined}
                       >
                         {formData.text || 'Button Text'}
                       </Button>
@@ -620,10 +611,7 @@ export default function CTAManager() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mb-1">
-                  {headerCta.cta.icon && (() => {
-                    const IconComponent = getIconComponent(headerCta.cta.icon);
-                    return IconComponent ? <IconComponent className="w-4 h-4 text-blue-600" /> : null;
-                  })()}
+                  {headerCta.cta.icon && renderIcon(headerCta.cta.icon, { className: 'w-4 h-4 text-blue-600' })}
                   <h4 className="font-semibold text-gray-900">{headerCta.cta.text}</h4>
                 </div>
                 <p className="text-sm text-gray-600 truncate">{headerCta.cta.url}</p>
@@ -689,10 +677,7 @@ export default function CTAManager() {
                 </div>
 
                 <div className="flex items-center gap-2 mb-2">
-                  {cta.icon && (() => {
-                    const IconComponent = getIconComponent(cta.icon);
-                    return IconComponent ? <IconComponent className="w-4 h-4 text-gray-600" /> : null;
-                  })()}
+                  {cta.icon && renderIcon(cta.icon, { className: 'w-4 h-4 text-gray-600' })}
                   <h4 className="font-semibold text-gray-900">{cta.text}</h4>
                 </div>
                 <p className="text-sm text-gray-600 mb-3 break-all">{cta.url}</p>

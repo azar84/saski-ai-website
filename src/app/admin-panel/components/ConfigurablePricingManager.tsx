@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import IconPicker, { iconLibrary } from '@/components/ui/IconPicker';
+import { IconPicker } from '@/components/ui';
 import PricingSectionsManager from './PricingSectionsManager';
 import {
   Users,
@@ -28,8 +28,10 @@ import {
   CheckCircle,
   ArrowRight,
   Layout,
-  Grid
+  Grid,
+  Calendar
   } from 'lucide-react';
+import { renderIcon } from '@/lib/iconUtils';
 
 const IconDisplay = ({ iconName, iconUrl, className = "w-5 h-5 text-gray-600" }: { 
   iconName: string; 
@@ -41,11 +43,16 @@ const IconDisplay = ({ iconName, iconUrl, className = "w-5 h-5 text-gray-600" }:
     return <img src={iconUrl} alt={iconName} className={`${className} object-contain`} />;
   }
   
-  // Find the icon in the library
-  const iconData = iconLibrary.find(icon => icon.name === iconName);
+  // Handle new universal icon format (library:iconName)
+  if (iconName && iconName.includes(':')) {
+    return renderIcon(iconName, { className });
+  }
+  
+  // Fallback to old format for backward compatibility
+  const iconData = iconName;
   if (iconData) {
-    const IconComponent = iconData.component;
-    return <IconComponent className={className} />;
+    // For old format, try to render as universal icon with lucide prefix
+    return renderIcon(`lucide:${iconName}`, { className });
   }
   
   // Fallback to Settings icon
@@ -521,9 +528,11 @@ export default function ConfigurablePricingManager() {
   };
 
   const getEnabledBasicFeatures = (planId: string) => {
-    return basicFeatures.filter(feature => 
-      isPlanBasicFeatureEnabled(planId, feature.id)
-    ).sort((a, b) => a.sortOrder - b.sortOrder);
+    return planBasicFeatures
+      .filter(pbf => pbf.planId === planId)
+      .map(pbf => basicFeatures.find(bf => bf.id === pbf.basicFeatureId))
+      .filter(Boolean)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
   };
 
   if (loading) {
@@ -733,49 +742,72 @@ export default function ConfigurablePricingManager() {
               
               <div className="mt-6">
                 <h4 className="text-lg font-semibold mb-4 text-gray-900">Pricing for Billing Cycles</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {billingCycles.map((cycle) => (
-                    <div key={cycle.id} className="border-2 border-gray-200 rounded-xl p-4 bg-white/50">
-                      <h5 className="font-semibold mb-3 text-gray-900">{cycle.label}</h5>
-                      <div className="space-y-3">
-                        <Input
-                          placeholder="Price (in cents)"
-                          type="number"
-                          value={newPlanPricing[cycle.id]?.priceCents || 0}
-                          onChange={(e) => setNewPlanPricing({
-                            ...newPlanPricing,
-                            [cycle.id]: {
-                              ...newPlanPricing[cycle.id],
-                              priceCents: parseInt(e.target.value) || 0
-                            }
-                          })}
-                        />
-                        <Input
-                          placeholder="Stripe Price ID"
-                          value={newPlanPricing[cycle.id]?.stripePriceId || ''}
-                          onChange={(e) => setNewPlanPricing({
-                            ...newPlanPricing,
-                            [cycle.id]: {
-                              ...newPlanPricing[cycle.id],
-                              stripePriceId: e.target.value
-                            }
-                          })}
-                        />
-                        <Input
-                          placeholder="CTA URL (e.g., https://checkout.stripe.com/...)"
-                          value={newPlanPricing[cycle.id]?.ctaUrl || ''}
-                          onChange={(e) => setNewPlanPricing({
-                            ...newPlanPricing,
-                            [cycle.id]: {
-                              ...newPlanPricing[cycle.id],
-                              ctaUrl: e.target.value
-                            }
-                          })}
-                        />
+                {billingCycles.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {billingCycles.map((cycle) => (
+                      <div key={cycle.id} className="border-2 border-gray-200 rounded-xl p-4 bg-white/50">
+                        <h5 className="font-semibold mb-3 text-gray-900">{cycle.label}</h5>
+                        <div className="space-y-3">
+                          <Input
+                            placeholder="Price (in cents)"
+                            type="number"
+                            value={newPlanPricing[cycle.id]?.priceCents || 0}
+                            onChange={(e) => setNewPlanPricing({
+                              ...newPlanPricing,
+                              [cycle.id]: {
+                                ...newPlanPricing[cycle.id],
+                                priceCents: parseInt(e.target.value) || 0
+                              }
+                            })}
+                          />
+                          <Input
+                            placeholder="Stripe Price ID"
+                            value={newPlanPricing[cycle.id]?.stripePriceId || ''}
+                            onChange={(e) => setNewPlanPricing({
+                              ...newPlanPricing,
+                              [cycle.id]: {
+                                ...newPlanPricing[cycle.id],
+                                stripePriceId: e.target.value
+                              }
+                            })}
+                          />
+                          <Input
+                            placeholder="CTA URL (e.g., https://checkout.stripe.com/...)"
+                            value={newPlanPricing[cycle.id]?.ctaUrl || ''}
+                            onChange={(e) => setNewPlanPricing({
+                              ...newPlanPricing,
+                              [cycle.id]: {
+                                ...newPlanPricing[cycle.id],
+                                ctaUrl: e.target.value
+                              }
+                            })}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50 text-center">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="p-2 bg-gray-200 rounded-lg">
+                        <Calendar className="w-6 h-6 text-gray-600" />
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <h5 className="text-lg font-semibold text-gray-900 mb-2">No Billing Cycles Found</h5>
+                    <p className="text-gray-600 mb-4">
+                      You need to create billing cycles first to set up pricing for your plans.
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+                      <h6 className="font-semibold text-blue-900 mb-2">Pricing Fields Available:</h6>
+                      <ul className="text-sm text-blue-800 space-y-1">
+                        <li>• <strong>Price (in cents):</strong> Set the price for each billing cycle</li>
+                        <li>• <strong>Stripe Price ID:</strong> Link to your Stripe pricing</li>
+                        <li>• <strong>CTA URL:</strong> Action URL for each billing cycle</li>
+                        <li>• <strong>CTA Text:</strong> Button text (set at plan level above)</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between mt-6">
@@ -872,50 +904,57 @@ export default function ConfigurablePricingManager() {
                       
                       <div className="space-y-2">
                         <h5 className="font-medium text-sm text-gray-900">Pricing:</h5>
-                        {billingCycles.map((cycle) => (
-                          <div key={cycle.id} className="border rounded p-3 bg-gray-50">
-                            <label className="text-xs text-gray-600 font-medium">{cycle.label}</label>
-                            <div className="flex space-x-2 mt-1">
+                        {billingCycles.length > 0 ? (
+                          billingCycles.map((cycle) => (
+                            <div key={cycle.id} className="border rounded p-3 bg-gray-50">
+                              <label className="text-xs text-gray-600 font-medium">{cycle.label}</label>
+                              <div className="flex space-x-2 mt-1">
+                                <Input
+                                  placeholder="Price (cents)"
+                                  type="number"
+                                  value={editPlanPricing[cycle.id]?.priceCents || 0}
+                                  onChange={(e) => setEditPlanPricing({
+                                    ...editPlanPricing,
+                                    [cycle.id]: {
+                                      ...editPlanPricing[cycle.id],
+                                      priceCents: parseInt(e.target.value) || 0
+                                    }
+                                  })}
+                                  className="text-sm"
+                                />
+                                <Input
+                                  placeholder="Stripe ID"
+                                  value={editPlanPricing[cycle.id]?.stripePriceId || ''}
+                                  onChange={(e) => setEditPlanPricing({
+                                    ...editPlanPricing,
+                                    [cycle.id]: {
+                                      ...editPlanPricing[cycle.id],
+                                      stripePriceId: e.target.value
+                                    }
+                                  })}
+                                  className="text-sm"
+                                />
+                              </div>
                               <Input
-                                placeholder="Price (cents)"
-                                type="number"
-                                value={editPlanPricing[cycle.id]?.priceCents || 0}
+                                placeholder="CTA URL"
+                                value={editPlanPricing[cycle.id]?.ctaUrl || ''}
                                 onChange={(e) => setEditPlanPricing({
                                   ...editPlanPricing,
                                   [cycle.id]: {
                                     ...editPlanPricing[cycle.id],
-                                    priceCents: parseInt(e.target.value) || 0
+                                    ctaUrl: e.target.value
                                   }
                                 })}
-                                className="text-sm"
-                              />
-                              <Input
-                                placeholder="Stripe ID"
-                                value={editPlanPricing[cycle.id]?.stripePriceId || ''}
-                                onChange={(e) => setEditPlanPricing({
-                                  ...editPlanPricing,
-                                  [cycle.id]: {
-                                    ...editPlanPricing[cycle.id],
-                                    stripePriceId: e.target.value
-                                  }
-                                })}
-                                className="text-sm"
+                                className="text-sm mt-2"
                               />
                             </div>
-                            <Input
-                              placeholder="CTA URL"
-                              value={editPlanPricing[cycle.id]?.ctaUrl || ''}
-                              onChange={(e) => setEditPlanPricing({
-                                ...editPlanPricing,
-                                [cycle.id]: {
-                                  ...editPlanPricing[cycle.id],
-                                  ctaUrl: e.target.value
-                                }
-                              })}
-                              className="text-sm mt-2"
-                            />
+                          ))
+                        ) : (
+                          <div className="border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50 text-center">
+                            <p className="text-sm text-gray-600 mb-2">No billing cycles available</p>
+                            <p className="text-xs text-gray-500">Create billing cycles to set up pricing</p>
                           </div>
-                        ))}
+                        )}
                       </div>
                       
                       <div className="flex items-center space-x-4">
@@ -1067,24 +1106,49 @@ export default function ConfigurablePricingManager() {
                 <h3 className="text-xl font-bold text-gray-900">Create New Feature Type</h3>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Input
-                  placeholder="Feature Name"
-                  value={newFeatureType.name}
-                  onChange={(e) => setNewFeatureType({ ...newFeatureType, name: e.target.value })}
-                />
-                <Input
-                  placeholder="Unit (e.g., 'per month')"
-                  value={newFeatureType.unit}
-                  onChange={(e) => setNewFeatureType({ ...newFeatureType, unit: e.target.value })}
-                />
-                <IconPicker
-                  value={newFeatureType.icon}
-                  onChange={(iconName) => setNewFeatureType({ ...newFeatureType, icon: iconName })}
-                  placeholder="Select an icon for this feature"
-                  label="Library Icon"
-                  showLabel={true}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Feature Name
+                  </label>
+                  <Input
+                    placeholder="Enter feature name"
+                    value={newFeatureType.name}
+                    onChange={(e) => setNewFeatureType({ ...newFeatureType, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Unit (e.g., 'per month')
+                  </label>
+                  <Input
+                    placeholder="Enter unit"
+                    value={newFeatureType.unit}
+                    onChange={(e) => setNewFeatureType({ ...newFeatureType, unit: e.target.value })}
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Feature Icon
+                </label>
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <IconPicker
+                      value={newFeatureType.icon}
+                      onChange={(iconName, iconComponent, library) => setNewFeatureType({ ...newFeatureType, icon: iconName })}
+                      placeholder="Select an icon"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Description"
+                      value={newFeatureType.description}
+                      onChange={(e) => setNewFeatureType({ ...newFeatureType, description: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
               
               <div className="mt-4">
@@ -1110,14 +1174,6 @@ export default function ConfigurablePricingManager() {
                 </p>
               </div>
               
-              <div className="mt-4">
-                <Input
-                  placeholder="Description"
-                  value={newFeatureType.description}
-                  onChange={(e) => setNewFeatureType({ ...newFeatureType, description: e.target.value })}
-                />
-              </div>
-              
               <div className="flex justify-end mt-6">
                 <Button 
                   onClick={handleCreateFeatureType} 
@@ -1139,60 +1195,76 @@ export default function ConfigurablePricingManager() {
                     {editingFeatureType === featureType.id ? (
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Input
-                            placeholder="Feature Name"
-                            value={editFeatureTypeData?.name || ''}
-                            onChange={(e) => setEditFeatureTypeData({...editFeatureTypeData, name: e.target.value})}
-                          />
-                          <Input
-                            placeholder="Unit"
-                            value={editFeatureTypeData?.unit || ''}
-                            onChange={(e) => setEditFeatureTypeData({...editFeatureTypeData, unit: e.target.value})}
-                          />
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Feature Name
+                            </label>
+                            <Input
+                              placeholder="Enter feature name"
+                              value={editFeatureTypeData?.name || ''}
+                              onChange={(e) => setEditFeatureTypeData({...editFeatureTypeData, name: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Unit
+                            </label>
+                            <Input
+                              placeholder="Enter unit"
+                              value={editFeatureTypeData?.unit || ''}
+                              onChange={(e) => setEditFeatureTypeData({...editFeatureTypeData, unit: e.target.value})}
+                            />
+                          </div>
                         </div>
                         
-                        <Input
-                          placeholder="Description"
-                          value={editFeatureTypeData?.description || ''}
-                          onChange={(e) => setEditFeatureTypeData({...editFeatureTypeData, description: e.target.value})}
-                        />
-                        
-                        <div className="space-y-4">
-                          <IconPicker
-                            value={editFeatureTypeData?.icon || 'Settings'}
-                            onChange={(iconName) => setEditFeatureTypeData({...editFeatureTypeData, icon: iconName})}
-                            placeholder="Select an icon for this feature"
-                            label="Library Icon"
-                            showLabel={true}
-                          />
-                          
-                          <div className="flex items-center space-x-2">
-                            <label className="flex items-center text-sm cursor-pointer">
-                              <div className="relative mr-2">
-                              <input
-                                type="checkbox"
-                                checked={editFeatureTypeData?.isActive || false}
-                                  onChange={(e) => {
-                                    console.log('Feature type active checkbox clicked:', e.target.checked);
-                                    setEditFeatureTypeData({...editFeatureTypeData, isActive: e.target.checked});
-                                  }}
-                                  className="sr-only"
-                                />
-                                <div className={`w-4 h-4 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
-                                  (editFeatureTypeData?.isActive || false)
-                                    ? 'bg-emerald-600 border-emerald-600' 
-                                    : 'bg-white border-gray-300 hover:border-emerald-400'
-                                }`}>
-                                  {(editFeatureTypeData?.isActive || false) && (
-                                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                  )}
-                                </div>
-                              </div>
-                              <span>Active</span>
-                            </label>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Feature Icon
+                          </label>
+                          <div className="flex items-start space-x-4">
+                            <div className="flex-shrink-0">
+                              <IconPicker
+                                value={editFeatureTypeData?.icon || 'Settings'}
+                                onChange={(iconName, iconComponent, library) => setEditFeatureTypeData({...editFeatureTypeData, icon: iconName })}
+                                placeholder="Select an icon"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <Input
+                                placeholder="Description"
+                                value={editFeatureTypeData?.description || ''}
+                                onChange={(e) => setEditFeatureTypeData({...editFeatureTypeData, description: e.target.value})}
+                              />
+                            </div>
                           </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-4">
+                          <label className="flex items-center text-sm cursor-pointer">
+                            <div className="relative mr-2">
+                            <input
+                              type="checkbox"
+                              checked={editFeatureTypeData?.isActive || false}
+                                onChange={(e) => {
+                                  console.log('Feature type active checkbox clicked:', e.target.checked);
+                                  setEditFeatureTypeData({...editFeatureTypeData, isActive: e.target.checked});
+                                }}
+                                className="sr-only"
+                              />
+                              <div className={`w-4 h-4 rounded border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                                (editFeatureTypeData?.isActive || false)
+                                  ? 'bg-emerald-600 border-emerald-600' 
+                                  : 'bg-white border-gray-300 hover:border-emerald-400'
+                              }`}>
+                                {(editFeatureTypeData?.isActive || false) && (
+                                  <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+                            <span>Active</span>
+                          </label>
                         </div>
                         
                         <div>

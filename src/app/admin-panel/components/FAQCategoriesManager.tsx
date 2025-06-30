@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
-import IconPicker from '@/components/ui/IconPicker';
+import UniversalIconPicker from '@/components/ui/UniversalIconPicker';
+import { renderIcon } from '@/lib/iconUtils';
 import { Plus, Edit2, Trash2, Save, X, FolderOpen, MessageSquare } from 'lucide-react';
 
 interface FAQCategory {
@@ -223,9 +224,10 @@ export default function FAQCategoriesManager() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Icon
                 </label>
-                <IconPicker
+                <UniversalIconPicker
                   value={formData.icon}
-                  onChange={(icon) => handleInputChange('icon', icon)}
+                  onChange={(iconName, iconComponent, library) => handleInputChange('icon', iconName)}
+                  placeholder="Select an icon for this category"
                 />
               </div>
 
@@ -291,7 +293,7 @@ export default function FAQCategoriesManager() {
                   className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
                   style={{ backgroundColor: category.color }}
                 >
-                  <FolderOpen className="w-5 h-5" />
+                  {renderIcon(category.icon || 'FolderOpen')}
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">{category.name}</h3>
