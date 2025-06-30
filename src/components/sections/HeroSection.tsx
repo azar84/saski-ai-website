@@ -33,6 +33,7 @@ import {
   Gift,
   Rocket
 } from 'lucide-react';
+import { renderIcon } from '@/lib/iconUtils';
 import { Button, Input } from '@/components/ui';
 
 // AI Assistant Avatar Component
@@ -337,6 +338,16 @@ const HeroSection: React.FC = () => {
   }, []);
 
   const getIconComponent = (iconName: string) => {
+    // Handle new universal icon format (library:iconName)
+    if (iconName && iconName.includes(':')) {
+      // Return a component that renders the universal icon
+      const IconComponent = (props: any) => {
+        return renderIcon(iconName, props);
+      };
+      return IconComponent;
+    }
+    
+    // Fallback to old format for backward compatibility
     const icons: { [key: string]: any } = {
       Shield, Clock, Code, Globe, Zap, Star, Award, Users, TrendingUp, Heart, Sparkles,
       Play, ArrowRight, Download, ExternalLink, Mail, Phone, MessageSquare, Video, 

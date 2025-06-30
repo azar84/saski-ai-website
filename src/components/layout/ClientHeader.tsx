@@ -5,8 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronDown, UserPlus, LogIn, Star, ArrowRight } from 'lucide-react';
-// Import the icon library for getIconComponent
-import * as LucideIcons from 'lucide-react';
+import { renderIcon } from '@/lib/iconUtils';
 import { cn, getAppropriateLogoUrl } from '@/lib/utils';
 import { useDesignSystem } from '@/hooks/useDesignSystem';
 import { Button } from '@/components/ui/Button';
@@ -113,11 +112,17 @@ export default function ClientHeader({
     }
   }
 
-  // Function to get icon component from icon name
+  // Function to get icon component from icon name using universal icon system
   const getIconComponent = (iconName: string | undefined) => {
     if (!iconName) return null;
-    const IconComponent = (LucideIcons as any)[iconName];
-    return IconComponent || null;
+    
+    // Handle new universal icon format (library:iconName)
+    if (iconName.includes(':')) {
+      return renderIcon(iconName, { className: 'w-4 h-4 flex-shrink-0' });
+    }
+    
+    // Fallback to old format for backward compatibility - assume lucide
+    return renderIcon(`lucide:${iconName}`, { className: 'w-4 h-4 flex-shrink-0' });
   };
 
   // Handle scroll effect
@@ -238,14 +243,13 @@ export default function ClientHeader({
       <header 
         data-header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 mb-0",
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           isScrolled ? "bg-white/95 backdrop-blur-md shadow-lg" : "bg-transparent",
           "border-b border-gray-200/50"
         )}
         style={{
           backgroundColor: isScrolled ? `${backgroundColor}95` : backgroundColor,
-          borderBottomColor: isScrolled ? `${finalMenuTextColor}20` : 'transparent',
-          marginBottom: 0
+          borderBottomColor: isScrolled ? `${finalMenuTextColor}20` : 'transparent'
         }}
       >
       {/* Subtle border animation */}
@@ -540,8 +544,6 @@ export default function ClientHeader({
               transition={{ duration: 0.8, delay: 0.5 }}
             >
               {ctaButtons.map((cta, index) => {
-                const IconComponent = cta.icon ? getIconComponent(cta.icon) : null;
-                
                 return (
                   <motion.div
                     key={index}
@@ -573,7 +575,7 @@ export default function ClientHeader({
                         fontFamily: 'var(--font-family-sans)',
                       }}
                     >
-                      {IconComponent && <IconComponent className="w-4 h-4 flex-shrink-0" />}
+                      {cta.icon && getIconComponent(cta.icon)}
                       <span>{cta.text}</span>
                     </Link>
                   </motion.div>
@@ -876,8 +878,6 @@ export default function ClientHeader({
                 >
                   <div className="flex flex-col space-y-3">
                     {ctaButtons.map((cta, index) => {
-                      const IconComponent = cta.icon ? getIconComponent(cta.icon) : null;
-                      
                       return (
                         <motion.div
                           key={index}
@@ -908,7 +908,7 @@ export default function ClientHeader({
                               fontFamily: 'var(--font-family-sans)',
                             }}
                           >
-                            {IconComponent && <IconComponent className="w-4 h-4 flex-shrink-0" />}
+                            {cta.icon && getIconComponent(cta.icon)}
                             <span>{cta.text}</span>
                           </Link>
                         </motion.div>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import * as LucideIcons from 'lucide-react';
+import { renderIcon } from '@/lib/iconUtils';
 
 interface CTA {
   id: number;
@@ -81,9 +81,17 @@ const DynamicHeroSection: React.FC<DynamicHeroSectionProps> = ({
 
   // Get icon component with responsive sizing
   const getIconComponent = (iconName: string, size?: string) => {
-    const IconComponent = (LucideIcons as any)[iconName];
+    if (!iconName) return null;
+    
     const iconSize = size || getButtonSizeClasses(true).icon;
-    return IconComponent ? <IconComponent className={iconSize} /> : null;
+    
+    // Handle new universal icon format (library:iconName)
+    if (iconName.includes(':')) {
+      return renderIcon(iconName, { className: iconSize });
+    }
+    
+    // Fallback to old format for backward compatibility - assume lucide
+    return renderIcon(`lucide:${iconName}`, { className: iconSize });
   };
 
   // Get container max width class
@@ -510,7 +518,8 @@ const DynamicHeroSection: React.FC<DynamicHeroSectionProps> = ({
         ...getBackgroundStyles(),
         ...sectionHeightConfig.style,
         paddingTop: `${paddingTop}px`,
-        paddingBottom: `${paddingBottom}px`
+        paddingBottom: `${paddingBottom}px`,
+        marginTop: '-3vh'
       }}
     >
       {/* Background Animation */}
