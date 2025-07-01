@@ -71,6 +71,8 @@ async function getJsonLdSiteSettings(): Promise<JsonLdSiteSettings> {
       siteName: settings?.footerCompanyName || 'Saski AI',
       siteDescription: settings?.footerCompanyDescription || 'Transform Your Customer Communication with AI',
       logoUrl: settings?.logoUrl || settings?.logoLightUrl || undefined,
+      logoLightUrl: settings?.logoLightUrl || undefined,
+      logoDarkUrl: settings?.logoDarkUrl || undefined,
       companyPhone: settings?.companyPhone || undefined,
       companyEmail: settings?.companyEmail || undefined,
       companyAddress: settings?.companyAddress || undefined,

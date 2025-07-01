@@ -3,7 +3,12 @@ interface Organization {
   "@type": "Organization";
   name: string;
   url: string;
-  logo?: string;
+  logo?: string | Array<{
+    "@type": "ImageObject";
+    url: string;
+    name?: string;
+    description?: string;
+  }>;
   description?: string;
   sameAs?: string[];
   contactPoint?: {
@@ -116,6 +121,8 @@ export interface SiteSettings {
   siteName: string;
   siteDescription?: string;
   logoUrl?: string;
+  logoLightUrl?: string;
+  logoDarkUrl?: string;
   companyPhone?: string;
   companyEmail?: string;
   companyAddress?: string;
@@ -135,16 +142,55 @@ export function generateOrganizationJsonLd(settings: SiteSettings): Organization
   if (settings.socialInstagram) sameAs.push(settings.socialInstagram);
   if (settings.socialYoutube) sameAs.push(settings.socialYoutube);
 
+  // Build logo images array for better SEO
+  const logoImages: Array<{
+    "@type": "ImageObject";
+    url: string;
+    name?: string;
+    description?: string;
+  }> = [];
+
+  if (settings.logoUrl) {
+    logoImages.push({
+      "@type": "ImageObject",
+      url: settings.logoUrl.startsWith('http') 
+        ? settings.logoUrl 
+        : `${settings.baseUrl}${settings.logoUrl}`,
+      name: `${settings.siteName} Logo`,
+      description: `Official logo of ${settings.siteName}`
+    });
+  }
+
+  if (settings.logoLightUrl && settings.logoLightUrl !== settings.logoUrl) {
+    logoImages.push({
+      "@type": "ImageObject",
+      url: settings.logoLightUrl.startsWith('http') 
+        ? settings.logoLightUrl 
+        : `${settings.baseUrl}${settings.logoLightUrl}`,
+      name: `${settings.siteName} Light Logo`,
+      description: `Light version of ${settings.siteName} logo for dark backgrounds`
+    });
+  }
+
+  if (settings.logoDarkUrl && settings.logoDarkUrl !== settings.logoUrl && settings.logoDarkUrl !== settings.logoLightUrl) {
+    logoImages.push({
+      "@type": "ImageObject",
+      url: settings.logoDarkUrl.startsWith('http') 
+        ? settings.logoDarkUrl 
+        : `${settings.baseUrl}${settings.logoDarkUrl}`,
+      name: `${settings.siteName} Dark Logo`,
+      description: `Dark version of ${settings.siteName} logo for light backgrounds`
+    });
+  }
+
   const organization: Organization = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: settings.siteName,
     url: settings.baseUrl,
     description: settings.siteDescription,
-    ...(settings.logoUrl && { 
-      logo: settings.logoUrl.startsWith('http') 
-        ? settings.logoUrl 
-        : `${settings.baseUrl}${settings.logoUrl}` 
+    ...(logoImages.length > 0 && { 
+      logo: logoImages.length === 1 ? logoImages[0].url : logoImages
     }),
     ...(sameAs.length > 0 && { sameAs })
   };
