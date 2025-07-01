@@ -9,8 +9,9 @@ import type { Metadata } from 'next';
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: { category: string; question: string } }): Promise<Metadata> {
-  const result = await generateFAQQuestionMetadataWithJsonLd(params.category, params.question);
+export async function generateMetadata({ params }: { params: Promise<{ category: string; question: string }> }): Promise<Metadata> {
+  const { category, question } = await params;
+  const result = await generateFAQQuestionMetadataWithJsonLd(category, question);
   return result.metadata;
 }
 
@@ -111,14 +112,14 @@ const getRelatedFAQs = async (categoryId: number, currentFaqId: number): Promise
 };
 
 interface PageProps {
-  params: {
+  params: Promise<{
     category: string;
     question: string;
-  };
+  }>;
 }
 
 export default async function FAQQuestionPage({ params }: PageProps) {
-  const { category: categorySlug, question: questionSlug } = params;
+  const { category: categorySlug, question: questionSlug } = await params;
   const faq = await findFAQBySlug(categorySlug, questionSlug);
   
   if (!faq) {

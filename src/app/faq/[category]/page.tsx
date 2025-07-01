@@ -9,8 +9,9 @@ import type { Metadata } from 'next';
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: { category: string } }): Promise<Metadata> {
-  const result = await generateFAQCategoryMetadataWithJsonLd(params.category);
+export async function generateMetadata({ params }: { params: Promise<{ category: string }> }): Promise<Metadata> {
+  const { category } = await params;
+  const result = await generateFAQCategoryMetadataWithJsonLd(category);
   return result.metadata;
 }
 
@@ -85,13 +86,13 @@ const findCategoryBySlug = async (slug: string): Promise<FAQCategory | null> => 
 };
 
 interface PageProps {
-  params: {
+  params: Promise<{
     category: string;
-  };
+  }>;
 }
 
 export default async function CategoryFAQPage({ params }: PageProps) {
-  const { category: categorySlug } = params;
+  const { category: categorySlug } = await params;
   const category = await findCategoryBySlug(categorySlug);
   
   if (!category) {
