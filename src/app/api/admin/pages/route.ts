@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
 import { CreatePageSchema, UpdatePageSchema, validateAndTransform, type ApiResponse } from '../../../../lib/validations';
+import { autoSubmitSitemap } from '../../../../lib/sitemapSubmission';
 
 // GET - Fetch all pages
 // Function to ensure home page exists
@@ -111,6 +112,11 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // Auto-submit sitemap to search engines (only in production)
+    autoSubmitSitemap().catch(error => {
+      console.error('Failed to auto-submit sitemap after page creation:', error);
+    });
+
     const response: ApiResponse = {
       success: true,
       data: page
@@ -190,6 +196,11 @@ export async function PUT(request: NextRequest) {
       }
     });
 
+    // Auto-submit sitemap to search engines (only in production)
+    autoSubmitSitemap().catch(error => {
+      console.error('Failed to auto-submit sitemap after page update:', error);
+    });
+
     const response: ApiResponse = {
       success: true,
       data: page
@@ -246,6 +257,11 @@ export async function DELETE(request: NextRequest) {
 
     await prisma.page.delete({
       where: { id: parseInt(id) }
+    });
+
+    // Auto-submit sitemap to search engines (only in production)
+    autoSubmitSitemap().catch(error => {
+      console.error('Failed to auto-submit sitemap after page deletion:', error);
     });
 
     const response: ApiResponse = {

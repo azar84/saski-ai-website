@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("saski_DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model SiteSettings {
@@ -47,9 +47,9 @@ model SiteSettings {
   footerCompanyDescription String?
   footerBackgroundColor    String?  @default("#F9FAFB")
   footerTextColor          String?  @default("#374151")
-  baseUrl                  String?  @default("")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
+  baseUrl                  String?  @default("")
 
   @@map("site_settings")
 }
@@ -169,8 +169,8 @@ model HeroSection {
   visible                   Boolean       @default(true)
   createdAt                 DateTime      @default(now())
   updatedAt                 DateTime      @updatedAt
-  ctaSecondary              CTA?          @relation("HeroSecondaryCTA", fields: [ctaSecondaryId], references: [id])
   ctaPrimary                CTA?          @relation("HeroPrimaryCTA", fields: [ctaPrimaryId], references: [id])
+  ctaSecondary              CTA?          @relation("HeroSecondaryCTA", fields: [ctaSecondaryId], references: [id])
   pageSections              PageSection[]
 
   @@map("hero_sections")
@@ -192,37 +192,37 @@ model Feature {
 }
 
 model MediaSection {
-  id                      Int                   @id @default(autoincrement())
-  position                Int                   @default(0)
-  layoutType              String                @default("media_right")
-  badgeText               String?
-  badgeColor              String                @default("#5243E9")
-  headline                String
-  subheading              String?
-  alignment               String                @default("left")
-  mediaType               String                @default("image")
-  mediaUrl                String?
-  mediaAlt                String?
-  mediaSize               String                @default("md")
-  mediaPosition           String                @default("right")
-  showBadge               Boolean               @default(true)
-  showCtaButton           Boolean               @default(false)
-  ctaText                 String?
-  ctaUrl                  String?
-  ctaStyle                String                @default("primary")
-  enableScrollAnimations  Boolean               @default(false)
-  animationType           String                @default("none")
-  backgroundStyle         String                @default("solid")
-  backgroundColor         String                @default("#F6F8FC")
-  textColor               String                @default("#0F1A2A")
-  paddingTop              Int                   @default(80)
-  paddingBottom           Int                   @default(80)
-  containerMaxWidth       String                @default("2xl")
-  isActive                Boolean               @default(true)
-  createdAt               DateTime              @default(now())
-  updatedAt               DateTime              @updatedAt
-  features                MediaSectionFeature[]
-  pageSections            PageSection[]
+  id                     Int                   @id @default(autoincrement())
+  position               Int                   @default(0)
+  layoutType             String                @default("media_right")
+  badgeText              String?
+  badgeColor             String                @default("#5243E9")
+  headline               String
+  subheading             String?
+  alignment              String                @default("left")
+  mediaType              String                @default("image")
+  mediaUrl               String?
+  mediaAlt               String?
+  mediaSize              String                @default("md")
+  mediaPosition          String                @default("right")
+  showBadge              Boolean               @default(true)
+  showCtaButton          Boolean               @default(false)
+  ctaText                String?
+  ctaUrl                 String?
+  ctaStyle               String                @default("primary")
+  enableScrollAnimations Boolean               @default(false)
+  animationType          String                @default("none")
+  backgroundStyle        String                @default("solid")
+  backgroundColor        String                @default("#F6F8FC")
+  textColor              String                @default("#0F1A2A")
+  paddingTop             Int                   @default(80)
+  paddingBottom          Int                   @default(80)
+  containerMaxWidth      String                @default("2xl")
+  isActive               Boolean               @default(true)
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  features               MediaSectionFeature[]
+  pageSections           PageSection[]
 
   @@map("media_sections")
 }
@@ -280,8 +280,8 @@ model HeaderConfigMenu {
   isVisible      Boolean      @default(true)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  menu           Menu         @relation(fields: [menuId], references: [id], onDelete: Cascade)
   headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
+  menu           Menu         @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
   @@unique([headerConfigId, menuId])
 }
@@ -297,8 +297,8 @@ model HeaderNavItem {
   isVisible      Boolean      @default(true)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  page           Page?        @relation(fields: [pageId], references: [id], onDelete: Cascade)
   headerConfig   HeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
+  page           Page?        @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@map("header_nav_items")
 }
@@ -332,10 +332,10 @@ model CTA {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   headerCTAs        HeaderCTA[]
-  heroSecondary     HeroSection[]  @relation("HeroSecondaryCTA")
   heroPrimary       HeroSection[]  @relation("HeroPrimaryCTA")
-  homeHeroSecondary HomePageHero[] @relation("HomeHeroSecondaryCTA")
+  heroSecondary     HeroSection[]  @relation("HeroSecondaryCTA")
   homeHeroPrimary   HomePageHero[] @relation("HomeHeroPrimaryCTA")
+  homeHeroSecondary HomePageHero[] @relation("HomeHeroSecondaryCTA")
 
   @@map("ctas")
 }
@@ -370,8 +370,8 @@ model HomePageHero {
   isActive         Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  ctaSecondary     CTA?     @relation("HomeHeroSecondaryCTA", fields: [ctaSecondaryId], references: [id])
   ctaPrimary       CTA?     @relation("HomeHeroPrimaryCTA", fields: [ctaPrimaryId], references: [id])
+  ctaSecondary     CTA?     @relation("HomeHeroSecondaryCTA", fields: [ctaSecondaryId], references: [id])
 
   @@map("home_page_hero")
 }
@@ -405,18 +405,18 @@ model GlobalFeature {
 }
 
 model FeatureGroup {
-  id           Int                @id @default(autoincrement())
-  name         String
-  description  String?
-  layoutType   String             @default("grid")
-  sortOrder    Int                @default(0)
-  isActive     Boolean            @default(true)
-  backgroundColor String?         @default("#FFFFFF")
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  items        FeatureGroupItem[]
-  pageGroups   PageFeatureGroup[]
-  pageSections PageSection[]
+  id              Int                @id @default(autoincrement())
+  name            String
+  description     String?
+  layoutType      String             @default("grid")
+  sortOrder       Int                @default(0)
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  backgroundColor String?            @default("#FFFFFF")
+  items           FeatureGroupItem[]
+  pageGroups      PageFeatureGroup[]
+  pageSections    PageSection[]
 
   @@map("feature_groups")
 }
@@ -429,8 +429,8 @@ model FeatureGroupItem {
   isVisible      Boolean       @default(true)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  feature        GlobalFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
   featureGroup   FeatureGroup  @relation(fields: [featureGroupId], references: [id], onDelete: Cascade)
+  feature        GlobalFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
 
   @@unique([featureGroupId, featureId])
   @@map("feature_group_items")
@@ -471,16 +471,16 @@ model PageSection {
   htmlSectionId    Int?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  htmlSection      HtmlSection?    @relation(fields: [htmlSectionId], references: [id])
-  form             Form?           @relation(fields: [formId], references: [id])
   contactSection   ContactSection? @relation(fields: [contactSectionId], references: [id])
   faqCategory      FAQCategory?    @relation(fields: [faqCategoryId], references: [id])
   faqSection       FAQSection?     @relation(fields: [faqSectionId], references: [id])
-  pricingSection   PricingSection? @relation(fields: [pricingSectionId], references: [id])
-  mediaSection     MediaSection?   @relation(fields: [mediaSectionId], references: [id])
   featureGroup     FeatureGroup?   @relation(fields: [featureGroupId], references: [id])
+  form             Form?           @relation(fields: [formId], references: [id])
   heroSection      HeroSection?    @relation(fields: [heroSectionId], references: [id])
+  htmlSection      HtmlSection?    @relation(fields: [htmlSectionId], references: [id])
+  mediaSection     MediaSection?   @relation(fields: [mediaSectionId], references: [id])
   page             Page            @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pricingSection   PricingSection? @relation(fields: [pricingSectionId], references: [id])
 
   @@map("page_sections")
 }
@@ -898,8 +898,8 @@ model PagePricingSection {
   isVisible        Boolean        @default(true)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-  pricingSection   PricingSection @relation(fields: [pricingSectionId], references: [id], onDelete: Cascade)
   page             Page           @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pricingSection   PricingSection @relation(fields: [pricingSectionId], references: [id], onDelete: Cascade)
 
   @@unique([pageId, pricingSectionId])
   @@map("page_pricing_sections")

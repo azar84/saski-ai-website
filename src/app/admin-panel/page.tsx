@@ -33,7 +33,6 @@ import FeatureGroupsManager from './components/FeatureGroupsManager';
 import FeaturesManagement from './components/FeaturesManagement';
 import SiteSettingsManager from './components/SiteSettingsManager';
 import PagesManager from './components/PagesManager';
-import HeaderManager from './components/HeaderManager';
 import CTAManager from './components/CTAManager';
 import HomeHeroManager from './components/HomeHeroManager';
 import PageBuilder from './components/PageBuilder';
@@ -45,17 +44,17 @@ import FAQManager from './components/FAQManager';
 import ContactManager from './components/ContactManager';
 import HtmlSectionsManager from './components/HtmlSectionsManager';
 import MenuManager from './components/MenuManager';
+import SEOManager from './components/SEOManager';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features-management' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'menu-management' | 'users' | 'analytics' | 'site-settings' | 'header-config' | 'cta-manager' | 'design-system';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features-management' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'menu-management' | 'seo-manager' | 'users' | 'analytics' | 'site-settings' | 'cta-manager' | 'design-system';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
   { id: 'pages', name: 'Pages', icon: FileText, color: 'text-green-600' },
   { id: 'page-builder', name: 'Page Builder', icon: Layers, color: 'text-violet-600' },
-  { id: 'header-config', name: 'Header Config', icon: Menu, color: 'text-orange-600' },
   { id: 'cta-manager', name: 'CTA Buttons', icon: MousePointer, color: 'text-teal-600' },
   { id: 'home-hero', name: 'Home Page Hero', icon: Home, color: 'text-rose-600' },
   { id: 'hero-sections', name: 'Hero Sections', icon: Image, color: 'text-purple-600' },
@@ -63,11 +62,12 @@ const navigation = [
   { id: 'media-sections', name: 'Media Sections', icon: Play, color: 'text-red-600' },
   { id: 'media-library', name: 'Media Library', icon: FolderOpen, color: 'text-blue-600' },
   { id: 'pricing', name: 'Pricing Plans', icon: DollarSign, color: 'text-green-600' },
-  { id: 'testimonials', name: 'Testimonials', icon: Users, color: 'text-indigo-600' },
   { id: 'faq-management', name: 'FAQ Management', icon: MessageSquare, color: 'text-cyan-600' },
   { id: 'contact-management', name: 'Forms Management', icon: Mail, color: 'text-blue-600' },
   { id: 'html-sections', name: 'HTML Sections', icon: Grid, color: 'text-purple-600' },
   { id: 'menu-management', name: 'Menu Management', icon: Menu, color: 'text-indigo-600' },
+  { id: 'seo-manager', name: 'SEO Manager', icon: Globe, color: 'text-emerald-600' },
+  { id: 'testimonials', name: 'Testimonials', icon: Users, color: 'text-indigo-600' },
   { id: 'users', name: 'Users', icon: Users, color: 'text-pink-600' },
   { id: 'analytics', name: 'Analytics', icon: BarChart3, color: 'text-emerald-600' },
   { id: 'design-system', name: 'Design System', icon: Layers, color: 'text-blue-600' },
@@ -84,8 +84,6 @@ export default function AdminPanel() {
         return <PagesManager />;
       case 'page-builder':
         return <PageBuilder />;
-      case 'header-config':
-        return <HeaderManager />;
       case 'cta-manager':
         return <CTAManager />;
       case 'home-hero':
@@ -108,6 +106,16 @@ export default function AdminPanel() {
         );
       case 'pricing':
         return <ConfigurablePricingManager />;
+      case 'faq-management':
+        return <FAQManager />;
+      case 'contact-management':
+        return <ContactManager />;
+      case 'html-sections':
+        return <HtmlSectionsManager />;
+      case 'menu-management':
+        return <MenuManager />;
+      case 'seo-manager':
+        return <SEOManager />;
       case 'testimonials':
         return (
           <div className="p-8">
@@ -118,14 +126,6 @@ export default function AdminPanel() {
             </div>
           </div>
         );
-      case 'faq-management':
-        return <FAQManager />;
-      case 'contact-management':
-        return <ContactManager />;
-      case 'html-sections':
-        return <HtmlSectionsManager />;
-      case 'menu-management':
-        return <MenuManager />;
       case 'users':
         return (
           <div className="p-8">

@@ -11,7 +11,6 @@ async function main() {
     where: { id: 1 },
     update: {},
     create: {
-      id: 1,
       logoUrl: null,
       logoLightUrl: null,
       logoDarkUrl: null,
@@ -37,7 +36,6 @@ async function main() {
     where: { id: 1 },
     update: {},
     create: {
-      id: 1,
       primaryColor: '#5243E9',
       primaryColorLight: '#6366F1',
       primaryColorDark: '#4338CA',
@@ -142,7 +140,6 @@ async function main() {
       where: { id: 1 },
       update: {},
       create: {
-        id: 1,
         text: 'Get Started',
         url: '/contact',
         icon: 'arrow-right',
@@ -155,7 +152,6 @@ async function main() {
       where: { id: 2 },
       update: {},
       create: {
-        id: 2,
         text: 'Learn More',
         url: '/about',
         icon: 'info',
@@ -172,7 +168,6 @@ async function main() {
     where: { id: 1 },
     update: {},
     create: {
-      id: 1,
       tagline: 'Award-Winning AI Platform',
       headline: 'Transform Your Customer Communication with AI',
       subheading: 'Intelligent automation that delivers personalized experiences and drives real business results.',
