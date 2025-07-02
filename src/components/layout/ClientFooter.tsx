@@ -94,6 +94,7 @@ interface Menu {
   id: number;
   name: string;
   items: MenuItem[];
+  isActive: boolean;
 }
 
 interface MenuItem {
@@ -157,7 +158,12 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
         }
       });
       if (response.ok) {
-        const settings = await response.json();
+        const result = await response.json();
+        console.log('Raw API response:', result);
+        
+        // Handle the API response structure - it returns { success: true, data: {...} }
+        const settings = result.success ? result.data : result;
+        console.log('Processed site settings:', settings);
         console.log('Fetched site settings with footer colors:', {
           footerBackgroundColor: settings.footerBackgroundColor,
           footerTextColor: settings.footerTextColor
@@ -181,6 +187,8 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
         if (settings.footerNewsletterFormId) {
           fetchNewsletterForm(settings.footerNewsletterFormId);
         }
+      } else {
+        console.error('Failed to fetch site settings, status:', response.status);
       }
     } catch (error) {
       console.error('Error fetching site settings:', error);
@@ -190,17 +198,26 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
   const fetchFooterMenus = async (menuIds: number[]) => {
     try {
       console.log('Fetching footer menus for IDs:', menuIds);
-      const response = await fetch('/api/admin/menus');
+      const response = await fetch(`/api/admin/menus?t=${Date.now()}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       if (response.ok) {
         const result = await response.json();
         console.log('Menu API response:', result);
         
         // Handle the API response structure with success and data fields
-        const allMenus = result.success ? result.data : result;
+        const allMenus = result.success ? result.data : (Array.isArray(result) ? result : []);
         console.log('All menus:', allMenus);
         console.log('All menu IDs:', allMenus.map((m: any) => m.id));
         
-        const selectedMenus = allMenus.filter((menu: Menu) => menuIds.includes(menu.id));
+        const selectedMenus = allMenus.filter((menu: Menu) => 
+          menuIds.includes(menu.id) && menu.isActive
+        );
         console.log('Selected menus:', selectedMenus);
         
         setFooterMenus(selectedMenus);
@@ -216,13 +233,20 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
   const fetchNewsletterForm = async (formId: number) => {
     try {
       console.log('Fetching newsletter form for ID:', formId);
-      const response = await fetch('/api/admin/forms');
+      const response = await fetch(`/api/admin/forms?t=${Date.now()}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
       if (response.ok) {
         const result = await response.json();
         console.log('Forms API response:', result);
         
         // Handle the API response structure with success and data fields
-        const allForms = result.success ? result.data : result;
+        const allForms = result.success ? result.data : (Array.isArray(result) ? result : []);
         console.log('All forms:', allForms);
         
         const form = allForms.find((f: Form) => f.id === formId);
@@ -344,18 +368,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
   console.log('Site settings footer menu IDs:', siteSettings.footerMenuIds);
   console.log('Newsletter form state:', newsletterForm);
   console.log('Newsletter form ID from settings:', siteSettings.footerNewsletterFormId);
-
-  // Temporary test data if no menus loaded
-  const testMenus = footerMenus.length === 0 ? [
-    {
-      id: 999,
-      name: 'Test Menu',
-      items: [
-        { id: 1, label: 'Test Link 1', url: '/test1', target: '_self' },
-        { id: 2, label: 'Test Link 2', url: '/test2', target: '_self' },
-      ]
-    }
-  ] : footerMenus;
+  console.log('Footer show contact info:', siteSettings.footerShowContactInfo);
 
   // Early return if no settings
   if (!siteSettings) {
@@ -464,7 +477,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
               </div>
 
                 {/* Footer Menus with Elegant Dividers */}
-                {testMenus.length > 0 && testMenus.slice(0, 2).map((menu, index) => (
+                {footerMenus.length > 0 && footerMenus.slice(0, 2).map((menu, index) => (
                   <div 
                     key={menu.id} 
                     className="lg:px-6 lg:border-l py-4 lg:py-0"

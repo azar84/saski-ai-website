@@ -534,14 +534,6 @@ export default function MenuManager() {
   const [siteSettings, setSiteSettings] = useState<any>(null);
   const [forms, setForms] = useState<any[]>([]);
   const [selectedMenuIds, setSelectedMenuIds] = useState<number[]>([]);
-  const [footerFormData, setFooterFormData] = useState({
-    footerCompanyName: '',
-    footerCompanyDescription: '',
-    footerCopyrightMessage: '',
-    footerNewsletterFormId: null as number | null,
-    footerShowContactInfo: true,
-    footerShowSocialLinks: true
-  });
   const [footerSaving, setFooterSaving] = useState(false);
   const [footerSaveSuccess, setFooterSaveSuccess] = useState(false);
   const [headerSaving, setHeaderSaving] = useState(false);
@@ -644,14 +636,6 @@ export default function MenuManager() {
       // Handle site settings for footer
       if (siteSettingsResponse) {
         setSiteSettings(siteSettingsResponse);
-        setFooterFormData({
-          footerCompanyName: (siteSettingsResponse as any).footerCompanyName || '',
-          footerCompanyDescription: (siteSettingsResponse as any).footerCompanyDescription || '',
-          footerCopyrightMessage: (siteSettingsResponse as any).footerCopyrightMessage || '',
-          footerNewsletterFormId: (siteSettingsResponse as any).footerNewsletterFormId || null,
-          footerShowContactInfo: (siteSettingsResponse as any).footerShowContactInfo !== false,
-          footerShowSocialLinks: (siteSettingsResponse as any).footerShowSocialLinks !== false
-        });
 
         // Parse footer menu IDs if they exist
         if ((siteSettingsResponse as any).footerMenuIds) {
@@ -1208,8 +1192,10 @@ export default function MenuManager() {
       setError(null);
 
       const payload = {
-        ...footerFormData,
         footerMenuIds: JSON.stringify(selectedMenuIds),
+        footerNewsletterFormId: siteSettings?.footerNewsletterFormId,
+        footerShowContactInfo: siteSettings?.footerShowContactInfo,
+        footerShowSocialLinks: siteSettings?.footerShowSocialLinks,
         footerBackgroundColor: siteSettings?.footerBackgroundColor,
         footerTextColor: siteSettings?.footerTextColor
       };
@@ -2567,67 +2553,6 @@ export default function MenuManager() {
       {activeTab === 'footer' && (
         <div className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Company Branding */}
-            <Card className="p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Globe className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Company Branding</h3>
-                  <p className="text-gray-600 text-sm">Company information displayed in footer</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Company Name
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Your Company Name"
-                    value={footerFormData.footerCompanyName}
-                    onChange={(e) => setFooterFormData(prev => ({ ...prev, footerCompanyName: e.target.value }))}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Company name shown in footer (if empty, uses logo)
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Company Description
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Brief description of your company..."
-                    value={footerFormData.footerCompanyDescription}
-                    onChange={(e) => setFooterFormData(prev => ({ ...prev, footerCompanyDescription: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Short description displayed under company name
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Copyright Message
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="© {year} Your Company. All rights reserved."
-                    value={footerFormData.footerCopyrightMessage}
-                    onChange={(e) => setFooterFormData(prev => ({ ...prev, footerCopyrightMessage: e.target.value }))}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Use {'{year}'} for dynamic year. If empty, uses default format.
-                  </p>
-                </div>
-              </div>
-            </Card>
-
             {/* Newsletter Form */}
             <Card className="p-6">
               <div className="flex items-center space-x-3 mb-6">
@@ -2646,8 +2571,11 @@ export default function MenuManager() {
                     Newsletter Form
                   </label>
                   <select
-                    value={footerFormData.footerNewsletterFormId || ''}
-                    onChange={(e) => setFooterFormData(prev => ({ ...prev, footerNewsletterFormId: parseInt(e.target.value) || null }))}
+                    value={siteSettings?.footerNewsletterFormId || ''}
+                    onChange={(e) => setSiteSettings((prev: any) => ({ 
+                      ...prev, 
+                      footerNewsletterFormId: parseInt(e.target.value) || null 
+                    }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">No newsletter form</option>
@@ -2670,13 +2598,13 @@ export default function MenuManager() {
                   </div>
                 )}
 
-                {footerFormData.footerNewsletterFormId && (
+                {siteSettings?.footerNewsletterFormId && (
                   <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-sm text-green-700">
                       ✓ Newsletter form will be displayed in the footer
                     </p>
                     {(() => {
-                      const selectedForm = forms.find(f => f.id === footerFormData.footerNewsletterFormId);
+                      const selectedForm = forms.find(f => f.id === siteSettings.footerNewsletterFormId);
                       return selectedForm ? (
                         <div className="mt-2 text-xs text-green-600">
                           <p><strong>Selected:</strong> {selectedForm.name}</p>
@@ -2687,7 +2615,7 @@ export default function MenuManager() {
                   </div>
                 )}
                 
-                {forms.length > 0 && !footerFormData.footerNewsletterFormId && (
+                {forms.length > 0 && !siteSettings?.footerNewsletterFormId && (
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-700">
                       💡 Select a form above to enable newsletter signup in your footer
@@ -2697,7 +2625,7 @@ export default function MenuManager() {
               </div>
             </Card>
 
-            {/* Footer Menus */}
+            {/* Footer Menus - Enhanced UI */}
             <Card className="p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="p-2 bg-purple-100 rounded-lg">
@@ -2705,46 +2633,114 @@ export default function MenuManager() {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">Footer Navigation</h3>
-                  <p className="text-gray-600 text-sm">Select menus to display in footer</p>
+                  <p className="text-gray-600 text-sm">Select menus to display in footer navigation</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Available Menus
-                  </label>
-                  <div className="space-y-2">
-                    {menus.map((menu) => (
-                      <div key={menu.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
-                        <input
-                          type="checkbox"
-                          id={`footer-menu-${menu.id}`}
-                          checked={selectedMenuIds.includes(menu.id)}
-                          onChange={() => handleFooterMenuToggle(menu.id)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor={`footer-menu-${menu.id}`} className="flex-1 text-sm font-medium text-gray-700">
-                          {menu.name}
-                        </label>
-                        <span className="text-xs text-gray-500">
-                          {menu.items?.length || 0} items
-                        </span>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-sm font-medium text-gray-700">
+                      Available Menus ({selectedMenuIds.length} selected)
+                    </label>
+                    {selectedMenuIds.length > 0 && (
+                      <button
+                        onClick={() => setSelectedMenuIds([])}
+                        className="text-xs text-red-600 hover:text-red-800 underline"
+                      >
+                        Clear all
+                      </button>
+                    )}
                   </div>
-
-                  {menus.length === 0 && (
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-sm text-amber-700">
-                        No menus available. Create menus first.
-                      </p>
+                  
+                  {menus.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-3">
+                      {menus.map((menu) => {
+                        const isSelected = selectedMenuIds.includes(menu.id);
+                        return (
+                          <div 
+                            key={menu.id} 
+                            className={`relative p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                              isSelected 
+                                ? 'border-blue-500 bg-blue-50 shadow-md' 
+                                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                            }`}
+                            onClick={() => handleFooterMenuToggle(menu.id)}
+                          >
+                            {/* Selection indicator */}
+                            <div className="absolute top-3 right-3">
+                              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                                isSelected 
+                                  ? 'bg-blue-600 border-blue-600' 
+                                  : 'bg-white border-gray-400 hover:border-gray-500'
+                              }`}>
+                                {isSelected && (
+                                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Menu info */}
+                            <div className="pr-8">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <h4 className="text-base font-semibold text-gray-900">{menu.name}</h4>
+                                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                                  menu.isActive 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {menu.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                              </div>
+                              
+                              {menu.description && (
+                                <p className="text-sm text-gray-600 mb-2">{menu.description}</p>
+                              )}
+                              
+                              <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                <span className="flex items-center space-x-1">
+                                  <MenuIcon className="w-3 h-3" />
+                                  <span>{menu.items?.length || 0} items</span>
+                                </span>
+                                {menu.items && menu.items.length > 0 && (
+                                  <span className="flex items-center space-x-1">
+                                    <span>Preview:</span>
+                                    <span className="font-medium">
+                                      {menu.items.slice(0, 3).map(item => item.label).join(', ')}
+                                      {menu.items.length > 3 && ` +${menu.items.length - 3} more`}
+                                    </span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                      <MenuIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-600 mb-2">No menus available</p>
+                      <p className="text-xs text-gray-500">Create menus in the "Menu Management" tab first.</p>
                     </div>
                   )}
 
-                  <p className="text-xs text-gray-500 mt-2">
-                    Selected menus will be displayed as footer navigation sections
-                  </p>
+                  {/* Selection summary */}
+                  {selectedMenuIds.length > 0 && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <CheckCircle className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-900">
+                          {selectedMenuIds.length} menu{selectedMenuIds.length !== 1 ? 's' : ''} selected for footer navigation
+                        </span>
+                      </div>
+                      <div className="text-xs text-blue-700">
+                        Selected menus will appear as navigation sections in your footer.
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>
@@ -2761,38 +2757,107 @@ export default function MenuManager() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="footerShowContactInfo"
-                    checked={footerFormData.footerShowContactInfo}
-                    onChange={(e) => setFooterFormData(prev => ({ ...prev, footerShowContactInfo: e.target.checked }))}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="footerShowContactInfo" className="text-sm font-medium text-gray-700">
-                    Show Contact Information
-                  </label>
+              <div className="space-y-6">
+                {/* Show Contact Information */}
+                <div className="flex items-start space-x-4 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors bg-gray-50 hover:bg-blue-50">
+                  <div className="flex items-center h-6">
+                    <input
+                      type="checkbox"
+                      id="footerShowContactInfo"
+                      checked={siteSettings?.footerShowContactInfo !== false}
+                      onChange={(e) => setSiteSettings((prev: any) => ({ 
+                        ...prev, 
+                        footerShowContactInfo: e.target.checked 
+                      }))}
+                      className="h-6 w-6 text-blue-600 focus:ring-blue-500 border-2 border-gray-400 rounded cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="footerShowContactInfo" className="block text-base font-semibold text-gray-900 cursor-pointer">
+                      Show Contact Information
+                    </label>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Display company phone, email, and address from Site Settings in the footer
+                    </p>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full ${
+                    siteSettings?.footerShowContactInfo !== false ? 'bg-green-500' : 'bg-gray-300'
+                  } transition-colors`}></div>
                 </div>
-                <p className="text-xs text-gray-500 ml-7">
-                  Display phone, email, and address from Site Settings
-                </p>
 
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="footerShowSocialLinks"
-                    checked={footerFormData.footerShowSocialLinks}
-                    onChange={(e) => setFooterFormData(prev => ({ ...prev, footerShowSocialLinks: e.target.checked }))}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="footerShowSocialLinks" className="text-sm font-medium text-gray-700">
-                    Show Social Media Links
-                  </label>
+                {/* Show Social Media Links */}
+                <div className="flex items-start space-x-4 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors bg-gray-50 hover:bg-blue-50">
+                  <div className="flex items-center h-6">
+                    <input
+                      type="checkbox"
+                      id="footerShowSocialLinks"
+                      checked={siteSettings?.footerShowSocialLinks !== false}
+                      onChange={(e) => setSiteSettings((prev: any) => ({ 
+                        ...prev, 
+                        footerShowSocialLinks: e.target.checked 
+                      }))}
+                      className="h-6 w-6 text-blue-600 focus:ring-blue-500 border-2 border-gray-400 rounded cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="footerShowSocialLinks" className="block text-base font-semibold text-gray-900 cursor-pointer">
+                      Show Social Media Links
+                    </label>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Display social media icons and links from Site Settings in the footer
+                    </p>
+                  </div>
+                  <div className={`w-4 h-4 rounded-full ${
+                    siteSettings?.footerShowSocialLinks !== false ? 'bg-green-500' : 'bg-gray-300'
+                  } transition-colors`}></div>
                 </div>
-                <p className="text-xs text-gray-500 ml-7">
-                  Display social media icons from Site Settings
-                </p>
+
+                {/* Current Status Preview */}
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-900 mb-3">Footer Display Status:</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-800">Contact Information:</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        siteSettings?.footerShowContactInfo !== false
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {siteSettings?.footerShowContactInfo !== false ? '✓ Visible' : '✗ Hidden'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-800">Social Media Links:</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        siteSettings?.footerShowSocialLinks !== false
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {siteSettings?.footerShowSocialLinks !== false ? '✓ Visible' : '✗ Hidden'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-800">Newsletter Form:</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        siteSettings?.footerNewsletterFormId
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {siteSettings?.footerNewsletterFormId ? '✓ Configured' : '○ Not set'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-blue-800">Footer Menus:</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        selectedMenuIds.length > 0
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {selectedMenuIds.length > 0 ? `✓ ${selectedMenuIds.length} selected` : '○ None selected'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </Card>
 
@@ -2820,50 +2885,57 @@ export default function MenuManager() {
                   
                   {/* Design System Color Palette */}
                   <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-4">
-                    {getDesignSystemColors().map((colorOption) => (
-                      <div
-                        key={colorOption.name}
-                        className={`cursor-pointer text-center ${
-                          siteSettings?.footerBackgroundColor === colorOption.value
-                            ? 'ring-2 ring-blue-500 ring-offset-2 rounded-lg'
-                            : 'hover:ring-2 hover:ring-gray-300 hover:ring-offset-2 rounded-lg'
+                    {getDesignSystemColors().map((color) => (
+                      <button
+                        key={color.name}
+                        onClick={() => setSiteSettings((prev: any) => ({ 
+                          ...prev, 
+                          footerBackgroundColor: color.value 
+                        }))}
+                        className={`group relative p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                          siteSettings?.footerBackgroundColor === color.value 
+                            ? 'border-blue-500 ring-2 ring-blue-200' 
+                            : 'border-gray-200 hover:border-gray-300'
                         }`}
-                        onClick={() => setSiteSettings((prev: any) => ({ ...prev, footerBackgroundColor: colorOption.value }))}
+                        title={color.name}
                       >
-                        <div
-                          className="w-12 h-12 rounded-lg shadow-sm border border-gray-200 mb-1 relative"
-                          style={{ backgroundColor: colorOption.value }}
-                        >
-                          {siteSettings?.footerBackgroundColor === colorOption.value && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-3 h-3 bg-white rounded-full border-2 border-blue-500" />
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-600 block truncate">
-                          {colorOption.name}
-                        </span>
-                      </div>
+                        <div 
+                          className="w-full h-8 rounded-md mb-2 shadow-sm border"
+                          style={{ backgroundColor: color.value }}
+                        />
+                        <p className="text-xs font-medium text-gray-700 group-hover:text-gray-900">
+                          {color.name}
+                        </p>
+                        <p className="text-xs text-gray-500 font-mono">
+                          {color.value}
+                        </p>
+                      </button>
                     ))}
                   </div>
-                  
+
                   {/* Custom Color Input */}
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-1">
+                  <div className="border-t pt-4">
+                    <p className="text-sm text-gray-600 mb-3">Or enter a custom color:</p>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="color"
+                        value={siteSettings?.footerBackgroundColor || '#F9FAFB'}
+                        onChange={(e) => setSiteSettings((prev: any) => ({ 
+                          ...prev, 
+                          footerBackgroundColor: e.target.value 
+                        }))}
+                        className="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer shadow-sm"
+                      />
                       <Input
-                        type="text"
-                        placeholder="#F9FAFB"
                         value={siteSettings?.footerBackgroundColor || ''}
-                        onChange={(e) => setSiteSettings((prev: any) => ({ ...prev, footerBackgroundColor: e.target.value }))}
-                        className="font-mono"
+                        onChange={(e) => setSiteSettings((prev: any) => ({ 
+                          ...prev, 
+                          footerBackgroundColor: e.target.value 
+                        }))}
+                        placeholder="#F9FAFB"
+                        className="flex-1 font-mono"
                       />
                     </div>
-                    <input
-                      type="color"
-                      value={siteSettings?.footerBackgroundColor || '#F9FAFB'}
-                      onChange={(e) => setSiteSettings((prev: any) => ({ ...prev, footerBackgroundColor: e.target.value }))}
-                      className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-                    />
                   </div>
                 </div>
                 
@@ -2889,50 +2961,58 @@ export default function MenuManager() {
                       ),
                       { name: 'White', value: '#FFFFFF', description: 'Pure white' },
                       { name: 'Black', value: '#000000', description: 'Pure black' }
-                    ].map((colorOption) => (
-                      <div
-                        key={colorOption.name}
-                        className={`cursor-pointer text-center ${
-                          siteSettings?.footerTextColor === colorOption.value
-                            ? 'ring-2 ring-blue-500 ring-offset-2 rounded-lg'
-                            : 'hover:ring-2 hover:ring-gray-300 hover:ring-offset-2 rounded-lg'
+                    ].map((color) => (
+                      <button
+                        key={`text-${color.name}`}
+                        onClick={() => setSiteSettings((prev: any) => ({ 
+                          ...prev, 
+                          footerTextColor: color.value 
+                        }))}
+                        className={`group relative p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                          siteSettings?.footerTextColor === color.value 
+                            ? 'border-blue-500 ring-2 ring-blue-200' 
+                            : 'border-gray-200 hover:border-gray-300'
                         }`}
-                        onClick={() => setSiteSettings((prev: any) => ({ ...prev, footerTextColor: colorOption.value }))}
+                        title={`${color.name} - Text`}
                       >
-                        <div
-                          className="w-12 h-12 rounded-lg shadow-sm border border-gray-200 mb-1 relative"
-                          style={{ backgroundColor: colorOption.value }}
+                        <div 
+                          className="w-full h-8 rounded-md mb-2 shadow-sm border flex items-center justify-center"
+                          style={{ backgroundColor: color.value }}
                         >
-                          {siteSettings?.footerTextColor === colorOption.value && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-3 h-3 bg-white rounded-full border-2 border-blue-500" />
-                            </div>
-                          )}
+                          <span className="text-sm font-medium text-white">
+                            A
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-600 block truncate">
-                          {colorOption.name}
-                        </span>
-                      </div>
+                        <p className="text-xs font-medium text-gray-700 group-hover:text-gray-900">
+                          {color.name}
+                        </p>
+                      </button>
                     ))}
                   </div>
                   
                   {/* Custom Text Color Input */}
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-1">
+                  <div className="border-t pt-4">
+                    <p className="text-sm text-gray-600 mb-3">Or enter a custom text color:</p>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="color"
+                        value={siteSettings?.footerTextColor || '#374151'}
+                        onChange={(e) => setSiteSettings((prev: any) => ({ 
+                          ...prev, 
+                          footerTextColor: e.target.value 
+                        }))}
+                        className="w-12 h-10 border border-gray-300 rounded-lg cursor-pointer shadow-sm"
+                      />
                       <Input
-                        type="text"
-                        placeholder="#374151"
                         value={siteSettings?.footerTextColor || ''}
-                        onChange={(e) => setSiteSettings((prev: any) => ({ ...prev, footerTextColor: e.target.value }))}
-                        className="font-mono"
+                        onChange={(e) => setSiteSettings((prev: any) => ({ 
+                          ...prev, 
+                          footerTextColor: e.target.value 
+                        }))}
+                        placeholder="#374151"
+                        className="flex-1 font-mono"
                       />
                     </div>
-                    <input
-                      type="color"
-                      value={siteSettings?.footerTextColor || '#374151'}
-                      onChange={(e) => setSiteSettings((prev: any) => ({ ...prev, footerTextColor: e.target.value }))}
-                      className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-                    />
                   </div>
                 </div>
 
@@ -2987,16 +3067,16 @@ export default function MenuManager() {
                       <img src={siteSettings.logoUrl} alt="Logo" className="h-8 w-auto" />
                     ) : (
                       <div className="text-lg font-bold text-gray-900">
-                        {footerFormData.footerCompanyName || 'Your Company'}
+                        {siteSettings?.footerCompanyName || 'Your Company'}
                       </div>
                     )}
                   </div>
-                  {footerFormData.footerCompanyDescription && (
+                  {siteSettings?.footerCompanyDescription && (
                     <p className="text-sm text-gray-600 mb-4">
-                      {footerFormData.footerCompanyDescription}
+                      {siteSettings.footerCompanyDescription}
                     </p>
                   )}
-                  {footerFormData.footerNewsletterFormId && (
+                  {siteSettings?.footerNewsletterFormId && (
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-gray-900">Subscribe to our newsletter</p>
                       <div className="flex space-x-2">
@@ -3041,7 +3121,7 @@ export default function MenuManager() {
                 })}
 
                 {/* Contact Info */}
-                {footerFormData.footerShowContactInfo && siteSettings && (
+                {siteSettings?.footerShowContactInfo && siteSettings && (
                   <div>
                     <h4 className="text-sm font-semibold text-gray-900 mb-3">Contact Info</h4>
                     <div className="space-y-2">
@@ -3062,13 +3142,13 @@ export default function MenuManager() {
               {/* Bottom Section */}
               <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
                 <p className="text-sm text-gray-600">
-                  {footerFormData.footerCopyrightMessage 
-                    ? footerFormData.footerCopyrightMessage.replace('{year}', new Date().getFullYear().toString())
-                    : `© ${new Date().getFullYear()} ${footerFormData.footerCompanyName || 'Your Company'}. All rights reserved.`
+                  {siteSettings?.footerCopyrightMessage 
+                    ? siteSettings.footerCopyrightMessage.replace('{year}', new Date().getFullYear().toString())
+                    : `© ${new Date().getFullYear()} ${siteSettings?.footerCompanyName || 'Your Company'}. All rights reserved.`
                   }
                 </p>
                 
-                {footerFormData.footerShowSocialLinks && siteSettings && (
+                {siteSettings?.footerShowSocialLinks && siteSettings && (
                   <div className="flex space-x-4 mt-4 md:mt-0">
                     {siteSettings.socialFacebook && (
                       <div className="w-5 h-5 bg-blue-600 rounded"></div>

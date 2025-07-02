@@ -54,10 +54,29 @@ export default function Header() {
       try {
         // Fetch header configuration from API
         const headerResponse = await fetch('/api/admin/header-config');
-        const headerData = await headerResponse.json();
         
-        // Fetch site settings from API
-        const settingsResponse = await fetch('/api/admin/site-settings');
+        if (!headerResponse.ok) {
+          console.error('Failed to fetch header config, status:', headerResponse.status);
+          // Continue with default values if header config fails
+        }
+        
+        const headerData = headerResponse.ok ? await headerResponse.json() : [];
+        
+        // Fetch site settings from API with cache-busting
+        const settingsResponse = await fetch(`/api/admin/site-settings?t=${Date.now()}`, {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
+        
+        if (!settingsResponse.ok) {
+          console.error('Failed to fetch site settings, status:', settingsResponse.status);
+          throw new Error(`Site settings fetch failed: ${settingsResponse.status}`);
+        }
+        
         const settingsData = await settingsResponse.json();
 
         // Handle header config response (returns array directly)
@@ -65,9 +84,10 @@ export default function Header() {
           setHeaderConfig(headerData[0]); // Get the first active config
         }
         
-        // Handle site settings response (returns data directly, not wrapped in data property)
-        if (settingsData && !settingsData.error) {
-          setSiteSettings(settingsData);
+        // Handle site settings response - API returns { success: true, data: {...} }
+        if (settingsData) {
+          const settings = settingsData.success ? settingsData.data : settingsData;
+          setSiteSettings(settings);
         }
 
         // Debug info only in development
@@ -87,6 +107,17 @@ export default function Header() {
             }
           }
           console.log('Header - Site settings fetched:', settingsData ? 'FOUND' : 'NOT FOUND');
+          if (settingsData) {
+            const settings = settingsData.success ? settingsData.data : settingsData;
+            console.log('Header - Site settings structure:', {
+              hasSuccess: !!settingsData.success,
+              hasData: !!settingsData.data,
+              logoUrl: settings?.logoUrl,
+              logoLightUrl: settings?.logoLightUrl,
+              logoDarkUrl: settings?.logoDarkUrl,
+              settingsId: settings?.id
+            });
+          }
           console.log('==============================');
         }
       } catch (error) {
