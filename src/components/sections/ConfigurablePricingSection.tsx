@@ -111,6 +111,7 @@ interface ConfigurablePricingSectionProps {
   pricingSectionId?: number;
   layoutType?: string;
   className?: string;
+  pricingData?: any; // Add server-side pricing data prop
 }
 
 // IconDisplay component exactly like admin panel
@@ -137,18 +138,33 @@ export default function ConfigurablePricingSection({
   subheading,
   pricingSectionId,
   layoutType = 'standard',
-  className = ''
+  className = '',
+  pricingData: serverPricingData
 }: ConfigurablePricingSectionProps) {
   // State variables exactly like admin panel
-  const [pricingSection, setPricingSection] = useState<PricingSection | null>(null);
-  const [billingCycles, setBillingCycles] = useState<BillingCycle[]>([]);
+  const [pricingSection, setPricingSection] = useState<PricingSection | null>(
+    serverPricingData?.pricingSection || null
+  );
+  const [billingCycles, setBillingCycles] = useState<BillingCycle[]>(
+    serverPricingData?.billingCycles || []
+  );
   const [selectedBillingCycleId, setSelectedBillingCycleId] = useState<string>('');
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [planFeatureTypes, setPlanFeatureTypes] = useState<FeatureType[]>([]);
-  const [planLimits, setPlanLimits] = useState<PlanFeatureLimit[]>([]);
-  const [planBasicFeatures, setPlanBasicFeatures] = useState<PlanBasicFeature[]>([]);
-  const [basicFeatures, setBasicFeatures] = useState<BasicFeature[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [plans, setPlans] = useState<Plan[]>(
+    serverPricingData?.plans || []
+  );
+  const [planFeatureTypes, setPlanFeatureTypes] = useState<FeatureType[]>(
+    serverPricingData?.planFeatureTypes || []
+  );
+  const [planLimits, setPlanLimits] = useState<PlanFeatureLimit[]>(
+    serverPricingData?.planLimits || []
+  );
+  const [planBasicFeatures, setPlanBasicFeatures] = useState<PlanBasicFeature[]>(
+    serverPricingData?.planBasicFeatures || []
+  );
+  const [basicFeatures, setBasicFeatures] = useState<BasicFeature[]>(
+    serverPricingData?.basicFeatures || []
+  );
+  const [loading, setLoading] = useState(!serverPricingData);
   const [error, setError] = useState<string | null>(null);
   const { designSystem } = useDesignSystem();
 
@@ -206,67 +222,76 @@ export default function ConfigurablePricingSection({
 
   // Load data exactly like admin panel approach
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch all data in parallel
-        const [cyclesRes, sectionsRes, featureTypesRes, limitsRes, basicFeaturesRes, planBasicFeaturesRes] = await Promise.all([
-          fetch('/api/admin/billing-cycles'),
-          fetch('/api/admin/pricing-sections'),
-          fetch('/api/admin/plan-feature-types'),
-          fetch('/api/admin/plan-feature-limits'),
-          fetch('/api/admin/basic-features'),
-          fetch('/api/admin/plan-basic-features')
-        ]);
+    // Only fetch if server data not provided
+    if (!serverPricingData) {
+      const loadData = async () => {
+        try {
+          setLoading(true);
+          
+          // Fetch all data in parallel
+          const [cyclesRes, sectionsRes, featureTypesRes, limitsRes, basicFeaturesRes, planBasicFeaturesRes] = await Promise.all([
+            fetch('/api/admin/billing-cycles'),
+            fetch('/api/admin/pricing-sections'),
+            fetch('/api/admin/plan-feature-types'),
+            fetch('/api/admin/plan-feature-limits'),
+            fetch('/api/admin/basic-features'),
+            fetch('/api/admin/plan-basic-features')
+          ]);
 
-        const cycles = await cyclesRes.json();
-        const sections = await sectionsRes.json();
-        const featureTypes = await featureTypesRes.json();
-        const limits = await limitsRes.json();
-        const basicFeaturesData = await basicFeaturesRes.json();
-        const planBasicFeaturesData = await planBasicFeaturesRes.json();
-        
-        // Set data exactly like admin panel
-        setBillingCycles(cycles || []);
-        setPlanFeatureTypes(featureTypes || []);
-        setPlanLimits(limits || []);
-        setBasicFeatures(basicFeaturesData || []);
-        setPlanBasicFeatures(planBasicFeaturesData || []);
-        
-        // Set default billing cycle
-        const defaultCycle = cycles?.find((c: BillingCycle) => c.isDefault) || cycles?.[0];
-        if (defaultCycle) {
-          setSelectedBillingCycleId(defaultCycle.id);
-        }
-
-        // Find and set pricing section with plans
-        if (pricingSectionId) {
-          const section = sections?.find((s: PricingSection) => s.id === pricingSectionId);
-          if (section) {
-            setPricingSection(section);
-            // Extract plans from section
-            const sectionPlans = section.sectionPlans
-              ?.filter((sp: PricingSectionPlan) => sp.isVisible && sp.plan.isActive)
-              ?.sort((a: PricingSectionPlan, b: PricingSectionPlan) => a.plan.position - b.plan.position)
-              ?.map((sp: PricingSectionPlan) => sp.plan) || [];
-            setPlans(sectionPlans);
-          } else {
-            setError('Pricing section not found');
+          const cycles = await cyclesRes.json();
+          const sections = await sectionsRes.json();
+          const featureTypes = await featureTypesRes.json();
+          const limits = await limitsRes.json();
+          const basicFeaturesData = await basicFeaturesRes.json();
+          const planBasicFeaturesData = await planBasicFeaturesRes.json();
+          
+          // Set data exactly like admin panel
+          setBillingCycles(cycles || []);
+          setPlanFeatureTypes(featureTypes || []);
+          setPlanLimits(limits || []);
+          setBasicFeatures(basicFeaturesData || []);
+          setPlanBasicFeatures(planBasicFeaturesData || []);
+          
+          // Set default billing cycle
+          const defaultCycle = cycles?.find((c: BillingCycle) => c.isDefault) || cycles?.[0];
+          if (defaultCycle) {
+            setSelectedBillingCycleId(defaultCycle.id);
           }
-        } else {
-          setError('No pricing section ID provided');
-        }
-      } catch (err) {
-        console.error('Error loading pricing data:', err);
-        setError('Failed to load pricing data');
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    loadData();
-  }, [pricingSectionId]);
+          // Find and set pricing section with plans
+          if (pricingSectionId) {
+            const section = sections?.find((s: PricingSection) => s.id === pricingSectionId);
+            if (section) {
+              setPricingSection(section);
+              // Extract plans from section
+              const sectionPlans = section.sectionPlans
+                ?.filter((sp: PricingSectionPlan) => sp.isVisible && sp.plan.isActive)
+                ?.sort((a: PricingSectionPlan, b: PricingSectionPlan) => a.plan.position - b.plan.position)
+                ?.map((sp: PricingSectionPlan) => sp.plan) || [];
+              setPlans(sectionPlans);
+            } else {
+              setError('Pricing section not found');
+            }
+          } else {
+            setError('No pricing section ID provided');
+          }
+        } catch (err) {
+          console.error('Error loading pricing data:', err);
+          setError('Failed to load pricing data');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadData();
+    } else {
+      // Set default billing cycle when server data is provided
+      const defaultCycle = serverPricingData.billingCycles?.find((c: BillingCycle) => c.isDefault) || serverPricingData.billingCycles?.[0];
+      if (defaultCycle) {
+        setSelectedBillingCycleId(defaultCycle.id);
+      }
+    }
+  }, [pricingSectionId, serverPricingData]);
 
   if (loading) {
     return (

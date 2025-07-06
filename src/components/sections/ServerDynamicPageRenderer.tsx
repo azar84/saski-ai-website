@@ -427,6 +427,105 @@ async function fetchFormData(formId: number) {
   }
 }
 
+// Add server-side pricing data fetching
+async function fetchPricingData(pricingSectionId: number) {
+  try {
+    // Fetch all required data in parallel
+    const [
+      billingCycles,
+      pricingSections,
+      featureTypes,
+      planLimits,
+      basicFeatures,
+      planBasicFeatures
+    ] = await Promise.all([
+      prisma.billingCycle.findMany({
+        orderBy: { multiplier: 'asc' }
+      }),
+      prisma.pricingSection.findMany({
+        include: {
+          sectionPlans: {
+            include: {
+              plan: {
+                include: {
+                  pricing: {
+                    include: {
+                      billingCycle: true
+                    }
+                  },
+                  features: {
+                    include: {
+                      feature: true
+                    }
+                  },
+                  featureLimits: {
+                    include: {
+                      featureType: true
+                    }
+                  },
+                  basicFeatures: {
+                    include: {
+                      basicFeature: true
+                    }
+                  }
+                }
+              }
+            },
+            orderBy: {
+              sortOrder: 'asc'
+            }
+          }
+        }
+      }),
+      prisma.planFeatureType.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: 'asc' }
+      }),
+      prisma.planFeatureLimit.findMany({
+        include: {
+          plan: true,
+          featureType: true
+        }
+      }),
+      prisma.basicFeature.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: 'asc' }
+      }),
+      prisma.planBasicFeature.findMany({
+        include: {
+          plan: true,
+          basicFeature: true
+        }
+      })
+    ]);
+
+    // Find the specific pricing section
+    const pricingSection = pricingSections.find(s => s.id === pricingSectionId);
+    if (!pricingSection) {
+      return null;
+    }
+
+    // Extract plans from section
+    const plans = pricingSection.sectionPlans
+      ?.filter(sp => sp.isVisible && sp.plan.isActive)
+      ?.sort((a, b) => a.plan.position - b.plan.position)
+      ?.map(sp => sp.plan) || [];
+
+    return {
+      pricingSection,
+      billingCycles,
+      plans,
+      planFeatureTypes: featureTypes,
+      planLimits,
+      basicFeatures,
+      planBasicFeatures
+    };
+  } catch (error) {
+    console.error('Error fetching pricing data:', error);
+    return null;
+  }
+}
+
 const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = async ({ 
   pageSlug, 
   className = '' 
@@ -532,13 +631,16 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
 
       case 'pricing':
         if (section.pricingSection) {
+          // Fetch pricing data server-side
+          const pricingDataPromise = fetchPricingData(section.pricingSection.id);
           return wrapWithSectionDiv(
-            <ConfigurablePricingSection 
+            <PricingSectionWrapper 
               key={section.id} 
               heading={section.pricingSection.heading}
               subheading={section.pricingSection.subheading}
               pricingSectionId={section.pricingSection.id}
               layoutType={section.pricingSection.layoutType}
+              pricingDataPromise={pricingDataPromise}
             />
           );
         }
@@ -667,6 +769,33 @@ async function FormSectionWrapper({
       title={title}
       subtitle={subtitle}
       formData={formData}
+    />
+  );
+}
+
+// Wrapper component to handle async pricing data
+async function PricingSectionWrapper({ 
+  heading, 
+  subheading, 
+  pricingSectionId, 
+  layoutType, 
+  pricingDataPromise 
+}: { 
+  heading: string; 
+  subheading?: string; 
+  pricingSectionId: number; 
+  layoutType: string; 
+  pricingDataPromise: Promise<any>; 
+}) {
+  const pricingData = await pricingDataPromise;
+  
+  return (
+    <ConfigurablePricingSection 
+      heading={heading}
+      subheading={subheading}
+      pricingSectionId={pricingSectionId}
+      layoutType={layoutType}
+      pricingData={pricingData}
     />
   );
 }
