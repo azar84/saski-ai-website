@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import DynamicPageRenderer from '@/components/sections/DynamicPageRenderer';
+import ServerDynamicPageRenderer from '@/components/sections/ServerDynamicPageRenderer';
 
 // Force dynamic rendering - ensures SSR
 export const dynamic = 'force-dynamic';
@@ -13,8 +13,8 @@ export default async function HomePage() {
       <Header />
       
       <div className="pt-20">
-        {/* Dynamic Page Content from Page Builder */}
-        <DynamicPageRenderer pageSlug="home" />
+        {/* Server-Side Rendered Page Content from Page Builder */}
+        <ServerDynamicPageRenderer pageSlug="home" />
       </div>
       
       <Footer />
