@@ -4,10 +4,8 @@ import { ThemeProvider } from "next-themes";
 import ErrorBoundary from "../components/ui/ErrorBoundary";
 import DesignSystemProvider from "../components/layout/DesignSystemProvider";
 import DynamicFavicon from "../components/layout/DynamicFavicon";
-import GoogleAnalytics from "../components/layout/GoogleAnalytics";
-import GoogleTagManager, { GoogleTagManagerNoScript } from "../components/layout/GoogleTagManager";
+import AnalyticsProvider from "../components/layout/AnalyticsProvider";
 import "./globals.css";
-import { prisma } from "../lib/db";
 
 // Force dynamic rendering to prevent static generation issues
 export const dynamic = 'force-dynamic';
@@ -79,33 +77,17 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Fetch site settings for GA4 and GTM
-  let gaMeasurementId: string | undefined;
-  let gtmContainerId: string | undefined;
-  let gtmEnabled: boolean = false;
-  
-  try {
-    const siteSettings = await prisma.siteSettings.findFirst();
-    gaMeasurementId = siteSettings?.gaMeasurementId || undefined;
-    gtmContainerId = siteSettings?.gtmContainerId || undefined;
-    gtmEnabled = siteSettings?.gtmEnabled || false;
-  } catch (error) {
-    console.error('Failed to fetch site settings for analytics:', error);
-  }
-
   return (
     <html lang="en" suppressHydrationWarning data-theme="light" style={{colorScheme: 'light'}}>
       <head>
         <meta name="color-scheme" content="light" />
-        <GoogleTagManager gtmContainerId={gtmContainerId} gtmEnabled={gtmEnabled} />
       </head>
       <body className={`${manrope.variable} font-sans antialiased`}>
-        <GoogleTagManagerNoScript gtmContainerId={gtmContainerId} gtmEnabled={gtmEnabled} />
         <ErrorBoundary>
           <DesignSystemProvider>
             <ThemeProvider
@@ -115,7 +97,7 @@ export default async function RootLayout({
               disableTransitionOnChange={false}
             >
               <DynamicFavicon />
-              <GoogleAnalytics gaMeasurementId={gaMeasurementId} />
+              <AnalyticsProvider />
               {children}
             </ThemeProvider>
           </DesignSystemProvider>
