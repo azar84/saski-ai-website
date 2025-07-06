@@ -12,10 +12,11 @@ console.log('🔄 Starting production migration...');
     console.log('✅ Migrations deployed successfully!');
   } catch (error) {
   console.log('⚠️  Migration deployment failed, checking if database needs baselining...');
+  console.log('🔍 Error details:', error.message);
   
   try {
     // Check if this is a P3005 error (database not empty) or P1002 (timeout)
-    if (error.message.includes('P3005') || error.message.includes('database schema is not empty') || error.message.includes('P1002')) {
+    if (error.message.includes('P3005') || error.message.includes('Error: P3005') || error.message.includes('database schema is not empty') || error.message.includes('P1002')) {
       console.log('🔧 Database exists but needs baselining. Marking migrations as applied...');
       
       // Get the list of migrations
