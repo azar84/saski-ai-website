@@ -798,45 +798,13 @@ Allow: /uploads/media/`;
 
             {/* Submission Logs Table */}
             {submissionLogs.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Submission ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Sitemap URL
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Submitted At
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Details
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {submissionLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                          {log.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          <a 
-                            href={log.sitemapUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 underline"
-                          >
-                            {log.sitemapUrl}
-                          </a>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+              <div className="space-y-4">
+                {submissionLogs.map((log) => (
+                  <div key={log.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
                             log.status === 'success' 
                               ? 'bg-green-100 text-green-800' 
                               : log.status === 'error'
@@ -845,28 +813,74 @@ Allow: /uploads/media/`;
                           }`}>
                             {log.status}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(log.submittedAt).toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {log.statusCode && (
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              log.statusCode >= 200 && log.statusCode < 300
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {log.statusCode}
-                            </span>
-                          )}
-                          {log.errorMessage && (
-                            <p className="text-red-600 text-xs mt-1">{log.errorMessage}</p>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          <span className="text-sm text-gray-500 font-mono">
+                            {log.searchEngine}
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Last Submitted:</span> {new Date(log.submittedAt).toLocaleString()}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Sitemap URL:</span>{' '}
+                            <a 
+                              href={log.sitemapUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              {log.sitemapUrl}
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500 font-mono">ID: {log.id}</p>
+                        {log.statusCode && (
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${
+                            log.statusCode >= 200 && log.statusCode < 300
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {log.statusCode}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Warnings */}
+                    {log.warnings && log.warnings.length > 0 && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-3">
+                        <h4 className="text-sm font-medium text-yellow-800 mb-2">⚠️ Warnings:</h4>
+                        <ul className="text-sm text-yellow-700 space-y-1">
+                          {log.warnings.map((warning: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <span className="mr-2">•</span>
+                              <span>{warning}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Error Message */}
+                    {log.errorMessage && (
+                      <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                        <h4 className="text-sm font-medium text-red-800 mb-1">❌ Error:</h4>
+                        <p className="text-sm text-red-700">{log.errorMessage}</p>
+                      </div>
+                    )}
+
+                    {/* Success Details */}
+                    {log.status === 'success' && !log.warnings?.length && (
+                      <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                        <p className="text-sm text-green-700">
+                          ✅ Sitemap submitted successfully to {log.searchEngine}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="text-center py-8">

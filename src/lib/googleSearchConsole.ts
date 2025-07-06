@@ -22,6 +22,7 @@ interface SitemapSubmissionLog {
   errorMessage?: string;
   statusCode?: number;
   searchEngine: string;
+  warnings?: string[];
 }
 
 /**
@@ -106,7 +107,8 @@ export class GoogleSearchConsoleService {
           searchEngine: 'Google',
           googleResponse: JSON.stringify(response.data),
           statusCode: 200,
-          submissionId
+          submissionId,
+          warnings: JSON.stringify([]) // Empty warnings array for successful submissions
         }
       });
       
@@ -142,7 +144,8 @@ export class GoogleSearchConsoleService {
           searchEngine: 'Google',
           errorMessage: logEntry.errorMessage,
           statusCode: logEntry.statusCode,
-          submissionId
+          submissionId,
+          warnings: JSON.stringify([]) // Empty warnings array for error submissions
         }
       });
       
@@ -172,7 +175,7 @@ export class GoogleSearchConsoleService {
       take: limit
     });
     
-    return logs.map(log => ({
+    return logs.map((log: any) => ({
       id: log.id,
       sitemapUrl: log.sitemapUrl,
       siteUrl: log.siteUrl,
@@ -181,7 +184,8 @@ export class GoogleSearchConsoleService {
       searchEngine: log.searchEngine,
       googleResponse: log.googleResponse ? JSON.parse(log.googleResponse) : undefined,
       errorMessage: log.errorMessage || undefined,
-      statusCode: log.statusCode || undefined
+      statusCode: log.statusCode || undefined,
+      warnings: log.warnings ? JSON.parse(log.warnings) : []
     }));
   }
 
@@ -204,7 +208,8 @@ export class GoogleSearchConsoleService {
       searchEngine: log.searchEngine,
       googleResponse: log.googleResponse ? JSON.parse(log.googleResponse) : undefined,
       errorMessage: log.errorMessage || undefined,
-      statusCode: log.statusCode || undefined
+      statusCode: log.statusCode || undefined,
+      warnings: log.warnings ? JSON.parse(log.warnings) : []
     };
   }
 

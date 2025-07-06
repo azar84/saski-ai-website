@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS "public"."sitemap_submission_logs" (
     "errorMessage" TEXT,
     "statusCode" INTEGER,
     "submissionId" TEXT,
+    "warnings" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

@@ -87,6 +87,7 @@ model SitemapSubmissionLog {
   errorMessage    String?
   statusCode      Int?
   submissionId    String?   // External submission ID if available
+  warnings        String?   // JSON array of warnings
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
