@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "public"."service_account_credentials" (
 
 try {
   console.log('📋 Creating table directly...');
-  execSync(`npx prisma db execute --stdin`, { 
+  execSync(`npx prisma db execute --schema prisma/schema.prisma --stdin`, { 
     input: createTableSQL,
     stdio: ['pipe', 'inherit', 'inherit']
   });
