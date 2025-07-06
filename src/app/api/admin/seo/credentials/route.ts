@@ -59,14 +59,18 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    console.log('🔍 Fetching service account credentials...');
     const cred = await prisma.serviceAccountCredentials.findFirst({ where: { isActive: true }, orderBy: { createdAt: 'desc' } });
     if (!cred) {
+      console.log('📭 No active credentials found');
       return NextResponse.json({ success: false, message: 'No credentials found' }, { status: 404 });
     }
     // Exclude privateKey from response for security
     const { privateKey, ...safeCred } = cred;
+    console.log('✅ Credentials found:', safeCred.clientEmail);
     return NextResponse.json({ success: true, data: safeCred });
   } catch (error) {
+    console.error('❌ Error fetching service account credentials:', error);
     return NextResponse.json({ success: false, message: 'Failed to fetch credentials', error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 } 
