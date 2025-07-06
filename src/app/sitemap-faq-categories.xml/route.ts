@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     const userAgent = request.headers.get('user-agent') || '';
     const acceptHeader = request.headers.get('accept') || '';
     
-    // Check if this is a search engine crawler
+    // Check if this is a search engine crawler or API request
     const isSearchEngineCrawler = userAgent.includes('Googlebot') || 
                                  userAgent.includes('bingbot') || 
                                  userAgent.includes('Baiduspider') || 
@@ -16,10 +16,12 @@ export async function GET(request: Request) {
                                  userAgent.includes('LinkedInBot') || 
                                  userAgent.includes('crawler') || 
                                  userAgent.includes('spider') ||
+                                 userAgent.includes('Google-') ||  // Google API requests
+                                 userAgent.includes('APIs-Google') ||  // Google APIs
                                  acceptHeader.includes('application/xml') ||
                                  acceptHeader.includes('text/xml');
 
-    // Check if this is a browser request (not a search engine crawler)
+    // Check if this is a browser request (not a search engine crawler or API)
     const isBrowserRequest = !isSearchEngineCrawler && 
                            userAgent.includes('Mozilla') && 
                            (acceptHeader.includes('text/html') || 
