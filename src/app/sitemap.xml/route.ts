@@ -171,8 +171,22 @@ export async function GET(request: Request) {
     const userAgent = request.headers.get('user-agent') || '';
     const acceptHeader = request.headers.get('accept') || '';
     
+    // Check if this is a search engine crawler
+    const isSearchEngineCrawler = userAgent.includes('Googlebot') || 
+                                 userAgent.includes('bingbot') || 
+                                 userAgent.includes('Baiduspider') || 
+                                 userAgent.includes('YandexBot') || 
+                                 userAgent.includes('facebookexternalhit') || 
+                                 userAgent.includes('Twitterbot') || 
+                                 userAgent.includes('LinkedInBot') || 
+                                 userAgent.includes('crawler') || 
+                                 userAgent.includes('spider') ||
+                                 acceptHeader.includes('application/xml') ||
+                                 acceptHeader.includes('text/xml');
+
     // Check if this is a browser request (not a search engine crawler)
-    const isBrowserRequest = userAgent.includes('Mozilla') && 
+    const isBrowserRequest = !isSearchEngineCrawler && 
+                           userAgent.includes('Mozilla') && 
                            (acceptHeader.includes('text/html') || 
                             acceptHeader.includes('text/*') || 
                             acceptHeader.includes('*/*'));

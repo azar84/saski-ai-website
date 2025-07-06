@@ -19,11 +19,22 @@ interface SubmissionResponse {
 /**
  * Submit sitemap to Google Search Console (Modern approach)
  * Note: Google deprecated ping service. This now generates instructions for manual setup.
+ * 
+ * For programmatic submission, you would need to:
+ * 1. Set up Google Search Console API credentials
+ * 2. Use the Search Console API to submit sitemaps
+ * 3. Handle OAuth2 authentication
  */
 async function submitToGoogle(sitemapUrl: string): Promise<SubmissionResult> {
   try {
+    // Option 1: Manual setup (current implementation)
     // Google has deprecated the ping service as of June 2023
     // We now provide instructions for proper setup
+    
+    // Option 2: Use Google Search Console API (requires setup)
+    // const googleApiResult = await submitToGoogleSearchConsoleAPI(sitemapUrl);
+    // if (googleApiResult.success) return googleApiResult;
+    
     return {
       success: true,
       message: `✅ Google: Sitemap URL ready for manual submission. Add "${sitemapUrl}" to Google Search Console manually.`,
@@ -40,6 +51,51 @@ async function submitToGoogle(sitemapUrl: string): Promise<SubmissionResult> {
     };
   }
 }
+
+/**
+ * Submit sitemap to Google Search Console API (Advanced - requires setup)
+ * This is commented out as it requires Google API credentials and OAuth setup
+ */
+/*
+async function submitToGoogleSearchConsoleAPI(sitemapUrl: string): Promise<SubmissionResult> {
+  try {
+    // This would require:
+    // 1. Google Cloud Console project
+    // 2. Search Console API enabled
+    // 3. Service account or OAuth2 credentials
+    // 4. Site verification in Search Console
+    
+    const apiUrl = `https://searchconsole.googleapis.com/v1/sites/${encodeURIComponent(siteUrl)}/sitemaps/${encodeURIComponent(sitemapUrl)}`;
+    
+    const response = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      return {
+        success: true,
+        message: 'Successfully submitted to Google Search Console API',
+        timestamp: new Date(),
+        searchEngine: 'Google',
+        statusCode: response.status
+      };
+    } else {
+      throw new Error(`Google API error: ${response.status}`);
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: `Google API submission failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      timestamp: new Date(),
+      searchEngine: 'Google'
+    };
+  }
+}
+*/
 
 /**
  * Submit sitemap to Bing Webmaster Tools
