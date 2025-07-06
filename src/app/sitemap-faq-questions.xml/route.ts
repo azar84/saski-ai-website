@@ -6,27 +6,16 @@ export async function GET(request: Request) {
     const userAgent = request.headers.get('user-agent') || '';
     const acceptHeader = request.headers.get('accept') || '';
     
-    // Check if this is a search engine crawler or API request
-    const isSearchEngineCrawler = userAgent.includes('Googlebot') || 
-                                 userAgent.includes('bingbot') || 
-                                 userAgent.includes('Baiduspider') || 
-                                 userAgent.includes('YandexBot') || 
-                                 userAgent.includes('facebookexternalhit') || 
-                                 userAgent.includes('Twitterbot') || 
-                                 userAgent.includes('LinkedInBot') || 
-                                 userAgent.includes('crawler') || 
-                                 userAgent.includes('spider') ||
-                                 userAgent.includes('Google-') ||  // Google API requests
-                                 userAgent.includes('APIs-Google') ||  // Google APIs
-                                 acceptHeader.includes('application/xml') ||
-                                 acceptHeader.includes('text/xml');
-
-    // Check if this is a browser request (not a search engine crawler or API)
-    const isBrowserRequest = !isSearchEngineCrawler && 
-                           userAgent.includes('Mozilla') && 
-                           (acceptHeader.includes('text/html') || 
-                            acceptHeader.includes('text/*') || 
-                            acceptHeader.includes('*/*'));
+    // Simplified logic: Only serve HTML if it's clearly a browser request
+    // Default to XML for all other requests (APIs, crawlers, etc.)
+    const isBrowserRequest = userAgent.includes('Mozilla') && 
+                           userAgent.includes('Chrome') && 
+                           acceptHeader.includes('text/html') &&
+                           !userAgent.includes('bot') &&
+                           !userAgent.includes('crawler') &&
+                           !userAgent.includes('spider') &&
+                           !userAgent.includes('Google-') &&
+                           !userAgent.includes('APIs-Google');
 
     // Generate FAQ questions sitemap content
     const sitemapContent = await generateFaqQuestionsSitemap();
