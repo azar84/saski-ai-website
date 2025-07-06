@@ -1,5 +1,8 @@
 import IconPickerExample from '../../components/ui/IconPickerExample';
 
+// Force dynamic rendering - ensures SSR
+export const dynamic = 'force-dynamic';
+
 export default function TestIconPickerPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">

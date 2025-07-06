@@ -1,30 +1,30 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { prisma } from '@/lib/db';
 
-export default function TestLogoPage() {
-  const [siteSettings, setSiteSettings] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+// Force dynamic rendering - ensures SSR
+export const dynamic = 'force-dynamic';
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch('/api/admin/site-settings');
-        const data = await response.json();
-        setSiteSettings(data);
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+// Server-side data fetching
+async function getSiteSettings() {
+  try {
+    const settings = await prisma.siteSettings.findFirst();
+    return settings;
+  } catch (error) {
+    console.error('Error fetching site settings:', error);
+    return null;
+  }
+}
 
-    fetchSettings();
-  }, []);
+export default async function TestLogoPage() {
+  const siteSettings = await getSiteSettings();
 
-  if (loading) {
-    return <div className="p-8">Loading...</div>;
+  if (!siteSettings) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold mb-4">Logo Test Page</h1>
+        <div className="text-red-600">Failed to load site settings</div>
+      </div>
+    );
   }
 
   return (
