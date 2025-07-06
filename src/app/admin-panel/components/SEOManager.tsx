@@ -22,7 +22,8 @@ import {
   Zap,
   Link,
   Hash,
-  BarChart3
+  BarChart3,
+  Upload
 } from 'lucide-react';
 
 interface Page {
@@ -103,9 +104,19 @@ export default function SEOManager() {
   const [auditResults, setAuditResults] = useState<SEOAuditResult[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Submission logs state
+  const [submissionLogs, setSubmissionLogs] = useState<any[]>([]);
+  const [submissionStats, setSubmissionStats] = useState<any>({});
+  const [logsLoading, setLogsLoading] = useState(false);
+  // Service account credentials state
+  const [serviceAccountStatus, setServiceAccountStatus] = useState<'none' | 'valid' | 'error' | 'uploading'>('none');
+  const [serviceAccountInfo, setServiceAccountInfo] = useState<any>(null);
+  const [serviceAccountError, setServiceAccountError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
+    fetchServiceAccountStatus();
   }, []);
 
   const fetchData = async () => {
@@ -166,6 +177,66 @@ export default function SEOManager() {
       }
     } catch (error) {
       setRobotsContent(generateDefaultRobots());
+    }
+  };
+
+  const fetchSubmissionLogs = async () => {
+    try {
+      setLogsLoading(true);
+      const response = await fetch('/api/admin/seo/submission-logs');
+      const result = await response.json();
+      
+      if (result.success) {
+        setSubmissionLogs(result.data.logs);
+        setSubmissionStats(result.data.stats);
+      }
+    } catch (error) {
+      console.error('Failed to fetch submission logs:', error);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  // Fetch current service account credentials status
+  const fetchServiceAccountStatus = async () => {
+    try {
+      const res = await fetch('/api/admin/seo/credentials');
+      const data = await res.json();
+      if (data.success) {
+        setServiceAccountStatus('valid');
+        setServiceAccountInfo(data.data);
+      } else {
+        setServiceAccountStatus('none');
+      }
+    } catch (err) {
+      setServiceAccountStatus('error');
+      setServiceAccountError('Failed to fetch credentials');
+    }
+  };
+
+  // Upload service account JSON file
+  const handleServiceAccountUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setServiceAccountStatus('uploading');
+    setServiceAccountError(null);
+    const formData = new FormData(e.currentTarget);
+    try {
+      const res = await fetch('/api/admin/seo/credentials', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.success) {
+        setServiceAccountStatus('valid');
+        await fetchServiceAccountStatus();
+        setMessage({ type: 'success', text: 'Service account credentials uploaded successfully!' });
+      } else {
+        setServiceAccountStatus('error');
+        setServiceAccountError(data.message || 'Upload failed');
+      }
+    } catch (err) {
+      setServiceAccountStatus('error');
+      setServiceAccountError('Upload failed');
     }
   };
 
@@ -389,45 +460,15 @@ Allow: /uploads/media/`;
           type: 'success', 
           text: `✅ ${result.message} - Google: ${result.data.google.success ? '✅' : '❌'}, Bing: ${result.data.bing.success ? '✅' : '❌'}` 
         });
+        
+        // Refresh submission logs after successful submission
+        await fetchSubmissionLogs();
       } else {
         setMessage({ type: 'error', text: result.message || 'Failed to submit sitemap' });
       }
     } catch (error) {
       console.error('Failed to submit sitemap:', error);
       setMessage({ type: 'error', text: 'Failed to submit sitemap to search engines' });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const setupGoogleOAuth = async () => {
-    try {
-      setSubmitting(true);
-      setMessage(null);
-
-      const response = await fetch('/api/admin/seo/google-auth?action=authorize', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Open the authorization URL in a new window
-        window.open(result.authUrl, '_blank', 'width=600,height=600');
-        
-        setMessage({ 
-          type: 'success', 
-          text: '✅ Google OAuth2 authorization URL opened. Please complete the authorization in the new window.' 
-        });
-      } else {
-        setMessage({ type: 'error', text: result.message || 'Failed to generate authorization URL' });
-      }
-    } catch (error) {
-      console.error('Failed to setup Google OAuth2:', error);
-      setMessage({ type: 'error', text: 'Failed to setup Google OAuth2' });
     } finally {
       setSubmitting(false);
     }
@@ -534,6 +575,14 @@ Allow: /uploads/media/`;
                   </>
                 )}
               </Button>
+              <Button
+                onClick={() => window.open('/sitemap.xml', '_blank')}
+                variant="outline"
+                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Preview Sitemap
+              </Button>
               {sitemapContent && (
                 <>
                   <Button
@@ -573,25 +622,31 @@ Allow: /uploads/media/`;
                 <h3 className="text-lg font-semibold text-gray-900">Google Search Console API</h3>
                 <p className="text-gray-600 mt-1">Set up programmatic sitemap submission to Google Search Console.</p>
               </div>
-              <Button
-                onClick={setupGoogleOAuth}
-                disabled={submitting}
-                variant="outline"
-                className="border-green-200 text-green-600 hover:bg-green-50"
-              >
-                <Globe className="w-4 h-4 mr-2" />
-                Setup Google OAuth2
-              </Button>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-green-600 font-medium">Service Account Ready</span>
+              </div>
             </div>
             
             <div className="space-y-4">
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-medium text-green-900 mb-2">✅ Service Account Setup Complete</h4>
+                <div className="text-sm text-green-800 space-y-2">
+                  <p><strong>Project ID:</strong> cms-seo-465116</p>
+                  <p><strong>Service Account:</strong> sitemap-submitter@cms-seo-465116.iam.gserviceaccount.com</p>
+                  <p><strong>Status:</strong> Ready for sitemap submission</p>
+                </div>
+              </div>
+
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Setup Instructions:</h4>
+                <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
                 <ol className="text-sm text-blue-800 space-y-1">
-                  <li>1. Click "Setup Google OAuth2" to get authorization URL</li>
-                  <li>2. Authorize the application in Google</li>
-                  <li>3. Complete the OAuth2 flow</li>
-                  <li>4. Your sitemap will be submitted automatically!</li>
+                  <li>1. Go to <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Google Search Console</a></li>
+                  <li>2. Select your property (saskiai.com)</li>
+                  <li>3. Go to Settings → Users and permissions</li>
+                  <li>4. Add user: <code className="bg-blue-100 px-1 rounded">sitemap-submitter@cms-seo-465116.iam.gserviceaccount.com</code></li>
+                  <li>5. Grant "Full" permissions</li>
+                  <li>6. Your sitemap will be submitted automatically!</li>
                 </ol>
               </div>
               
@@ -692,6 +747,134 @@ Allow: /uploads/media/`;
             </div>
           </Card>
 
+          {/* Submission Logs */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Sitemap Submission Logs</h3>
+                <p className="text-gray-600 mt-1">Track the status of your sitemap submissions to search engines.</p>
+              </div>
+              <Button
+                onClick={fetchSubmissionLogs}
+                disabled={logsLoading}
+                variant="outline"
+                className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              >
+                {logsLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh Logs
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Submission Stats */}
+            {submissionStats.total > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-2xl font-semibold text-blue-900">{submissionStats.total}</p>
+                  <p className="text-sm text-blue-700">Total Submissions</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <p className="text-2xl font-semibold text-green-900">{submissionStats.successful}</p>
+                  <p className="text-sm text-green-700">Successful</p>
+                </div>
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <p className="text-2xl font-semibold text-red-900">{submissionStats.failed}</p>
+                  <p className="text-sm text-red-700">Failed</p>
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <p className="text-2xl font-semibold text-yellow-900">{submissionStats.successRate.toFixed(1)}%</p>
+                  <p className="text-sm text-yellow-700">Success Rate</p>
+                </div>
+              </div>
+            )}
+
+            {/* Submission Logs Table */}
+            {submissionLogs.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Submission ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sitemap URL
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Submitted At
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Details
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {submissionLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                          {log.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <a 
+                            href={log.sitemapUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          >
+                            {log.sitemapUrl}
+                          </a>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            log.status === 'success' 
+                              ? 'bg-green-100 text-green-800' 
+                              : log.status === 'error'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {log.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(log.submittedAt).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {log.statusCode && (
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              log.statusCode >= 200 && log.statusCode < 300
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {log.statusCode}
+                            </span>
+                          )}
+                          {log.errorMessage && (
+                            <p className="text-red-600 text-xs mt-1">{log.errorMessage}</p>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No submission logs yet. Submit your sitemap to see logs here.</p>
+              </div>
+            )}
+          </Card>
 
         </div>
       )}
@@ -1097,6 +1280,69 @@ Allow: /uploads/media/`;
                   </div>
                 )}
               </div>
+            </div>
+          </Card>
+
+          {/* Google Search Console Service Account */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Google Search Console Service Account</h3>
+            <form onSubmit={handleServiceAccountUpload} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload Google Service Account JSON
+                </label>
+                <input
+                  type="file"
+                  name="file"
+                  accept="application/json"
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  required
+                />
+                <p className="text-sm text-gray-600 mt-1">
+                  Download your service account JSON from Google Cloud Console and upload it here.
+                </p>
+              </div>
+              <Button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={serviceAccountStatus === 'uploading'}
+              >
+                {serviceAccountStatus === 'uploading' ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Credentials
+                  </>
+                )}
+              </Button>
+            </form>
+            <div className="mt-6">
+              {serviceAccountStatus === 'valid' && serviceAccountInfo && (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-green-900 mb-2">✅ Service Account Uploaded</h4>
+                  <div className="text-sm text-green-800 space-y-1">
+                    <p><strong>Project ID:</strong> {serviceAccountInfo.projectId}</p>
+                    <p><strong>Client Email:</strong> {serviceAccountInfo.clientEmail}</p>
+                    <p><strong>Status:</strong> Ready for sitemap submission</p>
+                  </div>
+                </div>
+              )}
+              {serviceAccountStatus === 'error' && (
+                <div className="bg-red-50 p-4 rounded-lg text-red-800">
+                  <h4 className="font-medium mb-2">❌ Error</h4>
+                  <p>{serviceAccountError}</p>
+                </div>
+              )}
+              {serviceAccountStatus === 'none' && (
+                <div className="bg-yellow-50 p-4 rounded-lg text-yellow-800">
+                  <h4 className="font-medium mb-2">No Service Account Uploaded</h4>
+                  <p>Upload your Google service account JSON to enable programmatic sitemap submission.</p>
+                </div>
+              )}
             </div>
           </Card>
 

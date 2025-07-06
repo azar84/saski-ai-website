@@ -57,6 +57,25 @@ model SiteSettings {
   @@map("site_settings")
 }
 
+model ServiceAccountCredentials {
+  id                Int      @id @default(autoincrement())
+  projectId         String
+  clientEmail       String
+  privateKey        String
+  privateKeyId      String
+  clientId          String
+  authUri           String
+  tokenUri          String
+  authProviderX509CertUrl String
+  clientX509CertUrl String
+  universeDomain    String
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("service_account_credentials")
+}
+
 model DesignSystem {
   id                  Int      @id @default(autoincrement())
   primaryColor        String   @default("#5243E9")
