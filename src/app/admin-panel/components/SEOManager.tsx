@@ -692,66 +692,7 @@ Allow: /uploads/media/`;
             </div>
           </Card>
 
-          {/* Live Sitemap View */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Live Sitemap</h3>
-              <div className="flex items-center space-x-2">
-                <Button
-                  onClick={() => window.open(`${siteSettings.baseUrl || 'http://localhost:3000'}/sitemap.xml`, '_blank')}
-                  variant="outline"
-                  size="sm"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  View Live
-                </Button>
-                {sitemapContent && (
-                  <Button
-                    onClick={() => copyToClipboard(sitemapContent, 'Sitemap')}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy
-                  </Button>
-                )}
-              </div>
-            </div>
-            
-            {sitemapContent ? (
-              <div className="space-y-4">
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-green-800 font-medium">Sitemap is live and accessible</span>
-                  </div>
-                  <p className="text-green-700 text-sm mt-1">
-                    Your sitemap is available at: <code className="bg-green-100 px-2 py-1 rounded">{siteSettings.baseUrl || 'http://localhost:3000'}/sitemap.xml</code>
-                  </p>
-                </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">Sitemap Content Preview:</h4>
-                  <pre className="bg-white p-4 rounded-lg overflow-x-auto text-sm border">
-                    <code>{sitemapContent.substring(0, 500)}...</code>
-                  </pre>
-                  <p className="text-gray-600 text-sm mt-2">
-                    Showing first 500 characters. Click "View Live" to see the full sitemap.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 mr-2" />
-                  <span className="text-yellow-800 font-medium">No sitemap generated yet</span>
-                </div>
-                <p className="text-yellow-700 text-sm mt-1">
-                  Generate a sitemap first to see the live preview.
-                </p>
-              </div>
-            )}
-          </Card>
+
         </div>
       )}
 
