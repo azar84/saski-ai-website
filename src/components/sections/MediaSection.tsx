@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -626,40 +628,76 @@ const MediaSection: React.FC<MediaSectionProps> = ({
     );
   };
 
-  // --- Animation variants for features ---
-  const featureVariants = {
-    slide: {
-      animate: {
-        x: [0, -40, 0],
-        opacity: [0, 0, 1]
+  // Client-side motion wrapper
+  const MotionFeatureItem: React.FC<{
+    children: React.ReactNode;
+    animationType: string;
+    index: number;
+  }> = ({ children, animationType, index }) => {
+    // Animation variants for features
+    const featureVariants = {
+      slide: {
+        animate: {
+          x: [0, -40, 0],
+          opacity: [0, 0, 1]
+        }
+      },
+      fade: {
+        animate: {
+          opacity: [0, 1, 0]
+        }
+      },
+      zoom: {
+        animate: {
+          scale: [0.7, 1, 0.7],
+          opacity: [0, 1, 0]
+        }
+      },
+      pulse: {
+        animate: {
+          scale: [1, 1.08, 1],
+          boxShadow: [
+            '0 0 0px rgba(0,0,0,0.08)',
+            '0 0 12px rgba(80,80,255,0.10)',
+            '0 0 0px rgba(0,0,0,0.08)'
+          ]
+        }
+      },
+      rotate: {
+        animate: {
+          rotate: [0, 360]
+        }
       }
-    },
-    fade: {
-      animate: {
-        opacity: [0, 1, 0]
-      }
-    },
-    zoom: {
-      animate: {
-        scale: [0.7, 1, 0.7],
-        opacity: [0, 1, 0]
-      }
-    },
-    pulse: {
-      animate: {
-        scale: [1, 1.08, 1],
-        boxShadow: [
-          '0 0 0px rgba(0,0,0,0.08)',
-          '0 0 12px rgba(80,80,255,0.10)',
-          '0 0 0px rgba(0,0,0,0.08)'
-        ]
-      }
-    },
-    rotate: {
-      animate: {
-        rotate: [0, 360]
-      }
-    }
+    };
+
+    // All animations are continuous
+    const transition = animationType === 'pulse'
+      ? { duration: 6, repeat: Infinity, delay: index * 0.12 }
+      : animationType === 'rotate'
+      ? { repeat: Infinity, duration: 8, delay: index * 0.12 }
+      : animationType === 'fade'
+      ? { repeat: Infinity, duration: 5, delay: index * 0.12 }
+      : animationType === 'slide'
+      ? { repeat: Infinity, duration: 7, delay: index * 0.12 }
+      : animationType === 'zoom'
+      ? { repeat: Infinity, duration: 5, delay: index * 0.12 }
+      : { duration: 0.6, delay: index * 0.1 };
+      
+    // For rotation, determine direction based on index (alternating)
+    const rotationDirection = animationType === 'rotate' ? (index % 2 === 0 ? [0, 360] : [360, 0]) : undefined;
+
+    return (
+      <motion.div
+        className="flex items-center space-x-3"
+        animate={animationType === 'rotate' 
+          ? { rotate: rotationDirection }
+          : featureVariants[animationType as keyof typeof featureVariants]?.animate
+        }
+        transition={transition}
+      >
+        {children}
+      </motion.div>
+    );
   };
 
   // --- Render features with selected animation ---
@@ -672,31 +710,11 @@ const MediaSection: React.FC<MediaSectionProps> = ({
           .map((feature, i) => {
             const IconComponent = getIconComponent(feature.icon);
             
-            // All animations are continuous
-            const transition = animationType === 'pulse'
-              ? { duration: 6, repeat: Infinity, delay: i * 0.12 }
-              : animationType === 'rotate'
-              ? { repeat: Infinity, duration: 8, delay: i * 0.12 }
-              : animationType === 'fade'
-              ? { repeat: Infinity, duration: 5, delay: i * 0.12 }
-              : animationType === 'slide'
-              ? { repeat: Infinity, duration: 7, delay: i * 0.12 }
-              : animationType === 'zoom'
-              ? { repeat: Infinity, duration: 5, delay: i * 0.12 }
-              : { duration: 0.6, delay: i * 0.1 };
-              
-            // For rotation, determine direction based on index (alternating)
-            const rotationDirection = animationType === 'rotate' ? (i % 2 === 0 ? [0, 360] : [360, 0]) : undefined;
-              
             return (
-              <motion.div
+              <MotionFeatureItem
                 key={feature.id}
-                className="flex items-center space-x-3"
-                animate={animationType === 'rotate' 
-                  ? { rotate: rotationDirection }
-                  : featureVariants[animationType as keyof typeof featureVariants]?.animate
-                }
-                transition={transition}
+                animationType={animationType}
+                index={i}
               >
                 <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
                   <IconComponent className="w-4 h-4" style={{ color: feature.color }} />
@@ -704,7 +722,7 @@ const MediaSection: React.FC<MediaSectionProps> = ({
                 <span className="text-sm font-medium" style={{ color: textColor }}>
                   {feature.label}
                 </span>
-              </motion.div>
+              </MotionFeatureItem>
             );
           })}
       </div>
