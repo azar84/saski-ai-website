@@ -26,7 +26,9 @@ import { googleSearchConsole } from './googleSearchConsole';
 async function submitToGoogle(sitemapUrl: string): Promise<SubmissionResult> {
   try {
     // Get the site URL from the sitemap URL
-    const siteUrl = new URL(sitemapUrl).origin;
+    const url = new URL(sitemapUrl);
+    // For domain properties, use just the hostname (without protocol)
+    const siteUrl = `sc-domain:${url.hostname}`;
     
     // Submit using Google Search Console API
     const result = await googleSearchConsole.submitSitemap(sitemapUrl, siteUrl);
