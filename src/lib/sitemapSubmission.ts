@@ -4,6 +4,7 @@ interface SubmissionResult {
   timestamp: Date;
   searchEngine: string;
   statusCode?: number;
+  details?: any;
 }
 
 interface SubmissionResponse {
@@ -16,36 +17,32 @@ interface SubmissionResponse {
   };
 }
 
+import { googleSearchConsole } from './googleSearchConsole';
+
 /**
- * Submit sitemap to Google Search Console (Modern approach)
- * Note: Google deprecated ping service. This now generates instructions for manual setup.
- * 
- * For programmatic submission, you would need to:
- * 1. Set up Google Search Console API credentials
- * 2. Use the Search Console API to submit sitemaps
- * 3. Handle OAuth2 authentication
+ * Submit sitemap to Google Search Console using API
+ * Uses the Google Search Console API for programmatic submission
  */
 async function submitToGoogle(sitemapUrl: string): Promise<SubmissionResult> {
   try {
-    // Option 1: Manual setup (current implementation)
-    // Google has deprecated the ping service as of June 2023
-    // We now provide instructions for proper setup
+    // Get the site URL from the sitemap URL
+    const siteUrl = new URL(sitemapUrl).origin;
     
-    // Option 2: Use Google Search Console API (requires setup)
-    // const googleApiResult = await submitToGoogleSearchConsoleAPI(sitemapUrl);
-    // if (googleApiResult.success) return googleApiResult;
+    // Submit using Google Search Console API
+    const result = await googleSearchConsole.submitSitemap(sitemapUrl, siteUrl);
     
     return {
-      success: true,
-      message: `✅ Google: Sitemap URL ready for manual submission. Add "${sitemapUrl}" to Google Search Console manually.`,
-      timestamp: new Date(),
+      success: result.success,
+      message: result.message,
+      timestamp: result.timestamp,
       searchEngine: 'Google',
-      statusCode: 200
+      statusCode: result.statusCode,
+      details: result.details
     };
   } catch (error) {
     return {
       success: false,
-      message: `Google submission error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      message: `Google Search Console API error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       timestamp: new Date(),
       searchEngine: 'Google'
     };

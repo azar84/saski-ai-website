@@ -399,6 +399,39 @@ Allow: /uploads/media/`;
     }
   };
 
+  const setupGoogleOAuth = async () => {
+    try {
+      setSubmitting(true);
+      setMessage(null);
+
+      const response = await fetch('/api/admin/seo/google-auth?action=authorize', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Open the authorization URL in a new window
+        window.open(result.authUrl, '_blank', 'width=600,height=600');
+        
+        setMessage({ 
+          type: 'success', 
+          text: '✅ Google OAuth2 authorization URL opened. Please complete the authorization in the new window.' 
+        });
+      } else {
+        setMessage({ type: 'error', text: result.message || 'Failed to generate authorization URL' });
+      }
+    } catch (error) {
+      console.error('Failed to setup Google OAuth2:', error);
+      setMessage({ type: 'error', text: 'Failed to setup Google OAuth2' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
     if (score >= 60) return 'text-yellow-600';
@@ -531,6 +564,44 @@ Allow: /uploads/media/`;
               )}
             </div>
           </div>
+
+          {/* Google Search Console API Setup */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Google Search Console API</h3>
+                <p className="text-gray-600 mt-1">Set up programmatic sitemap submission to Google Search Console.</p>
+              </div>
+              <Button
+                onClick={setupGoogleOAuth}
+                disabled={submitting}
+                variant="outline"
+                className="border-green-200 text-green-600 hover:bg-green-50"
+              >
+                <Globe className="w-4 h-4 mr-2" />
+                Setup Google OAuth2
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Setup Instructions:</h4>
+                <ol className="text-sm text-blue-800 space-y-1">
+                  <li>1. Click "Setup Google OAuth2" to get authorization URL</li>
+                  <li>2. Authorize the application in Google</li>
+                  <li>3. Complete the OAuth2 flow</li>
+                  <li>4. Your sitemap will be submitted automatically!</li>
+                </ol>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Current Status:</h4>
+                <p className="text-sm text-gray-600">
+                  Google Search Console API is ready for setup. Once configured, sitemap submission will be fully automated.
+                </p>
+              </div>
+            </div>
+          </Card>
 
           {/* Sitemap Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
