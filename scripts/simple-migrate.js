@@ -9,11 +9,14 @@ try {
   console.log('✅ Migrations deployed successfully!');
 } catch (error) {
   console.log('⚠️  Migration failed, baselining database...');
-  console.log('🔍 Error:', error.message || error);
-  
-  // Check if this is a P3005 error (database not empty)
-  const errorStr = error.message || error.toString();
-  if (errorStr.includes('P3005') || errorStr.includes('database schema is not empty')) {
+  const output = [
+    error.message,
+    error.stdout && error.stdout.toString(),
+    error.stderr && error.stderr.toString()
+  ].join('\n');
+  console.log('🔍 Error output:', output);
+
+  if (output.includes('P3005') || output.includes('database schema is not empty')) {
     console.log('🔧 Baselining existing database...');
     
     // Mark all existing migrations as applied
@@ -44,7 +47,7 @@ try {
       console.log('✅ All migrations deployed successfully!');
     }
   } else {
-    console.error('❌ Migration failed:', error.message);
+    console.error('❌ Migration failed:', output);
     process.exit(1);
   }
 }
