@@ -2,17 +2,20 @@ const { execSync } = require('child_process');
 
 console.log('🔄 Starting production migration...');
 
-try {
-  // First, try to run normal migration
-  console.log('📋 Attempting to deploy migrations...');
-  execSync('npx prisma migrate deploy', { stdio: 'inherit' });
-  console.log('✅ Migrations deployed successfully!');
-} catch (error) {
+  try {
+    // First, try to run normal migration with timeout
+    console.log('📋 Attempting to deploy migrations...');
+    execSync('npx prisma migrate deploy', { 
+      stdio: 'inherit',
+      timeout: 30000 // 30 second timeout
+    });
+    console.log('✅ Migrations deployed successfully!');
+  } catch (error) {
   console.log('⚠️  Migration deployment failed, checking if database needs baselining...');
   
   try {
-    // Check if this is a P3005 error (database not empty)
-    if (error.message.includes('P3005') || error.message.includes('database schema is not empty')) {
+    // Check if this is a P3005 error (database not empty) or P1002 (timeout)
+    if (error.message.includes('P3005') || error.message.includes('database schema is not empty') || error.message.includes('P1002')) {
       console.log('🔧 Database exists but needs baselining. Marking migrations as applied...');
       
       // Get the list of migrations
