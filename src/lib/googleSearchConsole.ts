@@ -199,6 +199,18 @@ export class GoogleSearchConsoleService {
   getSetupInstructions(): string {
     return `\n## Google Search Console API Setup (Service Account)\n\nUpload your service account JSON in the SEO Manager to enable programmatic sitemap submission.\n`;
   }
+
+  /**
+   * OAuth2 flow is deprecated in favour of service account authentication.
+   * These stub methods exist only to keep legacy routes compiling.
+   */
+  getAuthorizationUrl(): string {
+    return '';
+  }
+
+  async exchangeCodeForToken(code: string): Promise<any> {
+    return { success: false, error: 'OAuth2 flow deprecated', tokens: {} };
+  }
 }
 
 // Export singleton instance
