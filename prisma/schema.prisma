@@ -76,6 +76,23 @@ model ServiceAccountCredentials {
   @@map("service_account_credentials")
 }
 
+model SitemapSubmissionLog {
+  id              String    @id @default(cuid())
+  sitemapUrl      String
+  siteUrl         String
+  submittedAt     DateTime  @default(now())
+  status          String    // 'success', 'error', 'pending'
+  searchEngine    String    // 'Google', 'Bing'
+  googleResponse  String?   // JSON string of Google API response
+  errorMessage    String?
+  statusCode      Int?
+  submissionId    String?   // External submission ID if available
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("sitemap_submission_logs")
+}
+
 model DesignSystem {
   id                  Int      @id @default(autoincrement())
   primaryColor        String   @default("#5243E9")

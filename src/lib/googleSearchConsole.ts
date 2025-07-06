@@ -32,7 +32,6 @@ interface SitemapSubmissionLog {
 export class GoogleSearchConsoleService {
   private auth: any;
   private searchConsole: any;
-  private submissionLogs: SitemapSubmissionLog[] = [];
   private credentialsLoaded: boolean = false;
 
   async initializeAuth() {
@@ -96,8 +95,21 @@ export class GoogleSearchConsoleService {
       logEntry.status = 'success';
       logEntry.googleResponse = response.data;
       logEntry.statusCode = 200;
-      // Add to logs
-      this.submissionLogs.push(logEntry);
+      // Save to database
+      await prisma.sitemapSubmissionLog.create({
+        data: {
+          id: submissionId,
+          sitemapUrl,
+          siteUrl,
+          submittedAt,
+          status: 'success',
+          searchEngine: 'Google',
+          googleResponse: JSON.stringify(response.data),
+          statusCode: 200,
+          submissionId
+        }
+      });
+      
       return {
         success: true,
         message: `✅ Sitemap submitted successfully to Google Search Console API`,
@@ -118,8 +130,22 @@ export class GoogleSearchConsoleService {
       logEntry.status = 'error';
       logEntry.errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logEntry.statusCode = error instanceof Error && 'status' in error ? (error as any).status : 500;
-      // Add to logs
-      this.submissionLogs.push(logEntry);
+      
+      // Save to database
+      await prisma.sitemapSubmissionLog.create({
+        data: {
+          id: submissionId,
+          sitemapUrl,
+          siteUrl,
+          submittedAt,
+          status: 'error',
+          searchEngine: 'Google',
+          errorMessage: logEntry.errorMessage,
+          statusCode: logEntry.statusCode,
+          submissionId
+        }
+      });
+      
       return {
         success: false,
         message: `Google Search Console API error: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -140,27 +166,62 @@ export class GoogleSearchConsoleService {
   /**
    * Get submission logs
    */
-  getSubmissionLogs(limit: number = 50): SitemapSubmissionLog[] {
-    return this.submissionLogs
-      .sort((a, b) => b.submittedAt.getTime() - a.submittedAt.getTime())
-      .slice(0, limit);
+  async getSubmissionLogs(limit: number = 50): Promise<SitemapSubmissionLog[]> {
+    const logs = await prisma.sitemapSubmissionLog.findMany({
+      orderBy: { submittedAt: 'desc' },
+      take: limit
+    });
+    
+    return logs.map(log => ({
+      id: log.id,
+      sitemapUrl: log.sitemapUrl,
+      siteUrl: log.siteUrl,
+      submittedAt: log.submittedAt,
+      status: log.status as 'success' | 'error' | 'pending',
+      searchEngine: log.searchEngine,
+      googleResponse: log.googleResponse ? JSON.parse(log.googleResponse) : undefined,
+      errorMessage: log.errorMessage || undefined,
+      statusCode: log.statusCode || undefined
+    }));
   }
 
   /**
    * Get submission log by ID
    */
-  getSubmissionLog(id: string): SitemapSubmissionLog | undefined {
-    return this.submissionLogs.find(log => log.id === id);
+  async getSubmissionLog(id: string): Promise<SitemapSubmissionLog | undefined> {
+    const log = await prisma.sitemapSubmissionLog.findUnique({
+      where: { id }
+    });
+    
+    if (!log) return undefined;
+    
+    return {
+      id: log.id,
+      sitemapUrl: log.sitemapUrl,
+      siteUrl: log.siteUrl,
+      submittedAt: log.submittedAt,
+      status: log.status as 'success' | 'error' | 'pending',
+      searchEngine: log.searchEngine,
+      googleResponse: log.googleResponse ? JSON.parse(log.googleResponse) : undefined,
+      errorMessage: log.errorMessage || undefined,
+      statusCode: log.statusCode || undefined
+    };
   }
 
   /**
    * Get submission statistics
    */
-  getSubmissionStats() {
-    const total = this.submissionLogs.length;
-    const successful = this.submissionLogs.filter(log => log.status === 'success').length;
-    const failed = this.submissionLogs.filter(log => log.status === 'error').length;
-    const pending = this.submissionLogs.filter(log => log.status === 'pending').length;
+  async getSubmissionStats() {
+    const total = await prisma.sitemapSubmissionLog.count();
+    const successful = await prisma.sitemapSubmissionLog.count({
+      where: { status: 'success' }
+    });
+    const failed = await prisma.sitemapSubmissionLog.count({
+      where: { status: 'error' }
+    });
+    const pending = await prisma.sitemapSubmissionLog.count({
+      where: { status: 'pending' }
+    });
 
     return {
       total,

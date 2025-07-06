@@ -1,9 +1,9 @@
 const { execSync } = require('child_process');
 
-console.log('🔄 Force creating service_account_credentials table...');
+console.log('🔄 Force creating missing tables...');
 
-// SQL to create the table directly
-const createTableSQL = `
+// SQL to create the tables directly
+const createTablesSQL = `
 CREATE TABLE IF NOT EXISTS "public"."service_account_credentials" (
     "id" SERIAL NOT NULL,
     "projectId" TEXT NOT NULL,
@@ -22,17 +22,34 @@ CREATE TABLE IF NOT EXISTS "public"."service_account_credentials" (
 
     CONSTRAINT "service_account_credentials_pkey" PRIMARY KEY ("id")
 );
+
+CREATE TABLE IF NOT EXISTS "public"."sitemap_submission_logs" (
+    "id" TEXT NOT NULL,
+    "sitemapUrl" TEXT NOT NULL,
+    "siteUrl" TEXT NOT NULL,
+    "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status" TEXT NOT NULL,
+    "searchEngine" TEXT NOT NULL,
+    "googleResponse" TEXT,
+    "errorMessage" TEXT,
+    "statusCode" INTEGER,
+    "submissionId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "sitemap_submission_logs_pkey" PRIMARY KEY ("id")
+);
 `;
 
 try {
-  console.log('📋 Creating table directly...');
+  console.log('📋 Creating tables directly...');
   execSync(`npx prisma db execute --schema prisma/schema.prisma --stdin`, { 
-    input: createTableSQL,
+    input: createTablesSQL,
     stdio: ['pipe', 'inherit', 'inherit']
   });
-  console.log('✅ Table created successfully!');
+  console.log('✅ Tables created successfully!');
 } catch (error) {
-  console.error('❌ Failed to create table:', error.message);
+  console.error('❌ Failed to create tables:', error.message);
   process.exit(1);
 }
 
