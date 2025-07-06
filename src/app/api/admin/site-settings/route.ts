@@ -104,9 +104,11 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('PUT /api/admin/site-settings - Request body:', body);
     
     // Validate the request body for partial updates
     const validatedData = SiteSettingsUpdateSchema.parse(body);
+    console.log('PUT /api/admin/site-settings - Validated data:', validatedData);
 
     // Get existing settings or create if none exist
     let existingSettings = await prisma.siteSettings.findFirst();
@@ -147,6 +149,7 @@ export async function PUT(request: NextRequest) {
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Validation error:', error.errors);
       return NextResponse.json(
         { success: false, error: 'Validation failed', details: error.errors },
         { status: 400 }

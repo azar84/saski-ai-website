@@ -40,6 +40,9 @@ interface Page {
 interface SiteSettings {
   baseUrl?: string;
   footerCompanyName?: string;
+  gaMeasurementId?: string;
+  gtmContainerId?: string;
+  gtmEnabled?: boolean;
 }
 
 interface SitemapEntry {
@@ -289,6 +292,81 @@ Allow: /uploads/media/`;
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
     setMessage({ type: 'success', text: `${type} copied to clipboard!` });
+  };
+
+  const saveGASettings = async () => {
+    try {
+      setSubmitting(true);
+      setMessage(null);
+
+      const requestBody = {
+        gaMeasurementId: siteSettings.gaMeasurementId
+      };
+      
+      console.log('Sending GA settings:', requestBody);
+
+      const response = await fetch('/api/admin/site-settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage({ type: 'success', text: 'Google Analytics settings saved successfully!' });
+      } else {
+        const errorMessage = result.details ? 
+          `Validation error: ${result.details.map((err: any) => err.message).join(', ')}` :
+          result.message || 'Failed to save GA settings';
+        setMessage({ type: 'error', text: errorMessage });
+      }
+    } catch (error) {
+      console.error('Failed to save GA settings:', error);
+      setMessage({ type: 'error', text: 'Failed to save Google Analytics settings' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const saveGTMSettings = async () => {
+    try {
+      setSubmitting(true);
+      setMessage(null);
+
+      const requestBody = {
+        gtmContainerId: siteSettings.gtmContainerId,
+        gtmEnabled: siteSettings.gtmEnabled
+      };
+      
+      console.log('Sending GTM settings:', requestBody);
+
+      const response = await fetch('/api/admin/site-settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage({ type: 'success', text: 'Google Tag Manager settings saved successfully!' });
+      } else {
+        const errorMessage = result.details ? 
+          `Validation error: ${result.details.map((err: any) => err.message).join(', ')}` :
+          result.message || 'Failed to save GTM settings';
+        setMessage({ type: 'error', text: errorMessage });
+      }
+    } catch (error) {
+      console.error('Failed to save GTM settings:', error);
+      setMessage({ type: 'error', text: 'Failed to save Google Tag Manager settings' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const submitSitemapToSearchEngines = async () => {
@@ -769,6 +847,160 @@ Allow: /uploads/media/`;
             <h2 className="text-2xl font-semibold text-gray-900">SEO Settings</h2>
             <p className="text-gray-600 mt-1">Configure global SEO settings for your website.</p>
           </div>
+
+          {/* Google Analytics Settings */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Google Analytics 4</h3>
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="gaMeasurementId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Google Analytics Measurement ID
+                </label>
+                <Input
+                  id="gaMeasurementId"
+                  type="text"
+                  placeholder="G-XXXXXXXXXX"
+                  value={siteSettings.gaMeasurementId || ''}
+                  onChange={(e) => setSiteSettings(prev => ({ ...prev, gaMeasurementId: e.target.value }))}
+                  className="max-w-md"
+                />
+                <p className="text-sm text-gray-600 mt-1">
+                  You can find this in your Google Analytics property under Data Streams. Format: G-XXXXXXXXXX
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-4 pt-2">
+                <Button
+                  onClick={saveGASettings}
+                  disabled={submitting}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {submitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Save GA Settings
+                    </>
+                  )}
+                </Button>
+                
+                {siteSettings.gaMeasurementId && (
+                  <div className="flex items-center text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    GA4 is configured
+                  </div>
+                )}
+                
+                {!siteSettings.gaMeasurementId && (
+                  <div className="flex items-center text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Not configured
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Google Tag Manager Settings */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Google Tag Manager</h3>
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="gtmContainerId" className="block text-sm font-medium text-gray-700 mb-2">
+                  GTM Container ID
+                </label>
+                <Input
+                  id="gtmContainerId"
+                  type="text"
+                  placeholder="GTM-XXXXXXX"
+                  value={siteSettings.gtmContainerId || ''}
+                  onChange={(e) => setSiteSettings(prev => ({ ...prev, gtmContainerId: e.target.value }))}
+                  className="max-w-md"
+                />
+                <p className="text-sm text-gray-600 mt-1">
+                  You can find this in your Google Tag Manager account. Format: GTM-XXXXX to GTM-XXXXXXXX
+                </p>
+              </div>
+              
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={siteSettings.gtmEnabled || false}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, gtmEnabled: e.target.checked }))}
+                        className="sr-only peer"
+                      />
+                      <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <span className="ml-3 text-sm font-medium text-gray-900">
+                        {siteSettings.gtmEnabled ? 'GTM Enabled' : 'GTM Disabled'}
+                      </span>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    {siteSettings.gtmEnabled ? (
+                      <div className="flex items-center text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Active
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
+                        <XCircle className="w-4 h-4 mr-1" />
+                        Inactive
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-600 mt-2">
+                  {siteSettings.gtmEnabled 
+                    ? 'GTM scripts will be loaded on your website when enabled.'
+                    : 'GTM scripts will not be loaded when disabled.'
+                  }
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-4 pt-2">
+                <Button
+                  onClick={saveGTMSettings}
+                  disabled={submitting}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {submitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Save GTM Settings
+                    </>
+                  )}
+                </Button>
+                
+                {siteSettings.gtmContainerId && siteSettings.gtmEnabled && (
+                  <div className="flex items-center text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    GTM is configured and enabled
+                  </div>
+                )}
+                
+                {siteSettings.gtmContainerId && !siteSettings.gtmEnabled && (
+                  <div className="flex items-center text-sm text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
+                    <AlertTriangle className="w-4 h-4 mr-1" />
+                    GTM configured but disabled
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
 
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
