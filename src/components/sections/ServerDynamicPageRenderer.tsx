@@ -388,18 +388,14 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
 
       case 'pricing':
         if (section.pricingSection) {
-          // TODO: Fix ConfigurablePricingSection props for SSR
           return wrapWithSectionDiv(
-            <div key={section.id} className="py-16 bg-gray-50">
-              <div className="container mx-auto px-4 text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  {section.pricingSection.name}
-                </h2>
-                <p className="text-gray-600">
-                  Pricing section - SSR implementation pending
-                </p>
-              </div>
-            </div>
+            <ConfigurablePricingSection 
+              key={section.id} 
+              heading={section.pricingSection.heading}
+              subheading={section.pricingSection.subheading}
+              pricingSectionId={section.pricingSection.id}
+              layoutType={section.pricingSection.layoutType}
+            />
           );
         }
         break;
@@ -427,18 +423,24 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
 
       case 'form':
         if (section.form) {
-          // TODO: Fix FormSection props for SSR
           return wrapWithSectionDiv(
-            <div key={section.id} className="py-16 bg-gray-50">
-              <div className="container mx-auto px-4 text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  {section.form.title}
-                </h2>
-                <p className="text-gray-600">
-                  Form section - SSR implementation pending
-                </p>
-              </div>
-            </div>
+            <FormSection 
+              key={section.id} 
+              formId={section.form.id}
+              title={section.form.title}
+              subtitle={section.form.subheading}
+            />
+          );
+        }
+        break;
+
+      case 'home_hero':
+        if (section.heroSection) {
+          return wrapWithSectionDiv(
+            <DynamicHeroSection 
+              key={section.id} 
+              heroSection={section.heroSection}
+            />
           );
         }
         break;
