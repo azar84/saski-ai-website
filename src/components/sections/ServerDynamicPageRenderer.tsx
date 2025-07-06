@@ -270,72 +270,6 @@ async function fetchPageSections(pageSlug: string): Promise<PageSection[]> {
   }
 }
 
-// Server-side home hero data fetching
-async function fetchHomeHeroData() {
-  try {
-    const homeHero = await prisma.homePageHero.findFirst({
-      where: { isActive: true },
-      include: {
-        ctaPrimary: true,
-        ctaSecondary: true
-      }
-    });
-
-    if (!homeHero) {
-      return null;
-    }
-
-    // Convert HomePageHero to HeroSection format for DynamicHeroSection
-    return {
-      id: homeHero.id,
-      name: 'Home Hero',
-      layoutType: 'split' as const,
-      sectionHeight: '100vh',
-      tagline: homeHero.tagline || undefined,
-      headline: homeHero.headline,
-      subheading: homeHero.subheading || undefined,
-      textAlignment: 'left' as const,
-      ctaPrimaryId: homeHero.ctaPrimaryId || undefined,
-      ctaSecondaryId: homeHero.ctaSecondaryId || undefined,
-      mediaUrl: homeHero.mediaUrl || undefined,
-      mediaType: 'image' as const,
-      mediaAlt: homeHero.headline,
-      mediaHeight: '80vh',
-      mediaPosition: 'right' as const,
-      backgroundType: 'color' as const,
-      backgroundValue: homeHero.backgroundColor || '#FFFFFF',
-      showTypingEffect: false,
-      enableBackgroundAnimation: false,
-      customClasses: undefined,
-      paddingTop: 80,
-      paddingBottom: 80,
-      containerMaxWidth: '2xl' as const,
-      visible: true,
-      ctaPrimary: homeHero.ctaPrimary ? {
-        id: homeHero.ctaPrimary.id,
-        text: homeHero.ctaPrimary.text,
-        url: homeHero.ctaPrimary.url,
-        icon: homeHero.ctaPrimary.icon || undefined,
-        style: homeHero.ctaPrimary.style,
-        target: homeHero.ctaPrimary.target,
-        isActive: homeHero.ctaPrimary.isActive
-      } : undefined,
-      ctaSecondary: homeHero.ctaSecondary ? {
-        id: homeHero.ctaSecondary.id,
-        text: homeHero.ctaSecondary.text,
-        url: homeHero.ctaSecondary.url,
-        icon: homeHero.ctaSecondary.icon || undefined,
-        style: homeHero.ctaSecondary.style,
-        target: homeHero.ctaSecondary.target,
-        isActive: homeHero.ctaSecondary.isActive
-      } : undefined
-    };
-  } catch (error) {
-    console.error('Error fetching home hero data:', error);
-    return null;
-  }
-}
-
 // Server-side company name fetching
 async function fetchCompanyName(): Promise<string> {
   try {
@@ -352,10 +286,9 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
   className = '' 
 }) => {
   // Fetch data on the server
-  const [sections, companyName, homeHeroData] = await Promise.all([
+  const [sections, companyName] = await Promise.all([
     fetchPageSections(pageSlug),
-    fetchCompanyName(),
-    fetchHomeHeroData()
+    fetchCompanyName()
   ]);
 
   const generateSectionId = (section: PageSection, index: number) => {
@@ -502,28 +435,9 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
         break;
 
       case 'home_hero':
-        if (homeHeroData) {
-          return wrapWithSectionDiv(
-            <DynamicHeroSection 
-              key={section.id} 
-              heroSection={homeHeroData}
-            />
-          );
-        } else {
-          // Fallback if no home hero data is configured
-          return wrapWithSectionDiv(
-            <div key={section.id} className="py-16 bg-gray-50">
-              <div className="container mx-auto px-4 text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Home Hero Section
-                </h2>
-                <p className="text-gray-600">
-                  No home hero content configured. Please set up your home hero in the admin panel.
-                </p>
-              </div>
-            </div>
-          );
-        }
+        return wrapWithSectionDiv(
+          <HeroSection key={section.id} />
+        );
         break;
 
       case 'html':
