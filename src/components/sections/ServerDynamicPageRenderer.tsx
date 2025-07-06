@@ -366,6 +366,67 @@ async function fetchHomeHeroData() {
   }
 }
 
+// Add server-side form data fetching
+async function fetchFormData(formId: number) {
+  try {
+    const form = await prisma.form.findUnique({
+      where: { id: formId },
+      include: {
+        fields: {
+          orderBy: { sortOrder: 'asc' }
+        },
+        _count: {
+          select: { submissions: true }
+        }
+      }
+    });
+
+    if (!form) {
+      return null;
+    }
+
+    // Parse fieldOptions from JSON strings (same logic as API)
+    const processedForm = {
+      ...form,
+      fields: form.fields.map((field) => ({
+        ...field,
+        fieldOptions: field.fieldOptions ? 
+          (() => {
+            try {
+              // Try to parse the JSON, handling multiple levels of escaping
+              let parsed = field.fieldOptions;
+              
+              // Keep parsing until we get an actual array or object
+              while (typeof parsed === 'string') {
+                try {
+                  parsed = JSON.parse(parsed);
+                } catch {
+                  // If parsing fails, break to avoid infinite loop
+                  break;
+                }
+              }
+              
+              // Ensure we return an array for select/radio fields
+              if (field.fieldType === 'select' || field.fieldType === 'radio') {
+                return Array.isArray(parsed) ? parsed : [];
+              }
+              
+              return parsed;
+            } catch (error) {
+              console.error('Error parsing fieldOptions for field:', field.fieldName, error);
+              return field.fieldType === 'select' || field.fieldType === 'radio' ? [] : null;
+            }
+          })() : null
+      }))
+    };
+
+    return processedForm;
+  } catch (error) {
+    console.error('Error fetching form data:', error);
+    return null;
+  }
+}
+
 const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = async ({ 
   pageSlug, 
   className = '' 
@@ -506,12 +567,15 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
 
       case 'form':
         if (section.form) {
+          // Fetch form data server-side
+          const formDataPromise = fetchFormData(section.form.id);
           return wrapWithSectionDiv(
-            <FormSection 
+            <FormSectionWrapper 
               key={section.id} 
               formId={section.form.id}
               title={section.form.title}
               subtitle={section.form.subheading}
+              formDataPromise={formDataPromise}
             />
           );
         }
@@ -582,5 +646,29 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
     </div>
   );
 };
+
+// Wrapper component to handle async form data
+async function FormSectionWrapper({ 
+  formId, 
+  title, 
+  subtitle, 
+  formDataPromise 
+}: { 
+  formId: number; 
+  title: string; 
+  subtitle?: string; 
+  formDataPromise: Promise<any>; 
+}) {
+  const formData = await formDataPromise;
+  
+  return (
+    <FormSection 
+      formId={formId}
+      title={title}
+      subtitle={subtitle}
+      formData={formData}
+    />
+  );
+}
 
 export default ServerDynamicPageRenderer; 

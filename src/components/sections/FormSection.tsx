@@ -132,6 +132,7 @@ interface FormSectionProps {
   companyContact?: CompanyContact;
   layout?: 'default' | 'side-by-side' | 'contact-first';
   backgroundColor?: string;
+  formData?: Form | null; // Add server-side form data prop
 }
 
 export default function FormSection({ 
@@ -141,11 +142,12 @@ export default function FormSection({
   className = '',
   companyContact,
   layout = 'default',
-  backgroundColor
+  backgroundColor,
+  formData: serverFormData
 }: FormSectionProps) {
   const { designSystem, loading: dsLoading } = useDesignSystem();
-  const [form, setForm] = useState<Form | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState<Form | null>(serverFormData || null);
+  const [loading, setLoading] = useState(!serverFormData);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -158,13 +160,16 @@ export default function FormSection({
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (formId && !isNaN(formId)) {
-    fetchForm();
-    } else {
-      console.error('Invalid formId provided:', formId);
-      setLoading(false);
+    // Only fetch if server data not provided
+    if (!serverFormData) {
+      if (formId && !isNaN(formId)) {
+        fetchForm();
+      } else {
+        console.error('Invalid formId provided:', formId);
+        setLoading(false);
+      }
     }
-  }, [formId]);
+  }, [formId, serverFormData]);
 
   const fetchForm = async () => {
     try {
