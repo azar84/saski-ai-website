@@ -40,6 +40,10 @@ CREATE TABLE IF NOT EXISTS "public"."sitemap_submission_logs" (
 
     CONSTRAINT "sitemap_submission_logs_pkey" PRIMARY KEY ("id")
 );
+
+-- Add warnings column if it doesn't exist (for existing tables)
+ALTER TABLE "public"."sitemap_submission_logs" 
+ADD COLUMN IF NOT EXISTS "warnings" TEXT;
 `;
 
 try {
