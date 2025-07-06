@@ -3,9 +3,9 @@ const { execSync } = require('child_process');
 console.log('🔄 Running simple migration...');
 
 try {
-  // Try to deploy migrations
+  // Try to deploy migrations (buffered, so we can parse error output)
   console.log('📋 Deploying migrations...');
-  execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+  execSync('npx prisma migrate deploy');
   console.log('✅ Migrations deployed successfully!');
 } catch (error) {
   console.log('⚠️  Migration failed, baselining database...');
@@ -41,7 +41,7 @@ try {
         }
       }
       
-      // Now try to deploy again
+      // Now try to deploy again (show output live)
       console.log('🔄 Deploying remaining migrations...');
       execSync('npx prisma migrate deploy', { stdio: 'inherit' });
       console.log('✅ All migrations deployed successfully!');
