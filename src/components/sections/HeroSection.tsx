@@ -114,11 +114,13 @@ const useTypingAnimation = (text: string, speed: number = 40) => {
   return { displayText, isComplete };
 };
 
-const HeroSection: React.FC = () => {
+interface HeroSectionProps {
+  heroData?: any;
+}
+
+const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => {
   const [currentConversationStep, setCurrentConversationStep] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
-  const [heroData, setHeroData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const heroRef = useRef<HTMLElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -128,50 +130,23 @@ const HeroSection: React.FC = () => {
 
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
-  // Fetch hero data
-  useEffect(() => {
-    const fetchHeroData = async () => {
-      try {
-        const response = await fetch('/api/admin/home-hero');
-        if (response.ok) {
-          const result = await response.json();
-          // Handle the new API response format
-          if (result.success && result.data) {
-            // Ensure trustIndicators is always an array and filter visible ones
-            const heroData = {
-              ...result.data,
-              trustIndicators: (result.data.trustIndicators || []).filter((indicator: any) => indicator.isVisible)
-            };
-            setHeroData(heroData);
-          } else {
-            throw new Error(result.message || 'Failed to fetch hero data');
-          }
-        } else {
-          throw new Error('Failed to fetch hero data');
-        }
-      } catch (error) {
-        console.error('Error fetching hero data:', error);
-        // Use fallback data if API fails
-        setHeroData({
-          heading: 'Automate Conversations, Capture Leads, Serve Customers — All Without Code',
-          subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
-          primaryCtaId: null,
-          primaryCta: null,
-          secondaryCtaId: null,
-          secondaryCta: null,
-          trustIndicators: [
-            { iconName: 'Shield', text: '99.9% Uptime', isVisible: true },
-            { iconName: 'Clock', text: '24/7 Support', isVisible: true },
-            { iconName: 'Code', text: 'No Code Required', isVisible: true }
-          ]
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Use server-side data if provided, otherwise use default fallback
+  const heroData = propHeroData || {
+    heading: 'Automate Conversations, Capture Leads, Serve Customers — All Without Code',
+    subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
+    primaryCtaId: null,
+    primaryCta: null,
+    secondaryCtaId: null,
+    secondaryCta: null,
+    trustIndicators: [
+      { iconName: 'Shield', text: '99.9% Uptime', isVisible: true },
+      { iconName: 'Clock', text: '24/7 Support', isVisible: true },
+      { iconName: 'Code', text: 'No Code Required', isVisible: true }
+    ]
+  };
 
-    fetchHeroData();
-  }, []);
+  // Ensure trustIndicators is always an array and filter visible ones
+  const visibleTrustIndicators = (heroData.trustIndicators || []).filter((indicator: any) => indicator.isVisible);
 
   // Smart color calculation based on background color
   const getTextColor = () => {
@@ -356,9 +331,7 @@ const HeroSection: React.FC = () => {
     return icons[iconName] || Shield;
   };
 
-  if (loading) {
-    return null;
-  }
+
 
   return (
     <motion.section 
@@ -509,14 +482,14 @@ const HeroSection: React.FC = () => {
             </motion.div>
 
             {/* Responsive Trust Indicators */}
-            {heroData?.trustIndicators && heroData.trustIndicators.length > 0 && (
+            {visibleTrustIndicators && visibleTrustIndicators.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1.0 }}
                 className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4"
               >
-                {heroData.trustIndicators.map((indicator: any, index: number) => {
+                {visibleTrustIndicators.map((indicator: any, index: number) => {
                   const IconComponent = getIconComponent(indicator.iconName);
                   const trustColors = getTrustIndicatorColors();
                   return (

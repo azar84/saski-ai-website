@@ -203,7 +203,7 @@ async function fetchPageSections(pageSlug: string): Promise<PageSection[]> {
     }
 
     const sections = await prisma.pageSection.findMany({
-      where: {
+      where: { 
         pageId: page.id,
         isVisible: true
       },
@@ -220,14 +220,21 @@ async function fetchPageSections(pageSlug: string): Promise<PageSection[]> {
               include: {
                 feature: true
               },
-              orderBy: { sortOrder: 'asc' }
+              where: {
+                isVisible: true
+              },
+              orderBy: {
+                sortOrder: 'asc'
+              }
             }
           }
         },
         mediaSection: {
           include: {
             features: {
-              orderBy: { sortOrder: 'asc' }
+              orderBy: {
+                sortOrder: 'asc'
+              }
             }
           }
         },
@@ -239,12 +246,16 @@ async function fetchPageSections(pageSlug: string): Promise<PageSection[]> {
                 category: {
                   include: {
                     _count: {
-                      select: { faqs: true }
+                      select: {
+                        faqs: true
+                      }
                     }
                   }
                 }
               },
-              orderBy: { sortOrder: 'asc' }
+              orderBy: {
+                sortOrder: 'asc'
+              }
             }
           }
         },
@@ -260,7 +271,9 @@ async function fetchPageSections(pageSlug: string): Promise<PageSection[]> {
         },
         htmlSection: true
       },
-      orderBy: { sortOrder: 'asc' }
+      orderBy: {
+        sortOrder: 'asc'
+      }
     });
 
     return sections as PageSection[];
@@ -281,15 +294,85 @@ async function fetchCompanyName(): Promise<string> {
   }
 }
 
+// Add server-side home hero data fetching
+async function fetchHomeHeroData() {
+  try {
+    const homeHero = await prisma.homePageHero.findFirst({
+      where: {
+        isActive: true
+      },
+      include: {
+        ctaPrimary: true,
+        ctaSecondary: true
+      }
+    });
+
+    if (!homeHero) {
+      // Return default data if no hero exists
+      return {
+        id: null,
+        heading: 'Automate Conversations, Capture Leads, Serve Customers — All Without Code',
+        subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
+        backgroundColor: '#FFFFFF',
+        primaryCtaId: null,
+        secondaryCtaId: null,
+        primaryCta: null,
+        secondaryCta: null,
+        isActive: true,
+        trustIndicators: [
+          { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0, isVisible: true },
+          { iconName: 'Clock', text: '24/7 Support', sortOrder: 1, isVisible: true },
+          { iconName: 'Code', text: 'No Code Required', sortOrder: 2, isVisible: true }
+        ]
+      };
+    }
+
+    // Transform database data to component format
+    return {
+      id: homeHero.id,
+      heading: homeHero.headline,
+      subheading: homeHero.subheading,
+      backgroundColor: homeHero.backgroundColor || '#FFFFFF',
+      primaryCtaId: homeHero.ctaPrimaryId || null,
+      secondaryCtaId: homeHero.ctaSecondaryId || null,
+      primaryCta: homeHero.ctaPrimary || null,
+      secondaryCta: homeHero.ctaSecondary || null,
+      isActive: homeHero.isActive,
+      trustIndicators: [
+        { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0, isVisible: true },
+        { iconName: 'Clock', text: '24/7 Support', sortOrder: 1, isVisible: true },
+        { iconName: 'Code', text: 'No Code Required', sortOrder: 2, isVisible: true }
+      ]
+    };
+  } catch (error) {
+    console.error('Error fetching home hero data:', error);
+    // Return default data on error
+    return {
+      id: null,
+      heading: 'Automate Conversations, Capture Leads, Serve Customers — All Without Code',
+      subheading: 'Deploy intelligent assistants to SMS, WhatsApp, and your website in minutes. Transform customer support while you focus on growth.',
+      backgroundColor: '#FFFFFF',
+      primaryCtaId: null,
+      secondaryCtaId: null,
+      primaryCta: null,
+      secondaryCta: null,
+      isActive: true,
+      trustIndicators: [
+        { iconName: 'Shield', text: '99.9% Uptime', sortOrder: 0, isVisible: true },
+        { iconName: 'Clock', text: '24/7 Support', sortOrder: 1, isVisible: true },
+        { iconName: 'Code', text: 'No Code Required', sortOrder: 2, isVisible: true }
+      ]
+    };
+  }
+}
+
 const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = async ({ 
   pageSlug, 
   className = '' 
 }) => {
-  // Fetch data on the server
-  const [sections, companyName] = await Promise.all([
-    fetchPageSections(pageSlug),
-    fetchCompanyName()
-  ]);
+  const sections = await fetchPageSections(pageSlug);
+  const companyName = await fetchCompanyName();
+  const homeHeroData = await fetchHomeHeroData(); // Fetch home hero data server-side
 
   const generateSectionId = (section: PageSection, index: number) => {
     const sectionType = section.sectionType.toLowerCase();
@@ -436,7 +519,10 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
 
       case 'home_hero':
         return wrapWithSectionDiv(
-          <HeroSection key={section.id} />
+          <HeroSection 
+            key={section.id} 
+            heroData={homeHeroData}
+          />
         );
         break;
 
