@@ -9,7 +9,7 @@ import {
   FileText, 
   Globe, 
   Settings, 
-  Download, 
+  Download,
   RefreshCw,
   ExternalLink,
   CheckCircle,
@@ -19,7 +19,6 @@ import {
   Copy,
   Eye,
   Calendar,
-  Zap,
   Link,
   Hash,
   BarChart3,
@@ -47,12 +46,7 @@ interface SiteSettings {
   gtmEnabled?: boolean;
 }
 
-interface SitemapEntry {
-  url: string;
-  lastModified: string;
-  changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
-  priority: number;
-}
+
 
 interface FAQPageInfo {
   type: 'faq-category' | 'faq-question';
@@ -93,8 +87,7 @@ export default function SEOManager() {
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   
-  // Sitemap state
-  const [sitemapEntries, setSitemapEntries] = useState<SitemapEntry[]>([]);
+  // Sitemap state  
   const [sitemapContent, setSitemapContent] = useState<string>('');
   
   // Robots.txt state
@@ -274,7 +267,6 @@ Allow: /uploads/media/`;
 
       if (result.success) {
         setSitemapContent(result.sitemap);
-        setSitemapEntries(result.entries);
         setMessage({ type: 'success', text: 'Sitemap generated successfully!' });
       } else {
         setMessage({ type: 'error', text: result.message || 'Failed to generate sitemap' });
@@ -570,7 +562,7 @@ Allow: /uploads/media/`;
                   </>
                 ) : (
                   <>
-                    <Zap className="w-4 h-4 mr-2" />
+                    <RefreshCw className="w-4 h-4 mr-2" />
                     Generate Sitemap
                   </>
                 )}
@@ -581,37 +573,25 @@ Allow: /uploads/media/`;
                 className="border-blue-200 text-blue-600 hover:bg-blue-50"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
-                Preview Sitemap
+                View Sitemap
               </Button>
-              {sitemapContent && (
-                <>
-                  <Button
-                    onClick={downloadSitemap}
-                    variant="outline"
-                    className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </Button>
-                  <Button
-                    onClick={submitSitemapToSearchEngines}
-                    disabled={submitting}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    {submitting ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Globe className="w-4 h-4 mr-2" />
-                        Submit to Search Engines
-                      </>
-                    )}
-                  </Button>
-                </>
-              )}
+              <Button
+                onClick={submitSitemapToSearchEngines}
+                disabled={submitting}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {submitting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Globe className="w-4 h-4 mr-2" />
+                    Submit to Search Engines
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 
@@ -665,8 +645,12 @@ Allow: /uploads/media/`;
               <div className="flex items-center">
                 <FileText className="w-8 h-8 text-blue-600 mr-3" />
                 <div>
-                  <p className="text-2xl font-semibold text-gray-900">{pages.length}</p>
-                  <p className="text-sm text-gray-600">Total Pages</p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {pages.length}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Total Pages
+                  </p>
                 </div>
               </div>
             </Card>
@@ -686,9 +670,9 @@ Allow: /uploads/media/`;
                 <Calendar className="w-8 h-8 text-purple-600 mr-3" />
                 <div>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {sitemapContent ? new Date().toLocaleDateString() : 'Never'}
+                    Active
                   </p>
-                  <p className="text-sm text-gray-600">Last Generated</p>
+                  <p className="text-sm text-gray-600">Sitemap Status</p>
                 </div>
               </div>
             </Card>
@@ -705,16 +689,20 @@ Allow: /uploads/media/`;
             </Card>
           </div>
 
-          {/* Pages List */}
+
+
+          {/* Sitemap Entries List */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Pages in Sitemap</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Pages in Sitemap
+            </h3>
             <div className="space-y-4">
               {pages.map((page) => (
                 <div key={page.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3">
                       <h4 className="font-medium text-gray-900">{page.title}</h4>
-                      <span className="text-sm text-gray-500">/{page.slug === 'home' ? '' : page.slug}</span>
+                      <span className="text-sm text-gray-500">/{page.slug}</span>
                     </div>
                     <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                       <span>Priority: {page.slug === 'home' ? '1.0' : '0.8'}</span>
@@ -735,7 +723,7 @@ Allow: /uploads/media/`;
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
-                      onClick={() => window.open(`/${page.slug === 'home' ? '' : page.slug}`, '_blank')}
+                      onClick={() => window.open(`/${page.slug}`, '_blank')}
                       variant="outline"
                       size="sm"
                     >
