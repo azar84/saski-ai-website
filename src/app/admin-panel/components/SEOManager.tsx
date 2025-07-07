@@ -842,7 +842,16 @@ Allow: /uploads/media/`;
                     Search Engine
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Response
+                    Status Code
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Submission ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Response / Error
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Warnings
                   </th>
                 </tr>
               </thead>
@@ -850,12 +859,27 @@ Allow: /uploads/media/`;
                 {submissionLogs.slice(0, 10).map((log, index) => (
                   <tr key={log.id || index} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(log.submittedAt).toLocaleString()}
+                      <div className="flex flex-col">
+                        <span>{new Date(log.submittedAt).toLocaleDateString()}</span>
+                        <span className="text-xs text-gray-500">{new Date(log.submittedAt).toLocaleTimeString()}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       <div className="max-w-xs truncate" title={log.sitemapUrl}>
-                        {log.sitemapUrl}
+                        <a 
+                          href={log.sitemapUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          {log.sitemapUrl}
+                        </a>
                       </div>
+                      {log.siteUrl && (
+                        <div className="text-xs text-gray-500 mt-1" title={log.siteUrl}>
+                          Site: {log.siteUrl.replace('sc-domain:', '')}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -869,17 +893,83 @@ Allow: /uploads/media/`;
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {log.searchEngine}
+                      <div className="flex items-center">
+                        {log.searchEngine === 'Google' ? (
+                          <span className="text-blue-600 font-medium">Google</span>
+                        ) : (
+                          <span className="text-orange-600 font-medium">{log.searchEngine}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {log.statusCode ? (
+                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
+                          log.statusCode >= 200 && log.statusCode < 300
+                            ? 'bg-green-100 text-green-800'
+                            : log.statusCode >= 400
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {log.statusCode}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {log.submissionId ? (
+                        <div className="max-w-xs truncate font-mono text-xs" title={log.submissionId}>
+                          {log.submissionId}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {log.status === 'success' ? (
-                        <span className="text-green-600">✅ Submitted</span>
+                        <div className="space-y-1">
+                          <span className="text-green-600 font-medium">✅ Submitted Successfully</span>
+                          {log.googleResponse && (
+                            <div className="text-xs text-gray-500">
+                              {typeof log.googleResponse === 'object' && log.googleResponse.kind ? (
+                                <span>Kind: {log.googleResponse.kind}</span>
+                              ) : (
+                                <span>Response received</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       ) : log.errorMessage ? (
-                        <div className="max-w-xs truncate text-red-600" title={log.errorMessage}>
-                          {log.errorMessage}
+                        <div className="space-y-1">
+                          <div className="max-w-xs text-red-600 font-medium" title={log.errorMessage}>
+                            ❌ {log.errorMessage.length > 50 ? `${log.errorMessage.substring(0, 50)}...` : log.errorMessage}
+                          </div>
+                          {log.errorMessage.length > 50 && (
+                            <div className="text-xs text-gray-500 cursor-help" title={log.errorMessage}>
+                              Hover for full error
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <span className="text-gray-500">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {log.warnings && log.warnings.length > 0 ? (
+                        <div className="space-y-1">
+                                                     {log.warnings.slice(0, 2).map((warning: string, wIndex: number) => (
+                             <div key={wIndex} className="text-yellow-600 text-xs" title={warning}>
+                               ⚠️ {warning.length > 30 ? `${warning.substring(0, 30)}...` : warning}
+                             </div>
+                           ))}
+                          {log.warnings.length > 2 && (
+                            <div className="text-xs text-gray-500">
+                              +{log.warnings.length - 2} more warnings
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">None</span>
                       )}
                     </td>
                   </tr>
