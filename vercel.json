@@ -1,4 +1,25 @@
 {
+  "buildCommand": "npm run build:with-db-copy",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "functions": {
+    "app/api/**": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "NEXT_PUBLIC_VERCEL_URL": "@vercel-url"
+  },
+  "build": {
+    "env": {
+      "ENABLE_EXPERIMENTAL_COREPACK": "1"
+    }
+  },
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
+  "github": {
+    "autoJobCancelation": true
+  },
   "crons": [
     {
       "path": "/api/cron/submit-sitemap",
