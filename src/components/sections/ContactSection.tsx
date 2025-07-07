@@ -185,7 +185,7 @@ export default function ContactSection({
           >
             <option value="">Select {field.label}</option>
             {field.fieldOptions?.map((option, index) => (
-              <option key={index} value={option}>
+              <option key={`${field.fieldName}-option-${index}`} value={option}>
                 {option}
               </option>
             ))}
@@ -196,7 +196,7 @@ export default function ContactSection({
         return (
           <div className="space-y-2">
             {field.fieldOptions?.map((option, index) => (
-              <label key={index} className="flex items-center space-x-2">
+              <label key={`${field.fieldName}-radio-${index}`} className="flex items-center space-x-2">
                 <input
                   type="radio"
                   name={field.fieldName}

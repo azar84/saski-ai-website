@@ -355,7 +355,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
       {/* Subtle Particle Background - Reduced */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(8)].map((_, i) => (
-          <Particle key={i} delay={i * 1.2} />
+          <Particle key={`particle-${i}`} delay={i * 1.2} />
         ))}
       </div>
 
@@ -631,7 +631,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                         <div className="flex gap-1">
                           {[0, 1, 2].map((i) => (
                             <motion.div
-                              key={i}
+                              key={`typing-dot-${i}`}
                               animate={{ scale: [1, 1.3, 1] }}
                               transition={{ 
                                 duration: 1, 

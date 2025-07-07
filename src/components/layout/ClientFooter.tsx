@@ -611,11 +611,11 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                 {socialLinks.map((social) => {
                   const IconComponent = social.icon;
                   return (
-                  <motion.a
-                    key={social.name}
+                    <motion.a
+                      key={social.name}
                       href={social.url || '#'}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="p-2 rounded-full transition-all duration-200 hover:scale-110"
                       style={{ 
                         backgroundColor: `${textColorClass}20`,
@@ -625,10 +625,10 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
                         backgroundColor: `${textColorClass}30`,
                         scale: 1.1 
                       }}
-                    whileTap={{ scale: 0.95 }}
-                  >
+                      whileTap={{ scale: 0.95 }}
+                    >
                       <IconComponent className="w-5 h-5" />
-                  </motion.a>
+                    </motion.a>
                   );
                 })}
               </div>

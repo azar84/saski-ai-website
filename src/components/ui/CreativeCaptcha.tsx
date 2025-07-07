@@ -439,7 +439,7 @@ export default function CreativeCaptcha({
               <div className="grid grid-cols-2 gap-2">
                 {mathProblem.options.map((option, index) => (
                   <button
-                    key={index}
+                    key={`math-option-${option}-${index}`}
                     onClick={() => setSelectedAnswer(option)}
                     className="p-2 rounded border font-medium text-sm transition-all"
                     style={{
@@ -538,7 +538,7 @@ export default function CreativeCaptcha({
               <div className="flex justify-center gap-3">
                 {dragTargets.map((target) => (
                   <div
-                    key={target.id}
+                    key={`drag-target-${target.id}`}
                     className={`relative w-12 h-12 border-2 rounded-lg flex items-center justify-center transition-all duration-200 ${
                       completedTargets.includes(target.id) 
                         ? 'shadow' 

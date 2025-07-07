@@ -860,7 +860,7 @@ export default function FormSection({
             >
               <option value="">{field.placeholder}</option>
               {options.map((option: any, index: number) => (
-                <option key={index} value={option.value || option}>
+                <option key={`${field.fieldName}-option-${index}`} value={option.value || option}>
                   {option.label || option}
                 </option>
             ))}
@@ -956,7 +956,7 @@ export default function FormSection({
                 const optionLabel = typeof option === 'string' ? option : (option.label || option.value || option);
                 
                 return (
-                  <label key={index} className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-gray-50/80 transition-colors border border-gray-200 hover:border-gray-300">
+                  <label key={`${field.fieldName}-${optionValue}-${index}`} className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-gray-50/80 transition-colors border border-gray-200 hover:border-gray-300">
                     <div className="relative flex-shrink-0">
                 <input
                   type="radio"
