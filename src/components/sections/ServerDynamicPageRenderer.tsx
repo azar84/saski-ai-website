@@ -526,6 +526,52 @@ async function fetchPricingData(pricingSectionId: number) {
   }
 }
 
+// Add server-side FAQ data fetching
+async function fetchFAQData(sectionCategories: number[] = []) {
+  try {
+    // Fetch categories and FAQs in parallel
+    const [categories, faqs] = await Promise.all([
+      prisma.fAQCategory.findMany({
+        where: { isActive: true },
+        include: {
+          _count: {
+            select: { faqs: true }
+          }
+        },
+        orderBy: { sortOrder: 'asc' }
+      }),
+      prisma.fAQ.findMany({
+        where: { isActive: true },
+        include: {
+          category: true
+        },
+        orderBy: { sortOrder: 'asc' }
+      })
+    ]);
+
+    // Filter categories if section has specific categories selected
+    const filteredCategories = sectionCategories.length > 0 
+      ? categories.filter(cat => sectionCategories.includes(cat.id))
+      : categories;
+
+    // Filter FAQs if section has specific categories selected
+    const filteredFAQs = sectionCategories.length > 0
+      ? faqs.filter(faq => faq.categoryId && sectionCategories.includes(faq.categoryId))
+      : faqs;
+
+    return {
+      categories: filteredCategories,
+      faqs: filteredFAQs
+    };
+  } catch (error) {
+    console.error('Error fetching FAQ data:', error);
+    return {
+      categories: [],
+      faqs: []
+    };
+  }
+}
+
 const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = async ({ 
   pageSlug, 
   className = '' 
@@ -648,8 +694,11 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
 
       case 'faq':
         if (section.faqSection) {
+          // Fetch FAQ data server-side
+          const sectionCategories = section.faqSection.sectionCategories?.map(sc => sc.categoryId) || [];
+          const faqDataPromise = fetchFAQData(sectionCategories);
           return wrapWithSectionDiv(
-            <FAQSection 
+            <FAQSectionWrapper 
               key={section.id} 
               heading={section.faqSection.heading}
               subheading={section.faqSection.subheading}
@@ -661,7 +710,9 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
               backgroundColor={section.faqSection.backgroundColor}
               heroBackgroundColor={section.faqSection.heroBackgroundColor}
               heroHeight={section.faqSection.heroHeight}
-              sectionCategories={section.faqSection.sectionCategories?.map(sc => sc.categoryId) || []}
+              sectionCategories={sectionCategories}
+              faqCategoryId={section.faqCategoryId}
+              faqDataPromise={faqDataPromise}
             />
           );
         }
@@ -796,6 +847,58 @@ async function PricingSectionWrapper({
       pricingSectionId={pricingSectionId}
       layoutType={layoutType}
       pricingData={pricingData}
+    />
+  );
+}
+
+// Wrapper component to handle async FAQ data
+async function FAQSectionWrapper({ 
+  heading,
+  subheading,
+  heroTitle,
+  heroSubtitle,
+  searchPlaceholder,
+  showHero,
+  showCategories,
+  backgroundColor,
+  heroBackgroundColor,
+  heroHeight,
+  sectionCategories,
+  faqCategoryId,
+  faqDataPromise 
+}: { 
+  heading: string;
+  subheading?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  searchPlaceholder?: string;
+  showHero: boolean;
+  showCategories: boolean;
+  backgroundColor?: string;
+  heroBackgroundColor?: string;
+  heroHeight?: string;
+  sectionCategories: number[];
+  faqCategoryId?: number;
+  faqDataPromise: Promise<any>; 
+}) {
+  const faqData = await faqDataPromise;
+  
+  return (
+    <FAQSection 
+      heading={heading}
+      subheading={subheading}
+      heroTitle={heroTitle}
+      heroSubtitle={heroSubtitle}
+      searchPlaceholder={searchPlaceholder}
+      showHero={showHero}
+      showCategories={showCategories}
+      backgroundColor={backgroundColor}
+      heroBackgroundColor={heroBackgroundColor}
+      heroHeight={heroHeight}
+      sectionCategories={sectionCategories}
+      faqCategoryId={faqCategoryId}
+      faqs={faqData.faqs}
+      categories={faqData.categories}
     />
   );
 }
