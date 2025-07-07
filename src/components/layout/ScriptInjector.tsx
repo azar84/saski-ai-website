@@ -7,9 +7,7 @@ interface ScriptSection {
   name: string;
   scriptContent: string;
   isActive: boolean;
-  loadAsync: boolean;
-  loadDefer: boolean;
-  priority: number;
+  createdAt: string;
 }
 
 const ScriptInjector: React.FC = () => {
@@ -24,10 +22,10 @@ const ScriptInjector: React.FC = () => {
         
         const allScripts: ScriptSection[] = await response.json();
         
-        // Filter active scripts and sort by priority
+        // Filter active scripts and sort by creation date
         const activeScripts = allScripts
           .filter(script => script.isActive)
-          .sort((a, b) => b.priority - a.priority);
+          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         
         setScripts(activeScripts);
         
@@ -53,14 +51,6 @@ const ScriptInjector: React.FC = () => {
       const scriptElement = document.createElement('script');
       scriptElement.setAttribute('data-script-id', script.id.toString());
       scriptElement.setAttribute('data-script-name', script.name);
-      
-      // Set loading attributes
-      if (script.loadAsync) {
-        scriptElement.async = true;
-      }
-      if (script.loadDefer) {
-        scriptElement.defer = true;
-      }
       
       // Check if it's an external script or inline script
       if (script.scriptContent.includes('src=')) {

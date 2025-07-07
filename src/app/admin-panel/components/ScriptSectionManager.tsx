@@ -38,9 +38,6 @@ interface FormData {
   description: string;
   scriptContent: string;
   isActive: boolean;
-  loadAsync: boolean;
-  loadDefer: boolean;
-  priority: number;
 }
 
 const ScriptSectionManager: React.FC = () => {
@@ -53,10 +50,7 @@ const ScriptSectionManager: React.FC = () => {
     name: '',
     description: '',
     scriptContent: '',
-    isActive: true,
-    loadAsync: false,
-    loadDefer: false,
-    priority: 0
+    isActive: true
   });
 
   useEffect(() => {
@@ -82,9 +76,22 @@ const ScriptSectionManager: React.FC = () => {
     try {
       const url = '/api/admin/script-sections';
       const method = editingScript ? 'PUT' : 'POST';
+      
+      // Prepare simplified payload
       const payload = editingScript 
-        ? { ...formData, id: editingScript.id }
-        : formData;
+        ? { 
+            id: editingScript.id,
+            name: formData.name,
+            description: formData.description,
+            scriptContent: formData.scriptContent,
+            isActive: formData.isActive
+          }
+        : {
+            name: formData.name,
+            description: formData.description,
+            scriptContent: formData.scriptContent,
+            isActive: formData.isActive
+          };
 
       const response = await fetch(url, {
         method,
@@ -109,10 +116,7 @@ const ScriptSectionManager: React.FC = () => {
       name: script.name,
       description: script.description || '',
       scriptContent: script.scriptContent,
-      isActive: script.isActive,
-      loadAsync: script.loadAsync,
-      loadDefer: script.loadDefer,
-      priority: script.priority
+      isActive: script.isActive
     });
     setShowForm(true);
   };
@@ -161,10 +165,7 @@ const ScriptSectionManager: React.FC = () => {
       name: '',
       description: '',
       scriptContent: '',
-      isActive: true,
-      loadAsync: false,
-      loadDefer: false,
-      priority: 0
+      isActive: true
     });
     setEditingScript(null);
     setShowForm(false);
@@ -299,26 +300,12 @@ const ScriptSectionManager: React.FC = () => {
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <Zap className="w-4 h-4" />
-                    <span>Placement: Footer</span>
+                    <span>Auto-injected in Footer</span>
                   </div>
-                  {script.loadAsync && (
-                    <div className="flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>Async Loading</span>
-                    </div>
-                  )}
-                  {script.loadDefer && (
-                    <div className="flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4 text-blue-600" />
-                      <span>Deferred Loading</span>
-                    </div>
-                  )}
-                  {script.priority > 0 && (
-                    <div className="flex items-center gap-1">
-                      <ExternalLink className="w-4 h-4" />
-                      <span>Priority: {script.priority}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span>JavaScript Only</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -377,8 +364,18 @@ const ScriptSectionManager: React.FC = () => {
                 <textarea
                   value={formData.scriptContent}
                   onChange={(e) => setFormData({ ...formData, scriptContent: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 font-mono text-sm"
-                  placeholder="Enter your JavaScript code here..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-40 font-mono text-sm"
+                  placeholder="Enter your JavaScript code here...
+
+Examples:
+// Google Analytics
+gtag('config', 'GA_MEASUREMENT_ID');
+
+// Facebook Pixel
+fbq('track', 'PageView');
+
+// Custom tracking
+console.log('Page loaded');"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -386,50 +383,27 @@ const ScriptSectionManager: React.FC = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Priority
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.priority}
-                    onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    min="0"
-                    max="100"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Higher priority loads first</p>
-                </div>
-
-                <div className="space-y-3">
-                  <label className="flex items-center">
+                  <label className="flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.isActive}
                       onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                      className="mr-2"
+                      className="mr-3 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
-                    <span className="text-sm text-gray-700">Active</span>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Enable Script</span>
+                      <p className="text-xs text-gray-500">When enabled, this script will be automatically loaded on all pages</p>
+                    </div>
                   </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.loadAsync}
-                      onChange={(e) => setFormData({ ...formData, loadAsync: e.target.checked })}
-                      className="mr-2"
-                    />
-                    <span className="text-sm text-gray-700">Load Async</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.loadDefer}
-                      onChange={(e) => setFormData({ ...formData, loadDefer: e.target.checked })}
-                      className="mr-2"
-                    />
-                    <span className="text-sm text-gray-700">Load Deferred</span>
-                  </label>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  formData.isActive 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {formData.isActive ? 'Active' : 'Inactive'}
                 </div>
               </div>
 
