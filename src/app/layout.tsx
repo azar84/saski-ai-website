@@ -5,6 +5,7 @@ import ErrorBoundary from "../components/ui/ErrorBoundary";
 import DesignSystemProvider from "../components/layout/DesignSystemProvider";
 import DynamicFavicon from "../components/layout/DynamicFavicon";
 import AnalyticsProvider from "../components/layout/AnalyticsProvider";
+import ScriptInjector from "../components/layout/ScriptInjector";
 import "./globals.css";
 
 // Force dynamic rendering to prevent static generation issues
@@ -98,6 +99,7 @@ export default function RootLayout({
             >
               <DynamicFavicon />
               <AnalyticsProvider />
+              <ScriptInjector />
               {children}
             </ThemeProvider>
           </DesignSystemProvider>

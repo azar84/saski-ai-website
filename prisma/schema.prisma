@@ -77,19 +77,19 @@ model ServiceAccountCredentials {
 }
 
 model SitemapSubmissionLog {
-  id              String    @id @default(cuid())
-  sitemapUrl      String
-  siteUrl         String
-  submittedAt     DateTime  @default(now())
-  status          String    // 'success', 'error', 'pending'
-  searchEngine    String    // 'Google', 'Bing'
-  googleResponse  String?   // JSON string of Google API response
-  errorMessage    String?
-  statusCode      Int?
-  submissionId    String?   // External submission ID if available
-  warnings        String?   // JSON array of warnings
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String   @id @default(cuid())
+  sitemapUrl     String
+  siteUrl        String
+  submittedAt    DateTime @default(now())
+  status         String
+  searchEngine   String
+  googleResponse String?
+  errorMessage   String?
+  statusCode     Int?
+  submissionId   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  warnings       String?
 
   @@map("sitemap_submission_logs")
 }
@@ -492,14 +492,14 @@ model PageFeatureGroup {
 }
 
 model PageSection {
-  id               Int             @id @default(autoincrement())
+  id               Int              @id @default(autoincrement())
   pageId           Int
   sectionType      String
   title            String?
   subtitle         String?
   content          String?
-  sortOrder        Int             @default(0)
-  isVisible        Boolean         @default(true)
+  sortOrder        Int              @default(0)
+  isVisible        Boolean          @default(true)
   heroSectionId    Int?
   featureGroupId   Int?
   mediaSectionId   Int?
@@ -509,18 +509,20 @@ model PageSection {
   contactSectionId Int?
   formId           Int?
   htmlSectionId    Int?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  contactSection   ContactSection? @relation(fields: [contactSectionId], references: [id])
-  faqCategory      FAQCategory?    @relation(fields: [faqCategoryId], references: [id])
-  faqSection       FAQSection?     @relation(fields: [faqSectionId], references: [id])
-  featureGroup     FeatureGroup?   @relation(fields: [featureGroupId], references: [id])
-  form             Form?           @relation(fields: [formId], references: [id])
-  heroSection      HeroSection?    @relation(fields: [heroSectionId], references: [id])
-  htmlSection      HtmlSection?    @relation(fields: [htmlSectionId], references: [id])
-  mediaSection     MediaSection?   @relation(fields: [mediaSectionId], references: [id])
-  page             Page            @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  pricingSection   PricingSection? @relation(fields: [pricingSectionId], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  scriptSectionId  Int?
+  contactSection   ContactSection?  @relation(fields: [contactSectionId], references: [id])
+  faqCategory      FAQCategory?     @relation(fields: [faqCategoryId], references: [id])
+  faqSection       FAQSection?      @relation(fields: [faqSectionId], references: [id])
+  featureGroup     FeatureGroup?    @relation(fields: [featureGroupId], references: [id])
+  form             Form?            @relation(fields: [formId], references: [id])
+  heroSection      HeroSection?     @relation(fields: [heroSectionId], references: [id])
+  htmlSection      HtmlSection?     @relation(fields: [htmlSectionId], references: [id])
+  mediaSection     MediaSection?    @relation(fields: [mediaSectionId], references: [id])
+  page             Page             @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pricingSection   PricingSection?  @relation(fields: [pricingSectionId], references: [id])
+  script_sections  script_sections? @relation(fields: [scriptSectionId], references: [id])
 
   @@map("page_sections")
 }
@@ -1084,4 +1086,20 @@ model PageHtmlSection {
 
   @@unique([pageId, htmlSectionId])
   @@map("page_html_sections")
+}
+
+model script_sections {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  description   String?
+  scriptType    String        @default("javascript")
+  scriptContent String
+  placement     String        @default("footer")
+  isActive      Boolean       @default(true)
+  loadAsync     Boolean       @default(false)
+  loadDefer     Boolean       @default(false)
+  priority      Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now())
+  page_sections PageSection[]
 }
