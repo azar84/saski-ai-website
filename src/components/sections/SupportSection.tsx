@@ -51,7 +51,7 @@ const SupportSection: React.FC<SupportSectionProps> = ({
                   "Multi-Channel Support",
                   "Zero Queue Wait"
                 ].map((feature, index) => (
-                  <div key={index} className="flex items-center gap-3">
+                  <div key={`support-feature-${index}`} className="flex items-center gap-3">
                     <div className="p-2 rounded-full bg-[var(--color-light-200)] text-[var(--color-primary)] flex-shrink-0">
                       <Check className="w-4 h-4" />
                     </div>

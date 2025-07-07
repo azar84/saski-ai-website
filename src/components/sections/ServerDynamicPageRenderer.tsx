@@ -795,7 +795,11 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
 
   return (
     <div className={className}>
-      {sections.map((section, index) => renderSection(section, index))}
+      {sections.map((section, index) => (
+        <div key={section.id}>
+          {renderSection(section, index)}
+        </div>
+      ))}
     </div>
   );
 };

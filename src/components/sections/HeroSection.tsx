@@ -45,7 +45,7 @@ const AIAvatar = ({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg', 
   };
 
   return (
-    <div className={`${sizeClasses[size]} ${className} flex items-center justify-center bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] rounded-full shadow-sm ring-2 ring-white/20`}>
+    <div className={`${sizeClasses[size]} ${className} flex items-center justify-center bg-gradient-to-br from-purple-600 to-indigo-700 rounded-full shadow-sm ring-2 ring-white/20`}>
       <svg
         viewBox="0 0 190 226"
         fill="none"
@@ -68,28 +68,37 @@ const AIAvatar = ({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg', 
 };
 
 // Refined particle animation - more subtle
-const Particle = ({ delay = 0 }: { delay?: number }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0 }}
-    animate={{ 
-      opacity: [0, 0.4, 0],
-      scale: [0, 1, 0],
-      y: [0, -100, -200],
-      x: [0, Math.random() * 20 - 10, Math.random() * 40 - 20]
-    }}
-    transition={{
-      duration: 8,
-      delay,
-      repeat: Infinity,
-      repeatDelay: Math.random() * 6
-    }}
-                className="absolute w-1 h-1 bg-gradient-to-r from-[var(--color-primary)]/40 to-[var(--color-primary-light)]/30 rounded-full blur-[0.5px]"
-    style={{
-      left: `${Math.random() * 100}%`,
-      bottom: '0%'
-    }}
-  />
-);
+const Particle = ({ delay = 0 }: { delay?: number }) => {
+  // Use delay to create deterministic but varied positions
+  const seedValue = delay * 1000; // Convert to integer for seed
+  const leftPosition = (seedValue * 37 + 123) % 100; // Deterministic "random" position
+  const xMovement1 = ((seedValue * 17 + 456) % 20) - 10;
+  const xMovement2 = ((seedValue * 23 + 789) % 40) - 20;
+  const repeatDelay = ((seedValue * 13 + 321) % 6000) / 1000;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ 
+        opacity: [0, 0.4, 0],
+        scale: [0, 1, 0],
+        y: [0, -100, -200],
+        x: [0, xMovement1, xMovement2]
+      }}
+      transition={{
+        duration: 8,
+        delay,
+        repeat: Infinity,
+        repeatDelay
+      }}
+      className="absolute w-1 h-1 bg-gradient-to-r from-[var(--color-primary)]/40 to-[var(--color-primary-light)]/30 rounded-full blur-[0.5px]"
+      style={{
+        left: `${leftPosition}%`,
+        bottom: '0%'
+      }}
+    />
+  );
+};
 
 // Typing animation hook
 const useTypingAnimation = (text: string, speed: number = 40) => {
@@ -538,29 +547,29 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 3, repeat: Infinity }}
-                  className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border border-[var(--color-light-300)]/40"
+                  className="absolute -bottom-1 -right-1 bg-white rounded-full p-1.5 shadow-lg border border-gray-200/40"
                 >
-                                      <CheckCircle2 className="w-3.5 h-3.5 text-[var(--color-primary)]" />
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
                 </motion.div>
               </motion.div>
             </motion.div>
 
             {/* Enhanced Glassmorphism Chat Window */}
-            <div className="relative bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl shadow-[#0F1A2A]/10 overflow-hidden">
+            <div className="relative bg-white/90 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl shadow-purple-500/20 overflow-hidden">
               
               {/* Refined Chat Header */}
-                        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[var(--color-primary)]/8 to-[var(--color-primary-light)]/8 border-b border-white/30 backdrop-blur-sm">
+                        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border-b border-white/30 backdrop-blur-sm">
             <div className="flex items-center gap-3">
               <AIAvatar size="sm" />
               <div>
-                <div className="font-semibold text-[var(--color-dark-900)] text-sm">
+                <div className="font-semibold text-gray-900 text-sm">
                   AI Assistant
                 </div>
-                <div className="text-xs text-[var(--color-primary)] flex items-center gap-1.5">
+                <div className="text-xs text-purple-600 flex items-center gap-1.5">
                   <motion.div 
                     animate={{ scale: [1, 1.3, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full"
+                    className="w-1.5 h-1.5 bg-purple-600 rounded-full"
                   />
                       Online • Avg response: 0.2s
                     </div>
@@ -591,8 +600,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                       
                       <div className={`max-w-xs px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                         message.type === 'ai' 
-                          ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white rounded-bl-sm shadow-lg' 
-                          : 'bg-[var(--color-light-100)] text-[var(--color-dark-900)] rounded-br-sm border border-[var(--color-light-300)]/40 shadow-sm'
+                          ? 'bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 text-white rounded-bl-sm shadow-lg' 
+                          : 'bg-gray-50 text-gray-900 rounded-br-sm border border-gray-200 shadow-sm'
                       }`}>
                         <p>
                           {message.type === 'ai' && index === messages.length - 1 
@@ -609,7 +618,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                       </div>
 
                       {message.type === 'user' && (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#CBD4E1] to-[#9CA3AF] flex items-center justify-center flex-shrink-0 mt-1">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center flex-shrink-0 mt-1">
                           <User className="w-4 h-4 text-white" />
                         </div>
                       )}
@@ -627,7 +636,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                       className="flex gap-3 justify-start"
                     >
                       <AIAvatar size="sm" className="flex-shrink-0 mt-1" />
-                      <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white px-4 py-3 rounded-2xl rounded-bl-sm shadow-lg">
+                      <div className="bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 text-white px-4 py-3 rounded-2xl rounded-bl-sm shadow-lg">
                         <div className="flex gap-1">
                           {[0, 1, 2].map((i) => (
                             <motion.div
@@ -651,13 +660,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
               {/* Chat Input Area */}
               <div className="p-4 border-t border-white/20 bg-white/40 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-white/60 rounded-xl px-4 py-2 text-sm text-[var(--color-dark-900)]/60 border border-white/40">
+                  <div className="flex-1 bg-white/80 rounded-xl px-4 py-2 text-sm text-gray-500 border border-gray-200/50">
                     Type your message...
                   </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] p-2 rounded-xl shadow-lg"
+                    className="bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600 p-2 rounded-xl shadow-lg hover:shadow-purple-500/25 transition-all duration-200"
                   >
                     <Send className="w-4 h-4 text-white" />
                   </motion.button>

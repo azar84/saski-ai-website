@@ -546,7 +546,7 @@ export default function ClientHeader({
               {ctaButtons.map((cta, index) => {
                 return (
                   <motion.div
-                    key={index}
+                    key={`header-cta-${cta.text}-${index}`}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
@@ -880,7 +880,7 @@ export default function ClientHeader({
                     {ctaButtons.map((cta, index) => {
                       return (
                         <motion.div
-                          key={index}
+                          key={`mobile-cta-${cta.text}-${index}`}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
