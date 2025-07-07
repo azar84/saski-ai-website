@@ -43,13 +43,14 @@ import ConfigurablePricingManager from './components/ConfigurablePricingManager'
 import FAQManager from './components/FAQManager';
 import ContactManager from './components/ContactManager';
 import HtmlSectionsManager from './components/HtmlSectionsManager';
+import ScriptSectionManager from './components/ScriptSectionManager';
 import MenuManager from './components/MenuManager';
 import SEOManager from './components/SEOManager';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features-management' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'menu-management' | 'seo-manager' | 'users' | 'analytics' | 'site-settings' | 'cta-manager' | 'design-system';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features-management' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'script-sections' | 'menu-management' | 'seo-manager' | 'users' | 'analytics' | 'site-settings' | 'cta-manager' | 'design-system';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
@@ -65,6 +66,7 @@ const navigation = [
   { id: 'faq-management', name: 'FAQ Management', icon: MessageSquare, color: 'text-cyan-600' },
   { id: 'contact-management', name: 'Forms Management', icon: Mail, color: 'text-blue-600' },
   { id: 'html-sections', name: 'HTML Sections', icon: Grid, color: 'text-purple-600' },
+  { id: 'script-sections', name: 'Script Sections', icon: Zap, color: 'text-orange-600' },
   { id: 'menu-management', name: 'Menu Management', icon: Menu, color: 'text-indigo-600' },
   { id: 'seo-manager', name: 'SEO Manager', icon: Globe, color: 'text-emerald-600' },
   { id: 'testimonials', name: 'Testimonials', icon: Users, color: 'text-indigo-600' },
@@ -112,6 +114,8 @@ export default function AdminPanel() {
         return <ContactManager />;
       case 'html-sections':
         return <HtmlSectionsManager />;
+      case 'script-sections':
+        return <ScriptSectionManager />;
       case 'menu-management':
         return <MenuManager />;
       case 'seo-manager':

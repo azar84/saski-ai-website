@@ -18,6 +18,7 @@ import {
   Send
 } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
+import { ScriptRenderer } from '@/components/sections/ScriptSection';
 
 // Custom CSS for animations
 const customStyles = `
@@ -141,10 +142,30 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [newsletterMessage, setNewsletterMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [footerScripts, setFooterScripts] = useState<any[]>([]);
 
   useEffect(() => {
     fetchSiteSettings();
+    fetchFooterScripts();
   }, []);
+
+  const fetchFooterScripts = async () => {
+    try {
+      const response = await fetch('/api/admin/script-sections');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          // Filter only active scripts for footer placement
+          const footerScripts = result.data.filter((script: any) => 
+            script.isActive && script.placement === 'footer'
+          );
+          setFooterScripts(footerScripts);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching footer scripts:', error);
+    }
+  };
 
   const fetchSiteSettings = async () => {
     try {
@@ -636,6 +657,12 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
             </div>
         </div>
       </div>
+      
+      {/* Footer Scripts */}
+      <ScriptRenderer 
+        scripts={footerScripts}
+        placement="footer"
+      />
     </footer>
     </>
   );

@@ -11,6 +11,7 @@ import PricingSection from './PricingSection';
 import ConfigurablePricingSection from './ConfigurablePricingSection';
 import FormSection from './FormSection';
 import HtmlSection from './HtmlSection';
+import ScriptSection from './ScriptSection';
 
 interface PageSection {
   id: number;
@@ -182,6 +183,18 @@ interface PageSection {
     cssContent?: string;
     jsContent?: string;
     isActive: boolean;
+  };
+  scriptSection?: {
+    id: number;
+    name: string;
+    description?: string;
+    scriptType: string;
+    scriptContent: string;
+    placement: string;
+    isActive: boolean;
+    loadAsync: boolean;
+    loadDefer: boolean;
+    priority: number;
   };
 }
 
@@ -572,6 +585,20 @@ async function fetchFAQData(sectionCategories: number[] = []) {
   }
 }
 
+// Add server-side script data fetching
+// async function fetchScriptData(scriptSectionId: number) {
+//   try {
+//     const scriptSection = await prisma.scriptSection.findUnique({
+//       where: { id: scriptSectionId }
+//     });
+
+//     return scriptSection;
+//   } catch (error) {
+//     console.error('Error fetching script data:', error);
+//     return null;
+//   }
+// }
+
 const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = async ({ 
   pageSlug, 
   className = '' 
@@ -582,7 +609,7 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
 
   const generateSectionId = (section: PageSection, index: number) => {
     const sectionType = section.sectionType.toLowerCase();
-    const sectionName = section.title || section.heroSection?.name || section.featureGroup?.name || section.mediaSection?.headline || section.pricingSection?.name || section.faqSection?.name || section.form?.name || section.htmlSection?.name || 'section';
+    const sectionName = section.title || section.heroSection?.name || section.featureGroup?.name || section.mediaSection?.headline || section.pricingSection?.name || section.faqSection?.name || section.form?.name || section.htmlSection?.name || section.scriptSection?.name || 'section';
     const cleanName = sectionName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
     return `${sectionType}-${cleanName}-${index}`;
   };
@@ -753,6 +780,18 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
           );
         }
         break;
+
+             case 'script':
+         if (section.scriptSection) {
+           return wrapWithSectionDiv(
+             <ScriptSection 
+               key={section.id} 
+               scriptData={section.scriptSection}
+               placement={section.scriptSection.placement}
+             />
+           );
+         }
+         break;
 
       default:
         return wrapWithSectionDiv(

@@ -509,6 +509,7 @@ model PageSection {
   contactSectionId Int?
   formId           Int?
   htmlSectionId    Int?
+  scriptSectionId  Int?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   contactSection   ContactSection? @relation(fields: [contactSectionId], references: [id])
@@ -521,6 +522,7 @@ model PageSection {
   mediaSection     MediaSection?   @relation(fields: [mediaSectionId], references: [id])
   page             Page            @relation(fields: [pageId], references: [id], onDelete: Cascade)
   pricingSection   PricingSection? @relation(fields: [pricingSectionId], references: [id])
+  scriptSection    ScriptSection?  @relation(fields: [scriptSectionId], references: [id])
 
   @@map("page_sections")
 }
@@ -1084,4 +1086,22 @@ model PageHtmlSection {
 
   @@unique([pageId, htmlSectionId])
   @@map("page_html_sections")
+}
+
+model ScriptSection {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  description  String?
+  scriptType   String        @default("javascript") // javascript, google-analytics, google-tag-manager, custom
+  scriptContent String       // The actual script content
+  placement    String        @default("footer") // header, footer, body-start, body-end
+  isActive     Boolean       @default(true)
+  loadAsync    Boolean       @default(false)
+  loadDefer    Boolean       @default(false)
+  priority     Int           @default(0) // Lower numbers load first
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  pageSections PageSection[]
+
+  @@map("script_sections")
 }
