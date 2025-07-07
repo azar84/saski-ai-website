@@ -23,8 +23,10 @@ import {
   Link,
   Hash,
   BarChart3,
-  Upload
+  Upload,
+  Info
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Page {
   id: number;
@@ -85,6 +87,18 @@ interface SEOAuditResult {
   };
 }
 
+interface RobotsEntry {
+  userAgent: string;
+  rules: string[];
+}
+
+interface SitemapSubmissionResult {
+  success: boolean;
+  message: string;
+  submittedUrls?: string[];
+  errors?: string[];
+}
+
 export default function SEOManager() {
   const [activeTab, setActiveTab] = useState<'sitemap' | 'robots' | 'audit' | 'settings'>('sitemap');
   const [pages, setPages] = useState<Page[]>([]);
@@ -113,6 +127,9 @@ export default function SEOManager() {
   const [serviceAccountStatus, setServiceAccountStatus] = useState<'none' | 'valid' | 'error' | 'uploading'>('none');
   const [serviceAccountInfo, setServiceAccountInfo] = useState<any>(null);
   const [serviceAccountError, setServiceAccountError] = useState<string | null>(null);
+
+  // Sitemap submission state
+  const [submissionResults, setSubmissionResults] = useState<SitemapSubmissionResult | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -259,15 +276,15 @@ Allow: /uploads/media/`;
   };
 
   const generateSitemap = async () => {
+    setGenerating(true);
+    setMessage(null);
+    
     try {
-      setGenerating(true);
-      setMessage(null);
-
       const response = await fetch('/api/admin/seo/generate-sitemap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
+        }
       });
 
       const result = await response.json();
@@ -280,8 +297,8 @@ Allow: /uploads/media/`;
         setMessage({ type: 'error', text: result.message || 'Failed to generate sitemap' });
       }
     } catch (error) {
-      console.error('Failed to generate sitemap:', error);
-      setMessage({ type: 'error', text: 'Failed to generate sitemap' });
+      console.error('Error generating sitemap:', error);
+      setMessage({ type: 'error', text: 'Failed to generate sitemap. Please try again.' });
     } finally {
       setGenerating(false);
     }
@@ -501,6 +518,246 @@ Allow: /uploads/media/`;
     );
   }
 
+  const renderSitemapTab = () => (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Sitemap Management</h2>
+          <p className="text-gray-600 mt-1">Generate and manage XML sitemaps for search engines</p>
+        </div>
+        
+        <div className="flex items-center space-x-3">
+          <Button
+            onClick={generateSitemap}
+            disabled={generating}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            {generating ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Generate Sitemap
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={() => window.open('/sitemap.xml', '_blank')}
+            variant="outline"
+            className="border-blue-200 text-blue-600 hover:bg-blue-50"
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            View Sitemap
+          </Button>
+          <Button
+            onClick={submitSitemapToSearchEngines}
+            disabled={submitting}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            {submitting ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <Globe className="w-4 h-4 mr-2" />
+                Submit to Search Engines
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Message Display */}
+      <AnimatePresence>
+        {message && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`p-4 rounded-lg flex items-center space-x-3 ${
+              message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
+              message.type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
+              'bg-blue-50 text-blue-800 border border-blue-200'
+            }`}
+          >
+            {message.type === 'success' && <CheckCircle className="w-5 h-5" />}
+            {message.type === 'error' && <XCircle className="w-5 h-5" />}
+            {message.type === 'info' && <Info className="w-5 h-5" />}
+            <span>{message.text}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Submission Results */}
+      <AnimatePresence>
+        {submissionResults && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`p-4 rounded-lg border ${
+              submissionResults.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+            }`}
+          >
+            <div className="flex items-center space-x-3 mb-2">
+              {submissionResults.success ? (
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              ) : (
+                <XCircle className="w-5 h-5 text-red-600" />
+              )}
+              <span className={submissionResults.success ? 'text-green-800' : 'text-red-800'}>
+                {submissionResults.message}
+              </span>
+            </div>
+            {submissionResults.submittedUrls && submissionResults.submittedUrls.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-green-700 font-medium">Successfully submitted:</p>
+                <ul className="text-sm text-green-600 mt-1">
+                  {submissionResults.submittedUrls.map((url, index) => (
+                    <li key={index}>• {url}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {submissionResults.errors && submissionResults.errors.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-red-700 font-medium">Errors:</p>
+                <ul className="text-sm text-red-600 mt-1">
+                  {submissionResults.errors.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="p-6">
+          <div className="flex items-center">
+            <FileText className="w-8 h-8 text-blue-600 mr-3" />
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">
+                {pages.length}
+              </p>
+              <p className="text-sm text-gray-600">
+                Total Pages
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center">
+            <Globe className="w-8 h-8 text-green-600 mr-3" />
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">XML</p>
+              <p className="text-sm text-gray-600">Sitemap Format</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center">
+            <Calendar className="w-8 h-8 text-purple-600 mr-3" />
+            <div>
+              <p className="text-2xl font-semibold text-gray-900">
+                Active
+              </p>
+              <p className="text-sm text-gray-600">Sitemap Status</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* FAQ Pages Info */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Search Engine Optimization</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">Sitemap Benefits</h4>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• Helps search engines discover your pages</li>
+              <li>• Improves indexing of new content</li>
+              <li>• Provides metadata about page importance</li>
+              <li>• Supports better SEO rankings</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">Automatic Updates</h4>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• Generated from live database content</li>
+              <li>• Includes all active pages and FAQ content</li>
+              <li>• Updates automatically when content changes</li>
+              <li>• Optimized for search engine crawlers</li>
+            </ul>
+          </div>
+        </div>
+      </Card>
+
+      {/* Sitemap Entries List */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Pages in Sitemap
+        </h3>
+        <div className="space-y-4">
+          {pages.map((page) => (
+            <div key={page.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex-1">
+                <div className="flex items-center space-x-3">
+                  <h4 className="font-medium text-gray-900">{page.title}</h4>
+                  <span className="text-sm text-gray-500">/{page.slug}</span>
+                </div>
+                <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                  <span>Priority: {page.slug === 'home' ? '1.0' : '0.8'}</span>
+                  <span>Change Frequency: {page.slug === 'home' ? 'daily' : 'weekly'}</span>
+                  <span>Last Modified: {new Date(page.updatedAt).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center space-x-2 mt-2">
+                  {page.showInHeader && (
+                    <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                      In Header
+                    </span>
+                  )}
+                  {page.showInFooter && (
+                    <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
+                      In Footer
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  onClick={() => window.open(`/${page.slug}`, '_blank')}
+                  variant="outline"
+                  size="sm"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {pages.length === 0 && (
+          <div className="text-center py-8">
+            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No pages found</h3>
+            <p className="text-gray-500">Create some pages to see them in the sitemap.</p>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -509,22 +766,6 @@ Allow: /uploads/media/`;
           Manage your website's SEO settings, generate sitemaps, and audit page performance.
         </p>
       </div>
-
-      {/* Message Display */}
-      {message && (
-        <div className={`mb-6 p-4 rounded-lg ${
-          message.type === 'success' ? 'bg-green-50 text-green-800' :
-          message.type === 'error' ? 'bg-red-50 text-red-800' :
-          'bg-blue-50 text-blue-800'
-        }`}>
-          <div className="flex items-center">
-            {message.type === 'success' && <CheckCircle className="w-5 h-5 mr-2" />}
-            {message.type === 'error' && <XCircle className="w-5 h-5 mr-2" />}
-            {message.type === 'info' && <AlertTriangle className="w-5 h-5 mr-2" />}
-            {message.text}
-          </div>
-        </div>
-      )}
 
       {/* Tabs */}
       <div className="flex space-x-1 mb-8 bg-gray-100 p-1 rounded-lg">
@@ -550,348 +791,7 @@ Allow: /uploads/media/`;
       </div>
 
       {/* Sitemap Tab */}
-      {activeTab === 'sitemap' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-900">XML Sitemap</h2>
-              <p className="text-gray-600 mt-1">Generate and manage your website's sitemap.</p>
-            </div>
-            <div className="flex space-x-3">
-              <Button
-                onClick={generateSitemap}
-                disabled={generating}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {generating ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4 mr-2" />
-                    Generate Sitemap
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={() => window.open('/sitemap.xml', '_blank')}
-                variant="outline"
-                className="border-blue-200 text-blue-600 hover:bg-blue-50"
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Preview Sitemap
-              </Button>
-              {sitemapContent && (
-                <>
-                  <Button
-                    onClick={downloadSitemap}
-                    variant="outline"
-                    className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </Button>
-                  <Button
-                    onClick={submitSitemapToSearchEngines}
-                    disabled={submitting}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    {submitting ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Globe className="w-4 h-4 mr-2" />
-                        Submit to Search Engines
-                      </>
-                    )}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Google Search Console API Setup */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Google Search Console API</h3>
-                <p className="text-gray-600 mt-1">Set up programmatic sitemap submission to Google Search Console.</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-green-600 font-medium">Service Account Ready</span>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-medium text-green-900 mb-2">✅ Service Account Setup Complete</h4>
-                <div className="text-sm text-green-800 space-y-2">
-                  <p><strong>Project ID:</strong> cms-seo-465116</p>
-                  <p><strong>Service Account:</strong> sitemap-submitter@cms-seo-465116.iam.gserviceaccount.com</p>
-                  <p><strong>Status:</strong> Ready for sitemap submission</p>
-                </div>
-              </div>
-
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Next Steps:</h4>
-                <ol className="text-sm text-blue-800 space-y-1">
-                  <li>1. Go to <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Google Search Console</a></li>
-                  <li>2. Select your property (saskiai.com)</li>
-                  <li>3. Go to Settings → Users and permissions</li>
-                  <li>4. Add user: <code className="bg-blue-100 px-1 rounded">sitemap-submitter@cms-seo-465116.iam.gserviceaccount.com</code></li>
-                  <li>5. Grant "Full" permissions</li>
-                  <li>6. Your sitemap will be submitted automatically!</li>
-                </ol>
-              </div>
-              
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Current Status:</h4>
-                <p className="text-sm text-gray-600">
-                  Google Search Console API is ready for setup. Once configured, sitemap submission will be fully automated.
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          {/* Sitemap Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="p-4">
-              <div className="flex items-center">
-                <FileText className="w-8 h-8 text-blue-600 mr-3" />
-                <div>
-                  <p className="text-2xl font-semibold text-gray-900">{pages.length}</p>
-                  <p className="text-sm text-gray-600">Total Pages</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4">
-              <div className="flex items-center">
-                <Globe className="w-8 h-8 text-green-600 mr-3" />
-                <div>
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {pages.filter(p => p.showInHeader || p.showInFooter).length}
-                  </p>
-                  <p className="text-sm text-gray-600">Indexed Pages</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4">
-              <div className="flex items-center">
-                <Calendar className="w-8 h-8 text-purple-600 mr-3" />
-                <div>
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {sitemapContent ? new Date().toLocaleDateString() : 'Never'}
-                  </p>
-                  <p className="text-sm text-gray-600">Last Generated</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4">
-              <div className="flex items-center">
-                <ExternalLink className="w-8 h-8 text-orange-600 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900 break-all">
-                    {siteSettings.baseUrl || 'Not Set'}
-                  </p>
-                  <p className="text-sm text-gray-600">Base URL</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Pages List */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Pages in Sitemap</h3>
-            <div className="space-y-4">
-              {pages.map((page) => (
-                <div key={page.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <h4 className="font-medium text-gray-900">{page.title}</h4>
-                      <span className="text-sm text-gray-500">/{page.slug === 'home' ? '' : page.slug}</span>
-                    </div>
-                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-                      <span>Priority: {page.slug === 'home' ? '1.0' : '0.8'}</span>
-                      <span>Updated: {new Date(page.updatedAt).toLocaleDateString()}</span>
-                      {page.metaTitle && (
-                        <span className="flex items-center">
-                          <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                          Meta Title
-                        </span>
-                      )}
-                      {page.metaDesc && (
-                        <span className="flex items-center">
-                          <CheckCircle className="w-4 h-4 text-green-500 mr-1" />
-                          Meta Description
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      onClick={() => window.open(`/${page.slug === 'home' ? '' : page.slug}`, '_blank')}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* Submission Logs */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Sitemap Submission Logs</h3>
-                <p className="text-gray-600 mt-1">Track the status of your sitemap submissions to search engines.</p>
-              </div>
-              <Button
-                onClick={fetchSubmissionLogs}
-                disabled={logsLoading}
-                variant="outline"
-                className="border-blue-200 text-blue-600 hover:bg-blue-50"
-              >
-                {logsLoading ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh Logs
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Submission Stats */}
-            {submissionStats.total > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-2xl font-semibold text-blue-900">{submissionStats.total}</p>
-                  <p className="text-sm text-blue-700">Total Submissions</p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <p className="text-2xl font-semibold text-green-900">{submissionStats.successful}</p>
-                  <p className="text-sm text-green-700">Successful</p>
-                </div>
-                <div className="bg-red-50 p-4 rounded-lg">
-                  <p className="text-2xl font-semibold text-red-900">{submissionStats.failed}</p>
-                  <p className="text-sm text-red-700">Failed</p>
-                </div>
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <p className="text-2xl font-semibold text-yellow-900">{submissionStats.successRate.toFixed(1)}%</p>
-                  <p className="text-sm text-yellow-700">Success Rate</p>
-                </div>
-              </div>
-            )}
-
-            {/* Submission Logs Table */}
-            {submissionLogs.length > 0 ? (
-              <div className="space-y-4">
-                {submissionLogs.map((log) => (
-                  <div key={log.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                            log.status === 'success' 
-                              ? 'bg-green-100 text-green-800' 
-                              : log.status === 'error'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {log.status}
-                          </span>
-                          <span className="text-sm text-gray-500 font-mono">
-                            {log.searchEngine}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Last Submitted:</span> {new Date(log.submittedAt).toLocaleString()}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Sitemap URL:</span>{' '}
-                            <a 
-                              href={log.sitemapUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 underline"
-                            >
-                              {log.sitemapUrl}
-                            </a>
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-gray-500 font-mono">ID: {log.id}</p>
-                        {log.statusCode && (
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${
-                            log.statusCode >= 200 && log.statusCode < 300
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {log.statusCode}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Warnings */}
-                    {log.warnings && log.warnings.length > 0 && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-3">
-                        <h4 className="text-sm font-medium text-yellow-800 mb-2">⚠️ Warnings:</h4>
-                        <ul className="text-sm text-yellow-700 space-y-1">
-                          {log.warnings.map((warning: string, index: number) => (
-                            <li key={index} className="flex items-start">
-                              <span className="mr-2">•</span>
-                              <span>{warning}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* Error Message */}
-                    {log.errorMessage && (
-                      <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                        <h4 className="text-sm font-medium text-red-800 mb-1">❌ Error:</h4>
-                        <p className="text-sm text-red-700">{log.errorMessage}</p>
-                      </div>
-                    )}
-
-                    {/* Success Details */}
-                    {log.status === 'success' && !log.warnings?.length && (
-                      <div className="bg-green-50 border border-green-200 rounded-md p-3">
-                        <p className="text-sm text-green-700">
-                          ✅ Sitemap submitted successfully to {log.searchEngine}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No submission logs yet. Submit your sitemap to see logs here.</p>
-              </div>
-            )}
-          </Card>
-
-        </div>
-      )}
+      {activeTab === 'sitemap' && renderSitemapTab()}
 
       {/* Robots.txt Tab */}
       {activeTab === 'robots' && (

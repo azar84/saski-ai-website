@@ -102,10 +102,7 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    // TODO: Add FAQ URLs only when actual FAQ routes exist
-    // Currently FAQ URLs are commented out as they return 404 (no /faq routes exist)
-    
-    /*
+    // Add FAQ URLs (FAQ routes exist and work)
     // Add main FAQ page if there are any categories
     if (faqCategories.length > 0) {
       const latestFaqUpdate = Math.max(
@@ -119,32 +116,62 @@ export async function POST(request: NextRequest) {
         changeFrequency: 'weekly',
         priority: 0.8
       });
-    }
 
-    // Add FAQ category pages and individual FAQ pages
-    faqCategories.forEach(category => {
-      const categorySlug = createSlug(category.name);
-      
-      // Add category page
-      sitemapEntries.push({
-        url: `${baseUrl}/faq/${categorySlug}`,
-        lastModified: new Date(category.updatedAt).toISOString(),
-        changeFrequency: 'weekly',
-        priority: 0.7
-      });
-
-      // Add individual FAQ pages
-      category.faqs.forEach(faq => {
-        const faqSlug = createSlug(faq.question);
+      // Add FAQ category pages and individual FAQ pages
+      faqCategories.forEach(category => {
+        const categorySlug = createSlug(category.name);
+        
+        // Add category page
         sitemapEntries.push({
-          url: `${baseUrl}/faq/${categorySlug}/${faqSlug}`,
-          lastModified: new Date(faq.updatedAt).toISOString(),
-          changeFrequency: 'monthly',
-          priority: 0.5
+          url: `${baseUrl}/faq/${categorySlug}`,
+          lastModified: new Date(category.updatedAt).toISOString(),
+          changeFrequency: 'weekly',
+          priority: 0.7
+        });
+
+        // Add individual FAQ pages
+        category.faqs.forEach(faq => {
+          const faqSlug = createSlug(faq.question);
+          sitemapEntries.push({
+            url: `${baseUrl}/faq/${categorySlug}/${faqSlug}`,
+            lastModified: new Date(faq.updatedAt).toISOString(),
+            changeFrequency: 'monthly',
+            priority: 0.5
+          });
         });
       });
+    }
+
+    // Add images from media library
+    const images = await prisma.mediaLibrary.findMany({
+      select: {
+        id: true,
+        filename: true,
+        publicUrl: true,
+        updatedAt: true,
+        isActive: true,
+        isPublic: true,
+        fileType: true,
+      },
+      where: {
+        isActive: true,
+        isPublic: true,
+        fileType: 'image'
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
     });
-    */
+
+    // Add image URLs to sitemap
+    images.forEach(image => {
+      sitemapEntries.push({
+        url: image.publicUrl,
+        lastModified: new Date(image.updatedAt).toISOString(),
+        changeFrequency: 'monthly',
+        priority: 0.3
+      });
+    });
 
     // Generate XML sitemap content
     const xmlContent = generateSitemapXML(sitemapEntries);
@@ -155,14 +182,20 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Sitemap generated successfully (FAQ URLs excluded - no FAQ routes exist)',
+      message: `Sitemap generated successfully with ${sitemapEntries.length} URLs`,
       sitemap: xmlContent,
       entries: sitemapEntries,
       totalPages: pages.length,
       totalFaqCategories: faqCategories.length,
       totalFaqs: faqCategories.reduce((sum, cat) => sum + cat.faqs.length, 0),
+      totalImages: images.length,
       totalEntries: sitemapEntries.length,
-      note: 'FAQ URLs are excluded from sitemap as FAQ routes (/faq) are not implemented',
+      breakdown: {
+        pages: pages.length,
+        faqCategories: faqCategories.length,
+        faqQuestions: faqCategories.reduce((sum, cat) => sum + cat.faqs.length, 0),
+        images: images.length
+      },
       generatedAt: new Date().toISOString()
     });
 
@@ -218,8 +251,10 @@ function generateSitemapXML(entries: SitemapEntry[]): string {
   Generated on: ${new Date().toISOString()}
   Total URLs: ${totalEntries}
   
-  This sitemap contains all publicly accessible pages from our database.
-  Note: FAQ URLs are excluded as FAQ routes are not implemented.
+  This sitemap contains:
+  - Website pages
+  - FAQ categories and questions
+  - Public images from media library
   
   For more information about XML sitemaps, visit:
   https://www.sitemaps.org/protocol.html

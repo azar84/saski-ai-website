@@ -171,13 +171,6 @@ export async function GET(request: Request) {
     const userAgent = request.headers.get('user-agent') || '';
     const acceptHeader = request.headers.get('accept') || '';
     
-    // Log user agent for debugging
-    console.log('🔍 Sitemap.xml request:', {
-      userAgent,
-      acceptHeader,
-      url: request.url
-    });
-    
     // Simplified logic: Only serve HTML if it's clearly a browser request
     // Default to XML for all other requests (APIs, crawlers, etc.)
     const isBrowserRequest = userAgent.includes('Mozilla') && 
@@ -188,11 +181,6 @@ export async function GET(request: Request) {
                            !userAgent.includes('spider') &&
                            !userAgent.includes('Google-') &&
                            !userAgent.includes('APIs-Google');
-
-    console.log('🔍 Request classification:', {
-      isBrowserRequest,
-      willServeXML: !isBrowserRequest
-    });
 
     // Generate sitemap index content
     const sitemapContent = await generateSitemapIndex();
@@ -242,81 +230,29 @@ export async function GET(request: Request) {
 }
 
 async function generateSitemapIndex(): Promise<string> {
-  // Get site settings for base URL
   const siteSettings = await prisma.siteSettings.findFirst();
   const baseUrl = siteSettings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
-  // Get stats for each sitemap type
-  const [pages, faqCategories, faqs, images] = await Promise.all([
-    prisma.page.findFirst({
-      select: { updatedAt: true },
-      orderBy: { updatedAt: 'desc' }
-    }),
-    prisma.fAQCategory.findFirst({
-      where: { isActive: true },
-      select: { updatedAt: true },
-      orderBy: { updatedAt: 'desc' }
-    }),
-    prisma.fAQ.findFirst({
-      where: { isActive: true },
-      select: { updatedAt: true },
-      orderBy: { updatedAt: 'desc' }
-    }),
-    prisma.mediaLibrary.findFirst({
-      where: { isActive: true, isPublic: true, fileType: 'image' },
-      select: { updatedAt: true },
-      orderBy: { updatedAt: 'desc' }
-    })
-  ]);
-
-  // Calculate last modification times
+  
   const now = new Date().toISOString();
-  const pagesLastMod = pages?.updatedAt ? new Date(pages.updatedAt).toISOString() : now;
-  const faqCategoriesLastMod = faqCategories?.updatedAt ? new Date(faqCategories.updatedAt).toISOString() : now;
-  const faqQuestionsLastMod = faqs?.updatedAt ? new Date(faqs.updatedAt).toISOString() : now;
-  const imagesLastMod = images?.updatedAt ? new Date(images.updatedAt).toISOString() : now;
-
+  
   return `<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
-<!--
-  Sitemap Index for Saski AI Website
-  Generated dynamically on: ${new Date().toISOString()}
-  
-  This index references all individual sitemaps organized by content type:
-  - Pages Sitemap: Website pages
-  - FAQ Categories Sitemap: FAQ category pages only
-  - FAQ Questions Sitemap: Individual FAQ question pages
-  - Images Sitemap: All images (logos, media library, graphics)
-  
-  For more information about XML sitemaps, visit:
-  https://www.sitemaps.org/protocol.html
--->
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  
-  <!-- Website Pages -->
   <sitemap>
-    <loc>${baseUrl}/sitemap-pages.xml</loc>
-    <lastmod>${pagesLastMod}</lastmod>
+    <loc>${escapeXML(baseUrl)}/sitemap-pages.xml</loc>
+    <lastmod>${now}</lastmod>
   </sitemap>
-  
-  <!-- FAQ Categories Only -->
   <sitemap>
-    <loc>${baseUrl}/sitemap-faq-categories.xml</loc>
-    <lastmod>${faqCategoriesLastMod}</lastmod>
+    <loc>${escapeXML(baseUrl)}/sitemap-faq-categories.xml</loc>
+    <lastmod>${now}</lastmod>
   </sitemap>
-  
-  <!-- Individual FAQ Questions -->
   <sitemap>
-    <loc>${baseUrl}/sitemap-faq-questions.xml</loc>
-    <lastmod>${faqQuestionsLastMod}</lastmod>
+    <loc>${escapeXML(baseUrl)}/sitemap-faq-questions.xml</loc>
+    <lastmod>${now}</lastmod>
   </sitemap>
-  
-  <!-- Images -->
   <sitemap>
-    <loc>${baseUrl}/sitemap-images.xml</loc>
-    <lastmod>${imagesLastMod}</lastmod>
+    <loc>${escapeXML(baseUrl)}/sitemap-images.xml</loc>
+    <lastmod>${now}</lastmod>
   </sitemap>
-
 </sitemapindex>`;
 }
 

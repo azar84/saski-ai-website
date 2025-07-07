@@ -1,243 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-export async function GET(request: Request) {
-  try {
-    const userAgent = request.headers.get('user-agent') || '';
-    const acceptHeader = request.headers.get('accept') || '';
-    
-    // Simplified logic: Only serve HTML if it's clearly a browser request
-    // Default to XML for all other requests (APIs, crawlers, etc.)
-    const isBrowserRequest = userAgent.includes('Mozilla') && 
-                           userAgent.includes('Chrome') && 
-                           acceptHeader.includes('text/html') &&
-                           !userAgent.includes('bot') &&
-                           !userAgent.includes('crawler') &&
-                           !userAgent.includes('spider') &&
-                           !userAgent.includes('Google-') &&
-                           !userAgent.includes('APIs-Google');
-
-    // Generate FAQ questions sitemap content
-    const sitemapContent = await generateFaqQuestionsSitemap();
-
-    // For browser requests, serve as HTML
-    if (isBrowserRequest) {
-      const htmlContent = await transformFaqQuestionsToHTML(sitemapContent);
-      return new NextResponse(htmlContent, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400'
-        }
-      });
-    }
-
-    // For search engines, serve as XML
-    return new NextResponse(sitemapContent, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400'
-      }
-    });
-
-  } catch (error) {
-    console.error('Error serving FAQ questions sitemap:', error);
-    
-    // Return empty sitemap in case of error
-    const errorSitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- No FAQ questions available -->
-</urlset>`;
-
-    return new NextResponse(errorSitemap, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=300'
-      }
-    });
-  }
-}
-
-async function generateFaqQuestionsSitemap(): Promise<string> {
-  // Fetch all active FAQs with their categories
-  const faqs = await prisma.fAQ.findMany({
-    select: {
-      id: true,
-      question: true,
-      answer: true,
-      updatedAt: true,
-      isActive: true,
-      category: {
-        select: {
-          id: true,
-          name: true,
-          isActive: true
-        }
-      }
-    },
-    where: { 
-      isActive: true,
-      category: {
-        isActive: true
-      }
-    },
-    orderBy: [
-      { category: { sortOrder: 'asc' } },
-      { sortOrder: 'asc' }
-    ]
-  });
-
-  // Get site settings for base URL
-  const siteSettings = await prisma.siteSettings.findFirst();
-  const baseUrl = siteSettings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
-  // Helper function to create URL-friendly slugs
-  const createSlug = (text: string): string => {
-    return text
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-')     // Replace spaces with hyphens
-      .replace(/-+/g, '-')      // Replace multiple hyphens with single
-      .trim()
-      .substring(0, 100);       // Limit length
-  };
-
-  // Generate FAQ question entries
-  const faqEntries = faqs.map((faq) => {
-    const categorySlug = faq.category ? createSlug(faq.category.name) : 'uncategorized';
-    const questionSlug = createSlug(faq.question);
-    const url = `${baseUrl}/faq/${categorySlug}/${questionSlug}`;
-    
-    return {
-      url,
-      lastModified: new Date(faq.updatedAt).toISOString(),
-      changeFreq: 'monthly',
-      priority: 0.5,
-      title: faq.question,
-      category: faq.category?.name || 'Uncategorized',
-      answerLength: faq.answer.length
-    };
-  });
-
-  // Generate XML sitemap
-  const urls = faqEntries.map((entry) => {
-    return `  <!-- ${entry.category}: ${entry.title.substring(0, 60)}${entry.title.length > 60 ? '...' : ''} -->
-  <url>
-    <loc>${escapeXML(entry.url)}</loc>
-    <lastmod>${entry.lastModified}</lastmod>
-    <changefreq>${entry.changeFreq}</changefreq>
-    <priority>${entry.priority.toFixed(1)}</priority>
-  </url>`;
-  }).join('\n\n');
-
-  const lastUpdate = faqEntries.length > 0 ? 
-    new Date(Math.max(...faqEntries.map(entry => new Date(entry.lastModified).getTime()))).toISOString() : 
-    'N/A';
-
-  // Group FAQs by category for stats
-  const categoryStats = faqEntries.reduce((acc, faq) => {
-    acc[faq.category] = (acc[faq.category] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
-<!--
-  FAQ Questions Sitemap for Saski AI Website
-  Generated dynamically on: ${new Date().toISOString()}
-  Total URLs: ${faqEntries.length}
-  
-  This sitemap contains individual FAQ question pages.
-  Distribution by category:
-${Object.entries(categoryStats).map(([cat, count]) => `  - ${cat}: ${count} FAQ${count !== 1 ? 's' : ''}`).join('\n')}
-  
-  Last database update: ${lastUpdate}
--->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-                           http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-
-${urls}
-
-</urlset>`;
-}
-
-async function transformFaqQuestionsToHTML(xmlContent: string): Promise<string> {
-  // Get FAQs for HTML display
-  const faqs = await prisma.fAQ.findMany({
-    select: {
-      id: true,
-      question: true,
-      answer: true,
-      updatedAt: true,
-      isActive: true,
-      category: {
-        select: {
-          id: true,
-          name: true,
-          isActive: true
-        }
-      }
-    },
-    where: { 
-      isActive: true,
-      category: {
-        isActive: true
-      }
-    },
-    orderBy: [
-      { category: { sortOrder: 'asc' } },
-      { sortOrder: 'asc' }
-    ]
-  });
-
-  const siteSettings = await prisma.siteSettings.findFirst();
-  const baseUrl = siteSettings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
-  // Helper function to create URL-friendly slugs
-  const createSlug = (text: string): string => {
-    return text
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
-      .substring(0, 100);
-  };
-
-  const urlRows = faqs.map(faq => {
-    const categorySlug = faq.category ? createSlug(faq.category.name) : 'uncategorized';
-    const questionSlug = createSlug(faq.question);
-    const url = `${baseUrl}/faq/${categorySlug}/${questionSlug}`;
-    const lastmod = new Date(faq.updatedAt).toISOString().split('T')[0] + ' ' + 
-                   new Date(faq.updatedAt).toISOString().split('T')[1].substring(0, 8) + ' +00:00';
-    
-    return `
-      <tr>
-        <td class="url">
-          <a href="${url}">${url}</a>
-        </td>
-        <td class="question">${faq.question}</td>
-        <td class="category">${faq.category?.name || 'Uncategorized'}</td>
-        <td class="length">${faq.answer.length} chars</td>
-        <td class="lastmod">${lastmod}</td>
-      </tr>`;
-  }).join('');
-
-  // Group FAQs by category for stats
-  const categoryStats = faqs.reduce((acc, faq) => {
-    const categoryName = faq.category?.name || 'Uncategorized';
-    acc[categoryName] = (acc[categoryName] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+async function transformSitemapToHTML(faqs: any[], baseUrl: string): Promise<string> {
+  const now = new Date().toISOString().split('T')[0] + ' ' + 
+             new Date().toISOString().split('T')[1].substring(0, 8) + ' +00:00';
 
   return `<!DOCTYPE html>
 <html>
 <head>
-  <title>FAQ Questions Sitemap</title>
+  <title>XML Sitemap - FAQ Questions</title>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
@@ -270,10 +41,6 @@ async function transformFaqQuestionsToHTML(xmlContent: string): Promise<string> 
       margin: 0 0 10px 0;
       color: #333;
     }
-    .stats ul {
-      margin: 0;
-      padding: 0 0 0 20px;
-    }
     a {
       color: #1e8cbe;
       text-decoration: none;
@@ -300,64 +67,185 @@ async function transformFaqQuestionsToHTML(xmlContent: string): Promise<string> 
     }
     .url {
       word-break: break-all;
-      max-width: 200px;
-      font-size: 11px;
     }
-    .question {
-      font-weight: 500;
-      max-width: 250px;
-    }
-    .category {
-      background-color: #e3f2fd;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 11px;
-      white-space: nowrap;
-    }
-    .length {
+    .priority {
       text-align: center;
-      font-size: 11px;
-      color: #666;
+      font-weight: bold;
+      color: #6c757d;
     }
     .lastmod {
       white-space: nowrap;
-      font-size: 11px;
+    }
+    .question-text {
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
-  <h1>FAQ Questions Sitemap</h1>
+  <h1>XML Sitemap - FAQ Questions</h1>
   
   <div class="description">
-    <p>Generated by <strong>Saski AI</strong>, this sitemap contains individual FAQ question pages.</p>
+    <p>This sitemap contains individual FAQ question pages.</p>
     <p>You can find more information about XML sitemaps on <a href="https://sitemaps.org" target="_blank">sitemaps.org</a>.</p>
-    <p>This sitemap contains ${faqs.length} individual FAQ question(s).</p>
+    <p><a href="${baseUrl}/sitemap.xml">← Back to Sitemap Index</a></p>
   </div>
 
   <div class="stats">
-    <h3>Distribution by Category:</h3>
-    <ul>
-      ${Object.entries(categoryStats).map(([cat, count]) => 
-        `<li><strong>${cat}:</strong> ${count} FAQ${count !== 1 ? 's' : ''}</li>`
-      ).join('')}
-    </ul>
+    <h3>FAQ Questions Overview:</h3>
+    <p>This sitemap contains <strong>${faqs.length}</strong> FAQ question${faqs.length !== 1 ? 's' : ''}, last updated on <strong>${now}</strong>.</p>
   </div>
   
   <table>
     <thead>
       <tr>
-        <th>URL</th>
+        <th>Question URL</th>
         <th>Question</th>
-        <th>Category</th>
-        <th>Answer Length</th>
+        <th>Priority</th>
+        <th>Change Frequency</th>
         <th>Last Modified</th>
       </tr>
     </thead>
-    <tbody>${urlRows}
+    <tbody>
+      ${faqs.map(faq => {
+        if (faq.category) {
+          const categorySlug = faq.category.name.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+          const questionSlug = faq.question.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim().substring(0, 100);
+          const questionUrl = `${baseUrl}/faq/${categorySlug}/${questionSlug}`;
+          const lastmod = faq.updatedAt ? new Date(faq.updatedAt).toISOString().split('T')[0] + ' ' + 
+                         new Date(faq.updatedAt).toISOString().split('T')[1].substring(0, 8) + ' +00:00' : now;
+          
+          return `
+          <tr>
+            <td class="url">
+              <a href="${questionUrl}" target="_blank">${questionUrl}</a>
+            </td>
+            <td class="question-text" title="${faq.question}">${faq.question}</td>
+            <td class="priority">0.6</td>
+            <td>monthly</td>
+            <td class="lastmod">${lastmod}</td>
+          </tr>`;
+        }
+        return '';
+      }).join('')}
     </tbody>
   </table>
 </body>
 </html>`;
+}
+
+export async function GET(request: Request) {
+  try {
+    const userAgent = request.headers.get('user-agent') || '';
+    const acceptHeader = request.headers.get('accept') || '';
+    
+    // Simplified logic: Only serve HTML if it's clearly a browser request
+    // Default to XML for all other requests (APIs, crawlers, etc.)
+    const isBrowserRequest = userAgent.includes('Mozilla') && 
+                           userAgent.includes('Chrome') && 
+                           acceptHeader.includes('text/html') &&
+                           !userAgent.includes('bot') &&
+                           !userAgent.includes('crawler') &&
+                           !userAgent.includes('spider') &&
+                           !userAgent.includes('Google-') &&
+                           !userAgent.includes('APIs-Google');
+
+    // Generate sitemap content
+    const sitemapContent = await generateFAQQuestionsSitemap();
+
+    // For browser requests, serve as HTML
+    if (isBrowserRequest) {
+      const siteSettings = await prisma.siteSettings.findFirst();
+      const baseUrl = siteSettings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      
+      const faqs = await prisma.fAQ.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          question: true,
+          updatedAt: true,
+          category: {
+            select: {
+              name: true,
+            }
+          }
+        },
+        orderBy: { question: 'asc' }
+      });
+
+      const htmlContent = await transformSitemapToHTML(faqs, baseUrl);
+      return new NextResponse(htmlContent, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400'
+        }
+      });
+    }
+
+    // For search engines, serve as XML sitemap
+    return new NextResponse(sitemapContent, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/xml',
+        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error generating FAQ questions sitemap:', error);
+    return new NextResponse('Error generating sitemap', { status: 500 });
+  }
+}
+
+async function generateFAQQuestionsSitemap(): Promise<string> {
+  const siteSettings = await prisma.siteSettings.findFirst();
+  const baseUrl = siteSettings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  
+  const faqs = await prisma.fAQ.findMany({
+    where: { isActive: true },
+    select: {
+      id: true,
+      question: true,
+      updatedAt: true,
+      category: {
+        select: {
+          name: true,
+        }
+      }
+    },
+    orderBy: { question: 'asc' }
+  });
+
+  const now = new Date().toISOString();
+  
+  let sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+
+  // Add each FAQ question page
+  for (const faq of faqs) {
+    if (faq.category) {
+      const categorySlug = faq.category.name.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+      const questionSlug = faq.question.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim().substring(0, 100);
+      const questionUrl = `${baseUrl}/faq/${categorySlug}/${questionSlug}`;
+      const lastmod = faq.updatedAt ? new Date(faq.updatedAt).toISOString() : now;
+      
+      sitemapContent += `
+  <url>
+    <loc>${escapeXML(questionUrl)}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+    }
+  }
+
+  sitemapContent += `
+</urlset>`;
+
+  return sitemapContent;
 }
 
 function escapeXML(str: string): string {

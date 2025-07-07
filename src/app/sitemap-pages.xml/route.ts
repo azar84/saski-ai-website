@@ -1,178 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
-export async function GET(request: Request) {
-  try {
-    const userAgent = request.headers.get('user-agent') || '';
-    const acceptHeader = request.headers.get('accept') || '';
-    
-    // Simplified logic: Only serve HTML if it's clearly a browser request
-    // Default to XML for all other requests (APIs, crawlers, etc.)
-    const isBrowserRequest = userAgent.includes('Mozilla') && 
-                           userAgent.includes('Chrome') && 
-                           acceptHeader.includes('text/html') &&
-                           !userAgent.includes('bot') &&
-                           !userAgent.includes('crawler') &&
-                           !userAgent.includes('spider') &&
-                           !userAgent.includes('Google-') &&
-                           !userAgent.includes('APIs-Google');
-
-    // Generate pages sitemap content
-    const sitemapContent = await generatePagesSitemap();
-
-    // For browser requests, serve as HTML
-    if (isBrowserRequest) {
-      const htmlContent = await transformPagesToHTML(sitemapContent);
-      return new NextResponse(htmlContent, {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400'
-        }
-      });
-    }
-
-    // For search engines, serve as XML
-    return new NextResponse(sitemapContent, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400'
-      }
-    });
-
-  } catch (error) {
-    console.error('Error serving pages sitemap:', error);
-    
-    // Return minimal sitemap in case of error
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const errorSitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}/home</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-</urlset>`;
-
-    return new NextResponse(errorSitemap, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=300'
-      }
-    });
-  }
-}
-
-async function generatePagesSitemap(): Promise<string> {
-  // Fetch all pages from database
-  const pages = await prisma.page.findMany({
-    select: {
-      slug: true,
-      title: true,
-      updatedAt: true,
-      showInHeader: true,
-      showInFooter: true,
-    },
-    orderBy: {
-      sortOrder: 'asc'
-    }
-  });
-
-  // Get site settings for base URL
-  const siteSettings = await prisma.siteSettings.findFirst();
-  const baseUrl = siteSettings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
-  // Generate page entries
-  const pageEntries = pages.map((page, index) => {
-    const url = `${baseUrl}/${page.slug}`;
-    const priority = page.slug === 'home' ? 1.0 : page.showInHeader ? 0.8 : 0.6;
-    const changefreq = page.slug === 'home' ? 'daily' : page.showInHeader ? 'weekly' : 'monthly';
-    const pageTitle = page.title || (page.slug === 'home' ? 'Homepage' : `Page ${index + 1}`);
-
-    return {
-      url,
-      lastModified: new Date(page.updatedAt).toISOString(),
-      changeFreq: changefreq,
-      priority,
-      title: pageTitle
-    };
-  });
-
-  // Generate XML sitemap
-  const urls = pageEntries.map((entry) => {
-    return `  <!-- ${entry.title} -->
-  <url>
-    <loc>${escapeXML(entry.url)}</loc>
-    <lastmod>${entry.lastModified}</lastmod>
-    <changefreq>${entry.changeFreq}</changefreq>
-    <priority>${entry.priority.toFixed(1)}</priority>
-  </url>`;
-  }).join('\n\n');
-
-  const lastUpdate = pageEntries.length > 0 ? 
-    new Date(Math.max(...pageEntries.map(entry => new Date(entry.lastModified).getTime()))).toISOString() : 
-    'N/A';
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
-<!--
-  Pages Sitemap for Saski AI Website
-  Generated dynamically on: ${new Date().toISOString()}
-  Total URLs: ${pageEntries.length}
-  
-  This sitemap contains all website pages.
-  Last database update: ${lastUpdate}
--->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-                           http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-
-${urls}
-
-</urlset>`;
-}
-
-async function transformPagesToHTML(xmlContent: string): Promise<string> {
-  // Get pages for HTML display
-  const pages = await prisma.page.findMany({
-    select: {
-      slug: true,
-      title: true,
-      updatedAt: true,
-      showInHeader: true,
-      showInFooter: true,
-    },
-    orderBy: [
-      { showInHeader: 'desc' },
-      { sortOrder: 'asc' }
-    ]
-  });
-
-  const siteSettings = await prisma.siteSettings.findFirst();
-  const baseUrl = siteSettings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
-  const urlRows = pages.map(page => {
-    const url = `${baseUrl}/${page.slug}`;
-    const lastmod = new Date(page.updatedAt).toISOString().split('T')[0] + ' ' + 
-                   new Date(page.updatedAt).toISOString().split('T')[1].substring(0, 8) + ' +00:00';
-    
-    return `
-      <tr>
-        <td class="url">
-          <a href="${url}">${url}</a>
-        </td>
-        <td class="lastmod">${lastmod}</td>
-      </tr>`;
-  }).join('');
+async function transformSitemapToHTML(pages: any[], baseUrl: string): Promise<string> {
+  const now = new Date().toISOString().split('T')[0] + ' ' + 
+             new Date().toISOString().split('T')[1].substring(0, 8) + ' +00:00';
 
   return `<!DOCTYPE html>
 <html>
 <head>
-  <title>Pages Sitemap</title>
+  <title>XML Sitemap - Pages</title>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
@@ -194,6 +30,16 @@ async function transformPagesToHTML(xmlContent: string): Promise<string> {
     }
     .description p {
       margin: 8px 0;
+    }
+    .stats {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+    .stats h3 {
+      margin: 0 0 10px 0;
+      color: #333;
     }
     a {
       color: #1e8cbe;
@@ -222,32 +68,181 @@ async function transformPagesToHTML(xmlContent: string): Promise<string> {
     .url {
       word-break: break-all;
     }
+    .priority {
+      text-align: center;
+      font-weight: bold;
+    }
+    .high-priority {
+      color: #d63384;
+    }
+    .medium-priority {
+      color: #fd7e14;
+    }
+    .low-priority {
+      color: #6c757d;
+    }
     .lastmod {
       white-space: nowrap;
     }
   </style>
 </head>
 <body>
-  <h1>Pages Sitemap</h1>
+  <h1>XML Sitemap - Pages</h1>
   
   <div class="description">
-    <p>Generated by <strong>Saski AI</strong>, this sitemap contains all website pages.</p>
+    <p>This sitemap contains all the main pages of our website.</p>
     <p>You can find more information about XML sitemaps on <a href="https://sitemaps.org" target="_blank">sitemaps.org</a>.</p>
-    <p>This sitemap contains ${pages.length} page(s).</p>
+    <p><a href="${baseUrl}/sitemap.xml">← Back to Sitemap Index</a></p>
+  </div>
+
+  <div class="stats">
+    <h3>Pages Overview:</h3>
+    <p>This sitemap contains <strong>${pages.length}</strong> page${pages.length !== 1 ? 's' : ''}, last updated on <strong>${now}</strong>.</p>
   </div>
   
   <table>
     <thead>
       <tr>
-        <th>URL</th>
+        <th>Page URL</th>
+        <th>Priority</th>
+        <th>Change Frequency</th>
         <th>Last Modified</th>
       </tr>
     </thead>
-    <tbody>${urlRows}
+    <tbody>
+      ${pages.map(page => {
+        const pageUrl = `${baseUrl}/${page.slug}`;
+        const priority = page.slug === 'home' ? 1.0 : 
+                        page.slug === 'pricing' ? 0.8 : 
+                        page.slug === 'faq' ? 0.8 : 0.7;
+        const changefreq = page.slug === 'home' ? 'weekly' : 
+                          page.slug === 'pricing' ? 'monthly' : 
+                          page.slug === 'faq' ? 'weekly' : 'monthly';
+        const lastmod = page.updatedAt ? new Date(page.updatedAt).toISOString().split('T')[0] + ' ' + 
+                       new Date(page.updatedAt).toISOString().split('T')[1].substring(0, 8) + ' +00:00' : now;
+        
+        const priorityClass = priority >= 0.8 ? 'high-priority' : 
+                             priority >= 0.7 ? 'medium-priority' : 'low-priority';
+        
+        return `
+        <tr>
+          <td class="url">
+            <a href="${pageUrl}" target="_blank">${pageUrl}</a>
+          </td>
+          <td class="priority ${priorityClass}">${priority.toFixed(1)}</td>
+          <td>${changefreq}</td>
+          <td class="lastmod">${lastmod}</td>
+        </tr>`;
+      }).join('')}
     </tbody>
   </table>
 </body>
 </html>`;
+}
+
+export async function GET(request: Request) {
+  try {
+    const userAgent = request.headers.get('user-agent') || '';
+    const acceptHeader = request.headers.get('accept') || '';
+    
+    // Simplified logic: Only serve HTML if it's clearly a browser request
+    // Default to XML for all other requests (APIs, crawlers, etc.)
+    const isBrowserRequest = userAgent.includes('Mozilla') && 
+                           userAgent.includes('Chrome') && 
+                           acceptHeader.includes('text/html') &&
+                           !userAgent.includes('bot') &&
+                           !userAgent.includes('crawler') &&
+                           !userAgent.includes('spider') &&
+                           !userAgent.includes('Google-') &&
+                           !userAgent.includes('APIs-Google');
+
+    // Generate sitemap content
+    const sitemapContent = await generatePagesSitemap();
+
+    // For browser requests, serve as HTML
+    if (isBrowserRequest) {
+      const siteSettings = await prisma.siteSettings.findFirst();
+      const baseUrl = siteSettings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      
+      const pages = await prisma.page.findMany({
+        select: {
+          slug: true,
+          title: true,
+          updatedAt: true,
+        },
+        orderBy: { slug: 'asc' }
+      });
+
+      const htmlContent = await transformSitemapToHTML(pages, baseUrl);
+      return new NextResponse(htmlContent, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400'
+        }
+      });
+    }
+
+    // For search engines, serve as XML sitemap
+    return new NextResponse(sitemapContent, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/xml',
+        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error generating pages sitemap:', error);
+    return new NextResponse('Error generating sitemap', { status: 500 });
+  }
+}
+
+async function generatePagesSitemap(): Promise<string> {
+  const siteSettings = await prisma.siteSettings.findFirst();
+  const baseUrl = siteSettings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  
+  const pages = await prisma.page.findMany({
+    select: {
+      slug: true,
+      title: true,
+      updatedAt: true,
+    },
+    orderBy: { slug: 'asc' }
+  });
+
+  const now = new Date().toISOString();
+  
+  let sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+
+  // Add each page
+  for (const page of pages) {
+    const pageUrl = `${baseUrl}/${page.slug}`;
+    const lastmod = page.updatedAt ? new Date(page.updatedAt).toISOString() : now;
+    
+    // Set priority based on page type
+    const priority = page.slug === 'home' ? 1.0 : 
+                    page.slug === 'pricing' ? 0.8 : 
+                    page.slug === 'faq' ? 0.8 : 0.7;
+    
+    const changefreq = page.slug === 'home' ? 'weekly' : 
+                      page.slug === 'pricing' ? 'monthly' : 
+                      page.slug === 'faq' ? 'weekly' : 'monthly';
+    
+    sitemapContent += `
+  <url>
+    <loc>${escapeXML(pageUrl)}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority.toFixed(1)}</priority>
+  </url>`;
+  }
+
+  sitemapContent += `
+</urlset>`;
+
+  return sitemapContent;
 }
 
 function escapeXML(str: string): string {
