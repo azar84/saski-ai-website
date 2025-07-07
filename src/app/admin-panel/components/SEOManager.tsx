@@ -134,6 +134,7 @@ export default function SEOManager() {
   useEffect(() => {
     fetchData();
     fetchServiceAccountStatus();
+    fetchSubmissionLogs();
   }, []);
 
   const fetchData = async () => {
@@ -752,6 +753,147 @@ Allow: /uploads/media/`;
             <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No pages found</h3>
             <p className="text-gray-500">Create some pages to see them in the sitemap.</p>
+          </div>
+        )}
+      </Card>
+
+      {/* Submission Logs Section */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Google Submission Logs</h3>
+          <Button
+            onClick={fetchSubmissionLogs}
+            variant="outline"
+            size="sm"
+            disabled={logsLoading}
+          >
+            {logsLoading ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh Logs
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Submission Stats */}
+        {submissionStats && Object.keys(submissionStats).length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-center">
+                <Globe className="w-5 h-5 text-blue-600 mr-2" />
+                <div>
+                  <p className="text-sm font-medium text-blue-600">Total Submissions</p>
+                  <p className="text-lg font-bold text-blue-900">{submissionStats.total || 0}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="flex items-center">
+                <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                <div>
+                  <p className="text-sm font-medium text-green-600">Successful</p>
+                  <p className="text-lg font-bold text-green-900">{submissionStats.successful || 0}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg">
+              <div className="flex items-center">
+                <XCircle className="w-5 h-5 text-red-600 mr-2" />
+                <div>
+                  <p className="text-sm font-medium text-red-600">Failed</p>
+                  <p className="text-lg font-bold text-red-900">{submissionStats.failed || 0}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <div className="flex items-center">
+                <BarChart3 className="w-5 h-5 text-purple-600 mr-2" />
+                <div>
+                  <p className="text-sm font-medium text-purple-600">Success Rate</p>
+                  <p className="text-lg font-bold text-purple-900">{submissionStats.successRate ? `${submissionStats.successRate.toFixed(1)}%` : '0%'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Submission Logs Table */}
+        {submissionLogs.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Submitted At
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sitemap URL
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Search Engine
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Response
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {submissionLogs.slice(0, 10).map((log, index) => (
+                  <tr key={log.id || index} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {new Date(log.submittedAt).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      <div className="max-w-xs truncate" title={log.sitemapUrl}>
+                        {log.sitemapUrl}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        log.status === 'success' 
+                          ? 'bg-green-100 text-green-800' 
+                          : log.status === 'error'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {log.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {log.searchEngine}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {log.status === 'success' ? (
+                        <span className="text-green-600">✅ Submitted</span>
+                      ) : log.errorMessage ? (
+                        <div className="max-w-xs truncate text-red-600" title={log.errorMessage}>
+                          {log.errorMessage}
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Globe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No submission logs</h3>
+            <p className="text-gray-500">
+              {logsLoading ? 'Loading submission logs...' : 'Submit your sitemap to see logs here.'}
+            </p>
           </div>
         )}
       </Card>
