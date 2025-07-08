@@ -92,26 +92,6 @@ export default function ClientHeader({
   const finalMenuHoverColor = menuHoverColor !== '#5243E9' ? menuHoverColor : autoHoverColor;
   const finalMenuActiveColor = menuActiveColor !== '#5243E9' ? menuActiveColor : autoHoverColor;
 
-  // Debug info only in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('ClientHeader - Navigation items received:', navigationItems);
-    console.log('ClientHeader - CTA buttons received:', ctaButtons);
-    console.log('ClientHeader - Site settings received:', siteSettings);
-    console.log('ClientHeader - Background color:', backgroundColor);
-    
-    if (siteSettings) {
-      const logoUrl = getAppropriateLogoUrl(siteSettings, backgroundColor);
-      console.log('ClientHeader - Logo selection debug:', {
-        backgroundColor,
-        isBackgroundDark: isLightColor(backgroundColor) ? 'No (light)' : 'Yes (dark)',
-        logoUrl: siteSettings.logoUrl,
-        logoLightUrl: siteSettings.logoLightUrl,
-        logoDarkUrl: siteSettings.logoDarkUrl,
-        selectedLogoUrl: logoUrl
-      });
-    }
-  }
-
   // Function to get icon component from icon name using universal icon system
   const getIconComponent = (iconName: string | undefined) => {
     if (!iconName) return null;
@@ -273,15 +253,6 @@ export default function ClientHeader({
               <Link href="/" className="flex items-center flex-shrink-0 group">
                 {(() => {
                   const logoUrl = getAppropriateLogoUrl(siteSettings || {}, backgroundColor);
-                  console.log('ClientHeader - Logo rendering debug:', {
-                    logoUrl,
-                    siteSettings: siteSettings ? {
-                      logoUrl: siteSettings.logoUrl,
-                      logoLightUrl: siteSettings.logoLightUrl,
-                      logoDarkUrl: siteSettings.logoDarkUrl
-                    } : null,
-                    backgroundColor
-                  });
                   return logoUrl ? (
                     <motion.div
                       whileHover={{ scale: 1.05 }}

@@ -72,16 +72,6 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
   layoutType: propLayoutType,
   backgroundColor
 }) => {
-  console.log('🚀 FeaturesSection called with props:', {
-    propFeatures: propFeatures.length,
-    featureGroupId,
-    pageSlug,
-    propHeading,
-    propSubheading,
-    propLayoutType,
-    backgroundColor
-  });
-
   const [features, setFeatures] = useState<GlobalFeature[]>(propFeatures);
   const [loading, setLoading] = useState(propFeatures.length === 0);
   const [groupHeading, setGroupHeading] = useState<string>('');
@@ -111,20 +101,12 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
 
         // Priority 1: Specific feature group ID
         if (featureGroupId) {
-          console.log('🔍 Fetching specific feature group ID:', featureGroupId);
           const response = await fetch(`/api/admin/feature-groups`);
           if (response.ok) {
             const result = await response.json();
-            console.log('📡 API Response:', result);
             if (result.success && result.data) {
               const group = result.data.find((g: any) => g.id === featureGroupId && g.isActive);
-              console.log('🔍 Looking for group ID:', featureGroupId);
-              console.log('🔍 Available groups:', result.data.map((g: any) => ({ id: g.id, name: g.name, layoutType: g.layoutType })));
               if (group) {
-                console.log('🎯 Found feature group:', group.name);
-                console.log('🎨 Layout type:', group.layoutType);
-                console.log('🎨 Background color from group:', group.backgroundColor);
-                
                 featuresData = group.groupItems
                   .filter((item: any) => item.isVisible)
                   .map((item: any) => item.feature)
@@ -133,7 +115,6 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                 subheading = group.subheading || '';
                 layout = group.layoutType || 'grid';
                 bgColor = group.backgroundColor || backgroundColor || '#ffffff';
-                console.log('🎨 Setting background color from group:', bgColor);
               }
             }
           }
@@ -141,7 +122,6 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
         
         // Priority 2: Page-specific feature groups
         else if (pageSlug) {
-          console.log('🔍 Fetching page-specific features for:', pageSlug);
           const pageResponse = await fetch('/api/admin/pages');
           if (pageResponse.ok) {
             const pageResult = await pageResponse.json();
@@ -155,9 +135,6 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                     // Use the first visible feature group for this page
                     const pageGroup = groupResult.data.find((pg: any) => pg.isVisible && pg.featureGroup.isActive);
                     if (pageGroup) {
-                      console.log('🎯 Found page feature group:', pageGroup.featureGroup.name);
-                      console.log('🎨 Layout type:', pageGroup.featureGroup.layoutType);
-                      
                       featuresData = pageGroup.featureGroup.groupItems
                         .filter((item: any) => item.isVisible)
                         .map((item: any) => item.feature)
@@ -176,7 +153,6 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
 
         // Priority 3: Default fallback - fetch all visible features
         if (featuresData.length === 0) {
-          console.log('🔍 Falling back to all features');
           const response = await fetch('/api/admin/features');
           if (response.ok) {
             const result = await response.json();
@@ -199,16 +175,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
         setLayoutType(layout);
         setFinalBackgroundColor(bgColor);
 
-        console.log('✅ Final results:', {
-          featuresCount: featuresData.length,
-          heading,
-          subheading,
-          layoutType: layout,
-          backgroundColor: bgColor
-        });
-
       } catch (error) {
-        console.error('Error fetching features:', error);
         // Fall back to default features if everything fails
         setFeatures(defaultFeatures);
         setGroupHeading(propHeading || 'Why Saski AI?');
@@ -241,20 +208,8 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
     return null;
   }
 
-  console.log('🎨 Rendering with layout type:', layoutType);
-
-  // Add detailed debugging before rendering
-  console.log('🔍 FeaturesSection RENDER DEBUG:', {
-    layoutType,
-    propLayoutType,
-    featuresLength: features.length,
-    heading: groupHeading,
-    willRenderList: layoutType === 'list'
-  });
-
   // Dynamic component selection based on layoutType
   if (layoutType === 'list') {
-    console.log('✅ Rendering FeaturesListLayout with background color:', finalBackgroundColor);
     return (
       <FeaturesListLayout 
         features={features}
@@ -266,7 +221,6 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({
   }
 
   // Default to grid layout
-  console.log('✅ Rendering FeaturesGridLayout (default) with background color:', finalBackgroundColor);
   return (
     <FeaturesGridLayout 
       features={features}

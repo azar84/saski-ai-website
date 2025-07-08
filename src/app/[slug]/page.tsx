@@ -43,7 +43,7 @@ export default async function DynamicPage({ params }: { params: Promise<{ slug: 
     <main className="min-h-screen bg-white">
       <Header />
       
-      <div className="pt-20">
+      <div>
         {/* Server-Side Rendered Page Content from Page Builder */}
         <ServerDynamicPageRenderer pageSlug={slug} />
       </div>

@@ -130,11 +130,6 @@ export default function CTAManager() {
         ? { ...formData, id: editingId }
         : formData;
 
-      // Debug info only in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Submitting CTA:', { method, body });
-      }
-
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -143,16 +138,7 @@ export default function CTAManager() {
 
       const result = await response.json();
       
-      // Debug info only in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('API Response:', result);
-      }
-
       if (response.ok) {
-        // Debug info only in development
-        if (process.env.NODE_ENV === 'development') {
-          console.log('CTA saved successfully');
-        }
         await fetchCtas();
         await fetchHeaderConfig();
         resetForm();

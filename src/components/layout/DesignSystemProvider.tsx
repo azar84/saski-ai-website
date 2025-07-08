@@ -173,7 +173,6 @@ const applyDesignSystemToRoot = (ds: DesignSystem) => {
   // Apply theme mode class
   root.setAttribute('data-theme', 'light'); // Default to light theme
   
-  console.log('Design system applied to existing CSS variables:', ds);
 };
 
 const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

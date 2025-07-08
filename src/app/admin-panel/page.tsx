@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -27,6 +27,7 @@ import {
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useDesignSystem, getAdminPanelColors } from '@/hooks/useDesignSystem';
+import { useAdminApi } from '@/hooks/useApi';
 import HeroManager from './components/HeroManager';
 import HeroSectionsManager from './components/HeroSectionsManager';
 import FeaturesManager from './components/FeaturesManager';
@@ -79,11 +80,48 @@ const navigation = [
   { id: 'site-settings', name: 'Site Settings', icon: Settings, color: 'text-gray-600' },
 ];
 
+interface SiteSettings {
+  id?: number;
+  logoUrl: string | null;
+  logoLightUrl: string | null;
+  logoDarkUrl: string | null;
+  faviconUrl: string | null;
+  faviconLightUrl: string | null;
+  faviconDarkUrl: string | null;
+  footerCompanyName: string | null;
+  footerCompanyDescription: string | null;
+  // ... other fields
+}
+
 export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState<Section>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { designSystem } = useDesignSystem();
   const adminColors = getAdminPanelColors();
+  const { get } = useAdminApi();
+  
+  // Site settings state
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+
+  // Fetch site settings on component mount
+  useEffect(() => {
+    const fetchSiteSettings = async () => {
+      try {
+        setLoadingSettings(true);
+        const response = await get<{ success: boolean; data: SiteSettings }>('/api/admin/site-settings');
+        if (response.success) {
+          setSiteSettings(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching site settings:', error);
+      } finally {
+        setLoadingSettings(false);
+      }
+    };
+
+    fetchSiteSettings();
+  }, [get]);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -266,7 +304,9 @@ export default function AdminPanel() {
                 background: `linear-gradient(to right, ${designSystem?.primaryColor || '#5243E9'}, ${designSystem?.secondaryColor || '#7C3AED'})`
               }}
             >
-              <h1 className="text-3xl font-bold mb-2">Welcome to Saski AI Admin</h1>
+              <h1 className="text-3xl font-bold mb-2">
+                Welcome to {siteSettings?.footerCompanyName || 'Saski AI'} Admin
+              </h1>
               <p style={{ color: '#E2E8F0' }}>Manage your website content, pages, and settings from this central dashboard.</p>
             </div>
 
@@ -537,11 +577,18 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-                  <div 
-            className="flex items-center justify-between h-16 px-6 border-b"
-            style={{ borderColor: adminColors.border }}
-          >
-            <div className="flex items-center space-x-2">
+        <div 
+          className="flex items-center justify-between h-16 px-6 border-b"
+          style={{ borderColor: adminColors.border }}
+        >
+          <div className="flex items-center space-x-2">
+            {siteSettings?.faviconUrl ? (
+              <img 
+                src={siteSettings.faviconUrl} 
+                alt="Favicon" 
+                className="w-8 h-8 rounded-lg object-contain"
+              />
+            ) : (
               <div 
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
                 style={{
@@ -550,13 +597,14 @@ export default function AdminPanel() {
               >
                 <Globe className="w-5 h-5 text-white" />
               </div>
-              <span 
-                className="text-xl font-bold"
-                style={{ color: adminColors.textPrimary }}
-              >
-                Saski AI
-              </span>
-            </div>
+            )}
+            <span 
+              className="text-xl font-bold"
+              style={{ color: adminColors.textPrimary }}
+            >
+              {siteSettings?.footerCompanyName || 'Saski AI'}
+            </span>
+          </div>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
@@ -622,19 +670,27 @@ export default function AdminPanel() {
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center space-x-2">
-              <div 
-                className="w-6 h-6 rounded-md flex items-center justify-center"
-                style={{
-                  background: `linear-gradient(to bottom right, ${designSystem?.primaryColor || '#5243E9'}, ${designSystem?.secondaryColor || '#7C3AED'})`
-                }}
-              >
-                <Globe className="w-4 h-4 text-white" />
-              </div>
+              {siteSettings?.faviconUrl ? (
+                <img 
+                  src={siteSettings.faviconUrl} 
+                  alt="Favicon" 
+                  className="w-6 h-6 rounded-md object-contain"
+                />
+              ) : (
+                <div 
+                  className="w-6 h-6 rounded-md flex items-center justify-center"
+                  style={{
+                    background: `linear-gradient(to bottom right, ${designSystem?.primaryColor || '#5243E9'}, ${designSystem?.secondaryColor || '#7C3AED'})`
+                  }}
+                >
+                  <Globe className="w-4 h-4 text-white" />
+                </div>
+              )}
               <span 
                 className="text-lg font-bold"
                 style={{ color: adminColors.textPrimary }}
               >
-                Saski AI
+                {siteSettings?.footerCompanyName || 'Saski AI'}
               </span>
             </div>
           </div>

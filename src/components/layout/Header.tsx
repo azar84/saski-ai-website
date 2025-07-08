@@ -90,36 +90,6 @@ export default function Header() {
           setSiteSettings(settings);
         }
 
-        // Debug info only in development
-        if (process.env.NODE_ENV === 'development') {
-          console.log('=== HEADER COMPONENT DEBUG ===');
-          console.log('Header - Header config fetched:', headerData.length > 0 ? 'FOUND' : 'NOT FOUND');
-          if (headerData.length > 0) {
-            const config = headerData[0];
-            console.log('Header - Header config ID:', config.id);
-            console.log('Header - Is active:', config.isActive);
-            console.log('Header - Background color:', config.backgroundColor);
-            console.log('Header - Nav items count:', config.navItems?.length || 0);
-            console.log('Header - CTA buttons count:', config.headerCTAs?.length || 0);
-            console.log('Header - Menu count:', config.menus?.length || 0);
-            if (config.menus?.length > 0) {
-              console.log('Header - Menu items:', config.menus[0]?.menu?.items?.length || 0);
-            }
-          }
-          console.log('Header - Site settings fetched:', settingsData ? 'FOUND' : 'NOT FOUND');
-          if (settingsData) {
-            const settings = settingsData.success ? settingsData.data : settingsData;
-            console.log('Header - Site settings structure:', {
-              hasSuccess: !!settingsData.success,
-              hasData: !!settingsData.data,
-              logoUrl: settings?.logoUrl,
-              logoLightUrl: settings?.logoLightUrl,
-              logoDarkUrl: settings?.logoDarkUrl,
-              settingsId: settings?.id
-            });
-          }
-          console.log('==============================');
-        }
       } catch (error) {
         console.error('Failed to fetch header data:', error);
       } finally {
@@ -181,12 +151,6 @@ export default function Header() {
       target: item.cta.target as "_self" | "_blank"
     }));
 
-    // Debug the mapped data
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Header - Mapped navigation items:', navigationItems);
-      console.log('Header - Mapped CTA buttons:', ctaButtons);
-      console.log('Header - Background color:', backgroundColor);
-    }
   }
 
   return (

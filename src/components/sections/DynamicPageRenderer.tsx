@@ -345,18 +345,6 @@ const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             backgroundColor: section.featureGroup.backgroundColor
           };
 
-          console.log('🎨 Rendering features section with:', {
-            featuresCount: features.length,
-            heading: propsToPass.heading,
-            subheading: propsToPass.subheading,
-            layoutType: propsToPass.layoutType,
-            backgroundColor: propsToPass.backgroundColor,
-            firstFeature: features[0] ? {
-              title: features[0].title,
-              iconName: features[0].iconName
-            } : null
-          });
-
           return wrapWithSectionDiv(
             <FeaturesSection
               {...propsToPass}

@@ -159,22 +159,15 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
       });
       if (response.ok) {
         const result = await response.json();
-        console.log('Raw API response:', result);
         
         // Handle the API response structure - it returns { success: true, data: {...} }
         const settings = result.success ? result.data : result;
-        console.log('Processed site settings:', settings);
-        console.log('Fetched site settings with footer colors:', {
-          footerBackgroundColor: settings.footerBackgroundColor,
-          footerTextColor: settings.footerTextColor
-        });
         setSiteSettings(settings);
         
         // Fetch footer menus if configured
         if (settings.footerMenuIds) {
           try {
             const menuIds = JSON.parse(settings.footerMenuIds);
-            console.log('Parsed footer menu IDs:', menuIds);
             if (menuIds.length > 0) {
               fetchFooterMenus(menuIds);
             }
@@ -197,7 +190,6 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
 
   const fetchFooterMenus = async (menuIds: number[]) => {
     try {
-      console.log('Fetching footer menus for IDs:', menuIds);
       const response = await fetch(`/api/admin/menus?t=${Date.now()}`, {
         cache: 'no-cache',
         headers: {
@@ -208,20 +200,15 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
       });
       if (response.ok) {
         const result = await response.json();
-        console.log('Menu API response:', result);
         
         // Handle the API response structure with success and data fields
         const allMenus = result.success ? result.data : (Array.isArray(result) ? result : []);
-        console.log('All menus:', allMenus);
-        console.log('All menu IDs:', allMenus.map((m: any) => m.id));
         
         const selectedMenus = allMenus.filter((menu: Menu) => 
           menuIds.includes(menu.id) && menu.isActive
         );
-        console.log('Selected menus:', selectedMenus);
         
         setFooterMenus(selectedMenus);
-        console.log('Footer menus set to state:', selectedMenus);
       } else {
         console.error('Failed to fetch menus, status:', response.status);
       }
@@ -232,7 +219,6 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
 
   const fetchNewsletterForm = async (formId: number) => {
     try {
-      console.log('Fetching newsletter form for ID:', formId);
       const response = await fetch(`/api/admin/forms?t=${Date.now()}`, {
         cache: 'no-cache',
         headers: {
@@ -243,18 +229,14 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
       });
       if (response.ok) {
         const result = await response.json();
-        console.log('Forms API response:', result);
         
         // Handle the API response structure with success and data fields
         const allForms = result.success ? result.data : (Array.isArray(result) ? result : []);
-        console.log('All forms:', allForms);
         
         const form = allForms.find((f: Form) => f.id === formId);
-        console.log('Found newsletter form:', form);
         
         if (form) {
           setNewsletterForm(form);
-          console.log('Newsletter form set to state:', form);
         } else {
           console.warn('Newsletter form not found for ID:', formId);
         }
@@ -337,16 +319,6 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
     logoUrl = siteSettings.logoUrl;
   }
   
-  // Debug logging to help identify logo issues
-  console.log('Footer logo selection:', {
-    footerBgColor,
-    shouldUseLightLogo,
-    logoUrl,
-    logoLightUrl: siteSettings.logoLightUrl,
-    logoDarkUrl: siteSettings.logoDarkUrl,
-    primaryLogoUrl: siteSettings.logoUrl
-  });
-
   // Dynamic text colors based on footer text color setting
   const textColorClass = footerTextColor;
   const lightTextColor = footerTextColor; // Use the actual footer text color for all text
@@ -361,19 +333,6 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
     { name: 'Instagram', url: siteSettings.socialInstagram, icon: Instagram, color: 'hover:text-pink-600' },
     { name: 'YouTube', url: siteSettings.socialYoutube, icon: Youtube, color: 'hover:text-red-600' },
   ].filter(link => link.url);
-
-  // Debug footer menus and newsletter form
-  console.log('Footer menus state:', footerMenus);
-  console.log('Footer menus count:', footerMenus.length);
-  console.log('Site settings footer menu IDs:', siteSettings.footerMenuIds);
-  console.log('Newsletter form state:', newsletterForm);
-  console.log('Newsletter form ID from settings:', siteSettings.footerNewsletterFormId);
-  console.log('Footer show contact info:', siteSettings.footerShowContactInfo);
-
-  // Early return if no settings
-  if (!siteSettings) {
-    return null; // Loading state
-  }
 
   return (
     <>
