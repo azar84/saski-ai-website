@@ -538,7 +538,7 @@ export default function ConfigurablePricingSection({
                           {plan.isPopular && (
                           <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
                               <span 
-                                className="text-white px-2 py-1 rounded-full text-xs font-semibold"
+                                className="text-white px-1.5 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
                                 style={{
                                   background: `linear-gradient(to right, ${designSystem?.primaryColor || '#6366F1'}, ${designSystem?.accentColor || '#8B5CF6'})`
                                 }}
