@@ -47,11 +47,11 @@ model SiteSettings {
   footerCompanyDescription String?
   footerBackgroundColor    String?  @default("#F9FAFB")
   footerTextColor          String?  @default("#374151")
+  baseUrl                  String?  @default("")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
-  baseUrl                  String?  @default("")
-  gaMeasurementId          String?
-  gtmContainerId           String?
+  gaMeasurementId          String?  @default("NULL")
+  gtmContainerId           String?  @default("NULL")
   gtmEnabled               Boolean  @default(false)
 
   @@map("site_settings")
@@ -71,7 +71,7 @@ model ServiceAccountCredentials {
   universeDomain          String
   isActive                Boolean  @default(true)
   createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  updatedAt               DateTime @default(now()) @updatedAt
 
   @@map("service_account_credentials")
 }
@@ -87,9 +87,9 @@ model SitemapSubmissionLog {
   errorMessage   String?
   statusCode     Int?
   submissionId   String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
   warnings       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
 
   @@map("sitemap_submission_logs")
 }
@@ -449,11 +449,11 @@ model FeatureGroup {
   name            String
   description     String?
   layoutType      String             @default("grid")
+  backgroundColor String?            @default("#FFFFFF")
   sortOrder       Int                @default(0)
   isActive        Boolean            @default(true)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
-  backgroundColor String?            @default("#FFFFFF")
   items           FeatureGroupItem[]
   pageGroups      PageFeatureGroup[]
   pageSections    PageSection[]
@@ -512,11 +512,13 @@ model PageSection {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   scriptSectionId  Int?
+  headerSectionId  Int?
   contactSection   ContactSection?  @relation(fields: [contactSectionId], references: [id])
   faqCategory      FAQCategory?     @relation(fields: [faqCategoryId], references: [id])
   faqSection       FAQSection?      @relation(fields: [faqSectionId], references: [id])
   featureGroup     FeatureGroup?    @relation(fields: [featureGroupId], references: [id])
   form             Form?            @relation(fields: [formId], references: [id])
+  header_sections  header_sections? @relation(fields: [headerSectionId], references: [id])
   heroSection      HeroSection?     @relation(fields: [heroSectionId], references: [id])
   htmlSection      HtmlSection?     @relation(fields: [htmlSectionId], references: [id])
   mediaSection     MediaSection?    @relation(fields: [mediaSectionId], references: [id])
@@ -1114,4 +1116,21 @@ model NewsletterSubscriber {
   updatedAt  DateTime @updatedAt
 
   @@map("newsletter_subscribers")
+}
+
+model header_sections {
+  id              Int           @id @default(autoincrement())
+  name            String
+  backgroundColor String?       @default("#ffffff")
+  menuTextColor   String?       @default("#374151")
+  menuHoverColor  String?       @default("#5243E9")
+  menuActiveColor String?       @default("#5243E9")
+  isSticky        Boolean       @default(true)
+  showLogo        Boolean       @default(true)
+  showNavigation  Boolean       @default(true)
+  showCTAs        Boolean       @default(true)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  page_sections   PageSection[]
 }
