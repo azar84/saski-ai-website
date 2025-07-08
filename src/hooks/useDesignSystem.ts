@@ -63,8 +63,7 @@ interface DesignSystem {
   breakpointLg: string;
   breakpointXl: string;
   breakpoint2xl: string;
-  // Theme Mode
-  themeMode: 'light' | 'dark' | 'auto';
+
   // Custom Variables
   customVariables?: string;
 }
@@ -150,5 +149,17 @@ export const getThemeDefaults = (designSystem: DesignSystem | null) => {
     textPrimary: designSystem.textPrimary,
     textSecondary: designSystem.textSecondary,
     textMuted: designSystem.textMuted
+  };
+};
+
+// Helper function to get reliable admin panel colors (always light theme)
+export const getAdminPanelColors = () => {
+  return {
+    textPrimary: '#1F2937',
+    textSecondary: '#6B7280',
+    textMuted: '#9CA3AF',
+    background: '#FFFFFF',
+    backgroundSecondary: '#F9FAFB',
+    border: '#E5E7EB'
   };
 }; 

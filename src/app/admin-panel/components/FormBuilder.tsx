@@ -113,6 +113,10 @@ interface Form {
   
   webhookUrl?: string;
   
+  // Newsletter Action
+  newsletterAction?: boolean;
+  newsletterEmailField?: string;
+  
   // Captcha Settings
   enableCaptcha?: boolean;
   captchaType?: string;
@@ -1372,6 +1376,50 @@ export default function FormBuilder() {
                 )}
                     </div>
 
+              {/* Newsletter Action */}
+              <div>
+                <label className="flex items-center space-x-2 mb-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.newsletterAction || false}
+                    onChange={(e) => setFormData({...formData, newsletterAction: e.target.checked})}
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Subscribe to newsletter
+                  </span>
+                </label>
+                {formData.newsletterAction && (
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Field for Newsletter
+                    </label>
+                    <select
+                      value={formData.newsletterEmailField || ''}
+                      onChange={(e) => setFormData({...formData, newsletterEmailField: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                    >
+                      <option value="">Select the email field...</option>
+                      {formData.fields?.filter(field => field.fieldType === 'email').map((field, index) => (
+                        <option key={index} value={field.fieldName}>
+                          {field.label} ({field.fieldName})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      <strong>Purpose:</strong> Add the email address to your newsletter subscribers list
+                    </p>
+                    {formData.fields?.filter(field => field.fieldType === 'email').length === 0 && (
+                      <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-amber-700">
+                          ⚠️ You need to add an email field to your form first
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Webhook Integration */}
               <div>
                 <label className="flex items-center space-x-2 mb-2">
@@ -2251,6 +2299,50 @@ export default function FormBuilder() {
                   </div>
                 </div>
               )}
+
+              {/* Newsletter Action */}
+              <div>
+                <label className="flex items-center space-x-2 mb-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedForm.newsletterAction || false}
+                    onChange={(e) => setSelectedForm({...selectedForm, newsletterAction: e.target.checked})}
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Subscribe to newsletter
+                  </span>
+                </label>
+                {selectedForm.newsletterAction && (
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Field for Newsletter
+                    </label>
+                    <select
+                      value={selectedForm.newsletterEmailField || ''}
+                      onChange={(e) => setSelectedForm({...selectedForm, newsletterEmailField: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                    >
+                      <option value="">Select the email field...</option>
+                      {selectedForm.fields?.filter(field => field.fieldType === 'email').map((field, index) => (
+                        <option key={index} value={field.fieldName}>
+                          {field.label} ({field.fieldName})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      <strong>Purpose:</strong> Add the email address to your newsletter subscribers list
+                    </p>
+                    {selectedForm.fields?.filter(field => field.fieldType === 'email').length === 0 && (
+                      <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-amber-700">
+                          ⚠️ You need to add an email field to your form first
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Webhook Integration */}
               <div>

@@ -1006,6 +1006,8 @@ model Form {
   isActive                Boolean          @default(true)
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
+  newsletterAction        Boolean          @default(false)
+  newsletterEmailField    String?
   fields                  FormField[]
   submissions             FormSubmission[]
   pageSections            PageSection[]
@@ -1102,4 +1104,14 @@ model script_sections {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @default(now())
   page_sections PageSection[]
+}
+
+model NewsletterSubscriber {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  subscribed Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("newsletter_subscribers")
 }

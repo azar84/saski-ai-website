@@ -381,7 +381,7 @@ const ClientFooter: React.FC<ClientFooterProps> = ({ pages }) => {
       
       <footer 
         data-footer
-        className="border-t border-gray-200 dark:border-gray-700"
+                  className="border-t border-gray-200"
         style={{ backgroundColor: footerBgColor }}
         data-footer-bg={siteSettings?.footerBackgroundColor}
         data-footer-text={siteSettings?.footerTextColor}

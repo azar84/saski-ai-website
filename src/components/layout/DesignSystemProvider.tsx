@@ -7,7 +7,7 @@ interface DesignSystem {
   // Brand Colors
   primaryColor: string;
   primaryColorLight: string;
-  primaryColorDark: string;
+
   secondaryColor: string;
   accentColor: string;
   // Semantic Colors
@@ -18,11 +18,11 @@ interface DesignSystem {
   // Neutral Colors
   grayLight: string;
   grayMedium: string;
-  grayDark: string;
+
   // Background Colors
   backgroundPrimary: string;
   backgroundSecondary: string;
-  backgroundDark: string;
+
   // Text Colors
   textPrimary: string;
   textSecondary: string;
@@ -63,8 +63,6 @@ interface DesignSystem {
   breakpointLg: string;
   breakpointXl: string;
   breakpoint2xl: string;
-  // Theme Mode
-  themeMode: 'light' | 'dark' | 'auto';
   // Custom Variables
   customVariables?: string;
 }
@@ -77,7 +75,7 @@ const applyDesignSystemToRoot = (ds: DesignSystem) => {
   // Brand Colors (override --color-primary variants)
   root.style.setProperty('--color-primary', ds.primaryColor);
   root.style.setProperty('--color-primary-light', ds.primaryColorLight);
-  root.style.setProperty('--color-primary-dark', ds.primaryColorDark);
+  root.style.setProperty('--color-primary-dark', ds.primaryColor);
   root.style.setProperty('--color-secondary', ds.secondaryColor);
   root.style.setProperty('--color-accent', ds.accentColor);
   
@@ -111,12 +109,11 @@ const applyDesignSystemToRoot = (ds: DesignSystem) => {
   // Background colors
   root.style.setProperty('--color-bg-primary', ds.backgroundPrimary);
   root.style.setProperty('--color-bg-secondary', ds.backgroundSecondary);
-  root.style.setProperty('--color-bg-dark', ds.backgroundDark);
   
   // Neutral colors
   root.style.setProperty('--color-gray-light', ds.grayLight);
   root.style.setProperty('--color-gray-medium', ds.grayMedium);
-  root.style.setProperty('--color-gray-dark', ds.grayDark);
+  root.style.setProperty('--color-gray-dark', ds.grayMedium);
   root.style.setProperty('--color-border-medium', ds.grayMedium);
   
   // Update gradients to use new colors
@@ -142,7 +139,7 @@ const applyDesignSystemToRoot = (ds: DesignSystem) => {
     }
     
     ::-webkit-scrollbar-thumb:hover {
-      background: ${ds.primaryColorDark} !important;
+      background: ${ds.primaryColor} !important;
     }
     
     .gradient-text {
@@ -174,7 +171,7 @@ const applyDesignSystemToRoot = (ds: DesignSystem) => {
   }
 
   // Apply theme mode class
-  root.setAttribute('data-theme', ds.themeMode);
+  root.setAttribute('data-theme', 'light'); // Default to light theme
   
   console.log('Design system applied to existing CSS variables:', ds);
 };

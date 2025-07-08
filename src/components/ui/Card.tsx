@@ -9,22 +9,10 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: [
-          'bg-white border border-[#E2E8F0] shadow-sm',
-          'dark:bg-[#1E2A3B] dark:border-[#27364B]'
-        ],
-        outlined: [
-          'bg-transparent border-2 border-[#E2E8F0]',
-          'dark:border-[#27364B]'
-        ],
-        elevated: [
-          'bg-white shadow-lg shadow-black/5 border border-[#E2E8F0]/50',
-          'dark:bg-[#1E2A3B] dark:shadow-black/20 dark:border-[#27364B]/50'
-        ],
-        glass: [
-          'glass backdrop-blur-xl bg-white/80 border border-white/20',
-          'dark:bg-[#1E2A3B]/80 dark:border-[#27364B]/50'
-        ],
+        default: 'bg-white border border-[#E2E8F0] shadow-sm',
+        outlined: 'bg-transparent border-2 border-[#E2E8F0]',
+        elevated: 'bg-white shadow-lg shadow-black/5 border border-[#E2E8F0]/50',
+        glass: 'glass backdrop-blur-xl bg-white/80 border border-white/20',
       },
       padding: {
         none: '',
@@ -34,11 +22,7 @@ const cardVariants = cva(
         xl: 'p-10',
       },
       hover: {
-        true: [
-          'hover:shadow-xl hover:shadow-black/10 hover:-translate-y-1',
-          'hover:border-[#5243E9]/20 cursor-pointer',
-          'dark:hover:shadow-black/30 dark:hover:border-[#6366F1]/20'
-        ],
+        true: 'hover:shadow-xl hover:shadow-black/10 hover:-translate-y-1 hover:border-[#5243E9]/20 cursor-pointer',
         false: '',
       },
     },
@@ -91,7 +75,7 @@ const CardTitle = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('font-semibold text-lg leading-none tracking-tight text-[#1E2A3B] dark:text-[#E2E8F0]', className)}
+    className={cn('font-semibold text-lg leading-none tracking-tight text-[#1E2A3B]', className)}
     {...props}
   >
     {children}
@@ -105,7 +89,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn('text-sm text-[#64748B] dark:text-[#94A3B8]', className)}
+    className={cn('text-sm text-[#64748B]', className)}
     {...props}
   />
 ));

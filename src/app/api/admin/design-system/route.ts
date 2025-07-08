@@ -74,9 +74,6 @@ const DesignSystemSchema = z.object({
   breakpointXl: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Breakpoint must be in px, rem, or em'),
   breakpoint2xl: z.string().trim().regex(/^\d+(\.\d+)?(px|rem|em)$/, 'Breakpoint must be in px, rem, or em'),
   
-  // Theme Mode
-  themeMode: z.enum(['light', 'dark', 'auto']),
-  
   // Custom Variables (optional JSON string)
   customVariables: z.string().nullable().optional(),
   

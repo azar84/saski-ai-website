@@ -84,12 +84,8 @@ interface DesignSystem {
   breakpointLg: string;
   breakpointXl: string;
   breakpoint2xl: string;
-  // Theme Mode
-  themeMode: 'light' | 'dark' | 'auto';
   // Custom Variables
   customVariables?: string;
-  // Meta
-  isActive: boolean;
 }
 
 interface ColorPickerProps {
@@ -373,7 +369,7 @@ const DesignSystemManager: React.FC = () => {
   ];
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -1037,43 +1033,6 @@ const DesignSystemManager: React.FC = () => {
                   />
                   <p className="text-xs text-gray-500 mt-1">Complex animations and page transitions</p>
                 </div>
-              </div>
-            </Card>
-
-            {/* Theme Mode */}
-            <Card className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">
-                Theme Mode
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  {(['light', 'dark', 'auto'] as const).map((mode) => (
-                    <label key={mode} className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="themeMode"
-                        value={mode}
-                        checked={designSystem.themeMode === mode}
-                        onChange={(e) => updateDesignSystem('themeMode', e.target.value)}
-                        className="text-blue-600 focus:ring-blue-500"
-                        style={{ 
-                          appearance: 'none',
-                          WebkitAppearance: 'none',
-                          MozAppearance: 'none'
-                        }}
-                      />
-                      <span className="flex items-center space-x-2">
-                        {mode === 'light' && <Sun className="w-4 h-4" />}
-                        {mode === 'dark' && <Moon className="w-4 h-4" />}
-                        {mode === 'auto' && <Monitor className="w-4 h-4" />}
-                        <span className="capitalize">{mode}</span>
-                      </span>
-                    </label>
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600">
-                  Choose the default theme mode for your website. Auto mode will respect user's system preference.
-                </p>
               </div>
             </Card>
           </div>

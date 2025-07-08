@@ -32,6 +32,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Handle newsletter subscription if enabled
+    if (form.newsletterAction && form.newsletterEmailField) {
+      const newsletterEmail = formData[form.newsletterEmailField];
+      if (newsletterEmail && typeof newsletterEmail === 'string' && newsletterEmail.includes('@')) {
+        try {
+          const email = newsletterEmail.trim().toLowerCase();
+          
+          // Check if subscriber already exists
+          const existingSubscriber = await prisma.newsletterSubscriber.findUnique({
+            where: { email }
+          });
+
+          if (existingSubscriber) {
+            // Update existing subscriber to subscribed if they were unsubscribed
+            if (!existingSubscriber.subscribed) {
+              await prisma.newsletterSubscriber.update({
+                where: { id: existingSubscriber.id },
+                data: { subscribed: true, updatedAt: new Date() }
+              });
+            }
+          } else {
+            // Create new subscriber
+            await prisma.newsletterSubscriber.create({
+              data: {
+                email,
+                subscribed: true
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Error handling newsletter subscription:', error);
+          // Don't fail the form submission if newsletter subscription fails
+        }
+      }
+    }
+
     // Store the form submission first
     const submission = await prisma.formSubmission.create({
       data: {

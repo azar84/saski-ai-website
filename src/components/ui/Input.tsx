@@ -9,18 +9,9 @@ const inputVariants = cva(
   {
     variants: {
       variant: {
-        default: [
-          'border-[#E2E8F0] text-[#1E2A3B] focus-visible:ring-[#5243E9] focus-visible:border-[#5243E9]',
-          'dark:border-[#27364B] dark:text-[#E2E8F0] dark:focus-visible:ring-[#6366F1] dark:focus-visible:border-[#6366F1]'
-        ],
-        filled: [
-          'bg-[#F6F8FC] border-transparent text-[#1E2A3B] focus-visible:ring-[#5243E9] focus-visible:bg-white focus-visible:border-[#5243E9]',
-          'dark:bg-[#1E2A3B] dark:text-[#E2E8F0] dark:focus-visible:ring-[#6366F1] dark:focus-visible:bg-[#27364B] dark:focus-visible:border-[#6366F1]'
-        ],
-        ghost: [
-          'border-transparent text-[#1E2A3B] focus-visible:ring-[#5243E9] focus-visible:border-[#5243E9]',
-          'dark:text-[#E2E8F0] dark:focus-visible:ring-[#6366F1] dark:focus-visible:border-[#6366F1]'
-        ],
+        default: 'border-[#E2E8F0] text-[#1E2A3B] focus-visible:ring-[#5243E9] focus-visible:border-[#5243E9]',
+        filled: 'bg-[#F6F8FC] border-transparent text-[#1E2A3B] focus-visible:ring-[#5243E9] focus-visible:bg-white focus-visible:border-[#5243E9]',
+        ghost: 'border-transparent text-[#1E2A3B] focus-visible:ring-[#5243E9] focus-visible:border-[#5243E9]',
       },
       size: {
         sm: 'h-9 px-3 text-xs',
@@ -71,7 +62,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label 
             htmlFor={inputId}
-            className="block text-sm font-medium text-[#1E2A3B] mb-2 dark:text-[#E2E8F0]"
+            className="block text-sm font-medium text-[#1E2A3B] mb-2"
           >
             {label}
           </label>
@@ -79,7 +70,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] dark:text-[#94A3B8]">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]">
               {leftIcon}
             </div>
           )}
@@ -97,7 +88,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           />
           
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] dark:text-[#94A3B8]">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B]">
               {rightIcon}
             </div>
           )}
@@ -111,7 +102,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               </p>
             )}
             {description && !error && (
-              <p className="text-sm text-[#64748B] dark:text-[#94A3B8]">
+              <p className="text-sm text-[#64748B]">
                 {description}
               </p>
             )}

@@ -610,7 +610,7 @@ export default function ClientHeader({
                   >
                     <X 
                       className="w-6 h-6 group-hover:text-[#7C3AED] transition-colors duration-300" 
-                      style={{ color: designSystem?.grayLight || '#f8fafc' }}
+                      style={{ color: finalMenuTextColor }}
                     />
                   </motion.div>
                 ) : (
@@ -621,7 +621,7 @@ export default function ClientHeader({
                   >
                     <Menu 
                       className="w-6 h-6 group-hover:text-[var(--color-primary)] transition-colors duration-300" 
-                      style={{ color: designSystem?.grayLight || '#f8fafc' }}
+                      style={{ color: finalMenuTextColor }}
                     />
                   </motion.div>
                 )}
@@ -639,11 +639,15 @@ export default function ClientHeader({
             animate={{ opacity: 1, height: 'auto', y: 0 }}
             exit={{ opacity: 0, height: 0, y: -20 }}
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="lg:hidden border-t border-gray-100 bg-gradient-to-br from-white via-gray-50/50 to-white shadow-2xl backdrop-blur-xl"
+            className="lg:hidden border-t border-gray-200 bg-white/95 backdrop-blur-xl shadow-2xl"
             id="navbarSupportedContent"
+            style={{
+              backgroundColor: `${backgroundColor}f5`, // 96% opacity
+              borderTopColor: `${finalMenuTextColor}20`
+            }}
           >
             {/* Decorative gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/5 via-transparent to-[#7C3AED]/5 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/3 via-transparent to-[#7C3AED]/3 pointer-events-none" />
             <div className="max-w-7xl mx-auto px-6 py-8 relative z-10">
               <nav className="space-y-2">
                 {navigationItems.map((item, index) => (

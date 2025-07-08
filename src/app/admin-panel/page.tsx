@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { useDesignSystem } from '@/hooks/useDesignSystem';
+import { useDesignSystem, getAdminPanelColors } from '@/hooks/useDesignSystem';
 import HeroManager from './components/HeroManager';
 import HeroSectionsManager from './components/HeroSectionsManager';
 import FeaturesManager from './components/FeaturesManager';
@@ -47,11 +47,12 @@ import HtmlSectionsManager from './components/HtmlSectionsManager';
 import MenuManager from './components/MenuManager';
 import SEOManager from './components/SEOManager';
 import ScriptSectionManager from './components/ScriptSectionManager';
+import NewsletterManager from './components/NewsletterManager';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features-management' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'html-sections' | 'script-installation' | 'menu-management' | 'seo-manager' | 'users' | 'analytics' | 'site-settings' | 'cta-manager' | 'design-system';
+type Section = 'dashboard' | 'pages' | 'page-builder' | 'home-hero' | 'hero-sections' | 'features-management' | 'media-sections' | 'media-library' | 'pricing' | 'testimonials' | 'faq-management' | 'contact-management' | 'newsletter-management' | 'html-sections' | 'script-installation' | 'menu-management' | 'seo-manager' | 'users' | 'analytics' | 'site-settings' | 'cta-manager' | 'design-system';
 
 const navigation = [
   { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-600' },
@@ -66,6 +67,7 @@ const navigation = [
   { id: 'pricing', name: 'Pricing Plans', icon: DollarSign, color: 'text-green-600' },
   { id: 'faq-management', name: 'FAQ Management', icon: MessageSquare, color: 'text-cyan-600' },
   { id: 'contact-management', name: 'Forms Management', icon: Mail, color: 'text-blue-600' },
+  { id: 'newsletter-management', name: 'Newsletter Subscribers', icon: Users, color: 'text-green-600' },
   { id: 'html-sections', name: 'HTML Sections', icon: Grid, color: 'text-purple-600' },
   { id: 'script-installation', name: 'Script Installation', icon: Zap, color: 'text-orange-600' },
   { id: 'menu-management', name: 'Menu Management', icon: Menu, color: 'text-indigo-600' },
@@ -81,27 +83,64 @@ export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState<Section>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { designSystem } = useDesignSystem();
+  const adminColors = getAdminPanelColors();
 
   const renderContent = () => {
     switch (activeSection) {
       case 'pages':
-        return <PagesManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <PagesManager />
+          </div>
+        );
       case 'page-builder':
-        return <PageBuilder />;
+        return (
+          <div className="p-8 space-y-8">
+            <PageBuilder />
+          </div>
+        );
       case 'cta-manager':
-        return <CTAManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <CTAManager />
+          </div>
+        );
       case 'home-hero':
-        return <HomeHeroManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <HomeHeroManager />
+          </div>
+        );
       case 'hero-sections':
-        return <HeroSectionsManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <HeroSectionsManager />
+          </div>
+        );
       case 'features-management':
-        return <FeaturesManagement />;
+        return (
+          <div className="p-8 space-y-8">
+            <FeaturesManagement />
+          </div>
+        );
       case 'site-settings':
-        return <SiteSettingsManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <SiteSettingsManager />
+          </div>
+        );
       case 'design-system':
-        return <DesignSystemManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <DesignSystemManager />
+          </div>
+        );
       case 'media-sections':
-        return <MediaSectionsManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <MediaSectionsManager />
+          </div>
+        );
       case 'media-library':
         return (
           <div className="h-full">
@@ -109,34 +148,68 @@ export default function AdminPanel() {
           </div>
         );
       case 'pricing':
-        return <ConfigurablePricingManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <ConfigurablePricingManager />
+          </div>
+        );
       case 'faq-management':
-        return <FAQManager />;
+        return (
+          <div className="space-y-8">
+            <FAQManager />
+          </div>
+        );
       case 'contact-management':
-        return <ContactManager />;
+        return (
+          <div className="space-y-8">
+            <ContactManager />
+          </div>
+        );
+      case 'newsletter-management':
+        return (
+          <div className="p-8 space-y-8">
+            <NewsletterManager />
+          </div>
+        );
       case 'html-sections':
-        return <HtmlSectionsManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <HtmlSectionsManager />
+          </div>
+        );
       case 'script-installation':
-        return <ScriptSectionManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <ScriptSectionManager />
+          </div>
+        );
       case 'menu-management':
-        return <MenuManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <MenuManager />
+          </div>
+        );
       case 'seo-manager':
-        return <SEOManager />;
+        return (
+          <div className="p-8 space-y-8">
+            <SEOManager />
+          </div>
+        );
       case 'testimonials':
         return (
           <div className="p-8">
             <div className="text-center py-12">
               <Users 
                 className="w-16 h-16 mx-auto mb-4" 
-                style={{ color: designSystem?.textMuted || '#9CA3AF' }}
+                style={{ color: adminColors.textMuted }}
               />
               <h2 
                 className="text-2xl font-bold mb-2"
-                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                style={{ color: adminColors.textPrimary }}
               >
                 Testimonials
               </h2>
-              <p style={{ color: designSystem?.textSecondary || '#6B7280' }}>
+              <p style={{ color: adminColors.textSecondary }}>
                 Testimonials management coming soon...
               </p>
             </div>
@@ -148,15 +221,15 @@ export default function AdminPanel() {
             <div className="text-center py-12">
               <Users 
                 className="w-16 h-16 mx-auto mb-4" 
-                style={{ color: designSystem?.textMuted || '#9CA3AF' }}
+                style={{ color: adminColors.textMuted }}
               />
               <h2 
                 className="text-2xl font-bold mb-2"
-                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                style={{ color: adminColors.textPrimary }}
               >
                 Users
               </h2>
-              <p style={{ color: designSystem?.textSecondary || '#6B7280' }}>
+              <p style={{ color: adminColors.textSecondary }}>
                 User management coming soon...
               </p>
             </div>
@@ -168,15 +241,15 @@ export default function AdminPanel() {
             <div className="text-center py-12">
               <BarChart3 
                 className="w-16 h-16 mx-auto mb-4" 
-                style={{ color: designSystem?.textMuted || '#9CA3AF' }}
+                style={{ color: adminColors.textMuted }}
               />
               <h2 
                 className="text-2xl font-bold mb-2"
-                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                style={{ color: adminColors.textPrimary }}
               >
                 Analytics
               </h2>
-              <p style={{ color: designSystem?.textSecondary || '#6B7280' }}>
+              <p style={{ color: adminColors.textSecondary }}>
                 Analytics dashboard coming soon...
               </p>
             </div>
@@ -194,7 +267,7 @@ export default function AdminPanel() {
               }}
             >
               <h1 className="text-3xl font-bold mb-2">Welcome to Saski AI Admin</h1>
-              <p style={{ color: designSystem?.textMuted || '#E2E8F0' }}>Manage your website content, pages, and settings from this central dashboard.</p>
+              <p style={{ color: '#E2E8F0' }}>Manage your website content, pages, and settings from this central dashboard.</p>
             </div>
 
             {/* Quick Stats */}
@@ -202,8 +275,8 @@ export default function AdminPanel() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p style={{ color: designSystem?.textSecondary || '#6B7280' }} className="text-sm font-medium">Total Pages</p>
-                    <p style={{ color: designSystem?.textPrimary || '#1F2937' }} className="text-2xl font-bold">8</p>
+                    <p style={{ color: adminColors.textSecondary }} className="text-sm font-medium">Total Pages</p>
+                    <p style={{ color: adminColors.textPrimary }} className="text-2xl font-bold">8</p>
                   </div>
                   <div 
                     className="p-3 rounded-lg"
@@ -228,8 +301,8 @@ export default function AdminPanel() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p style={{ color: designSystem?.textSecondary || '#6B7280' }} className="text-sm font-medium">Hero Sections</p>
-                    <p style={{ color: designSystem?.textPrimary || '#1F2937' }} className="text-2xl font-bold">15</p>
+                    <p style={{ color: adminColors.textSecondary }} className="text-sm font-medium">Hero Sections</p>
+                    <p style={{ color: adminColors.textPrimary }} className="text-2xl font-bold">15</p>
                   </div>
                   <div 
                     className="p-3 rounded-lg"
@@ -254,8 +327,8 @@ export default function AdminPanel() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p style={{ color: designSystem?.textSecondary || '#6B7280' }} className="text-sm font-medium">Features</p>
-                    <p style={{ color: designSystem?.textPrimary || '#1F2937' }} className="text-2xl font-bold">42</p>
+                    <p style={{ color: adminColors.textSecondary }} className="text-sm font-medium">Features</p>
+                    <p style={{ color: adminColors.textPrimary }} className="text-2xl font-bold">42</p>
                   </div>
                   <div 
                     className="p-3 rounded-lg"
@@ -280,8 +353,8 @@ export default function AdminPanel() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p style={{ color: designSystem?.textSecondary || '#6B7280' }} className="text-sm font-medium">Pricing Plans</p>
-                    <p style={{ color: designSystem?.textPrimary || '#1F2937' }} className="text-2xl font-bold">3</p>
+                    <p style={{ color: adminColors.textSecondary }} className="text-sm font-medium">Pricing Plans</p>
+                    <p style={{ color: adminColors.textPrimary }} className="text-2xl font-bold">3</p>
                   </div>
                   <div 
                     className="p-3 rounded-lg"
@@ -308,7 +381,7 @@ export default function AdminPanel() {
             <Card className="p-6">
               <h2 
                 className="text-xl font-semibold mb-4"
-                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                style={{ color: adminColors.textPrimary }}
               >
                 Quick Actions
               </h2>
@@ -348,7 +421,7 @@ export default function AdminPanel() {
             <Card className="p-6">
               <h2 
                 className="text-xl font-semibold mb-4"
-                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                style={{ color: adminColors.textPrimary }}
               >
                 Recent Activity
               </h2>
@@ -366,13 +439,13 @@ export default function AdminPanel() {
                   <div className="flex-1">
                     <p 
                       className="text-sm font-medium"
-                      style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                      style={{ color: adminColors.textPrimary }}
                     >
                       New page "About Us" created
                     </p>
                     <p 
                       className="text-xs"
-                      style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                      style={{ color: adminColors.textSecondary }}
                     >
                       2 hours ago
                     </p>
@@ -391,13 +464,13 @@ export default function AdminPanel() {
                   <div className="flex-1">
                     <p 
                       className="text-sm font-medium"
-                      style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                      style={{ color: adminColors.textPrimary }}
                     >
                       5 new images uploaded to media library
                     </p>
                     <p 
                       className="text-xs"
-                      style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                      style={{ color: adminColors.textSecondary }}
                     >
                       4 hours ago
                     </p>
@@ -416,13 +489,13 @@ export default function AdminPanel() {
                   <div className="flex-1">
                     <p 
                       className="text-sm font-medium"
-                      style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                      style={{ color: adminColors.textPrimary }}
                     >
                       Hero section updated on homepage
                     </p>
                     <p 
                       className="text-xs"
-                      style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                      style={{ color: adminColors.textSecondary }}
                     >
                       6 hours ago
                     </p>
@@ -441,13 +514,13 @@ export default function AdminPanel() {
                   <div className="flex-1">
                     <p 
                       className="text-sm font-medium"
-                      style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                      style={{ color: adminColors.textPrimary }}
                     >
                       New feature "AI Integration" added
                     </p>
                     <p 
                       className="text-xs"
-                      style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                      style={{ color: adminColors.textSecondary }}
                     >
                       1 day ago
                     </p>
@@ -464,26 +537,26 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-        <div 
-          className="flex items-center justify-between h-16 px-6 border-b"
-          style={{ borderColor: designSystem?.grayLight || '#E5E7EB' }}
-        >
-          <div className="flex items-center space-x-2">
-            <div 
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{
-                background: `linear-gradient(to bottom right, ${designSystem?.primaryColor || '#5243E9'}, ${designSystem?.secondaryColor || '#7C3AED'})`
-              }}
-            >
-              <Globe className="w-5 h-5 text-white" />
+                  <div 
+            className="flex items-center justify-between h-16 px-6 border-b"
+            style={{ borderColor: adminColors.border }}
+          >
+            <div className="flex items-center space-x-2">
+              <div 
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(to bottom right, ${designSystem?.primaryColor || '#5243E9'}, ${designSystem?.secondaryColor || '#7C3AED'})`
+                }}
+              >
+                <Globe className="w-5 h-5 text-white" />
+              </div>
+              <span 
+                className="text-xl font-bold"
+                style={{ color: adminColors.textPrimary }}
+              >
+                Saski AI
+              </span>
             </div>
-            <span 
-              className="text-xl font-bold"
-              style={{ color: designSystem?.textPrimary || '#1F2937' }}
-            >
-              Saski AI
-            </span>
-          </div>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
@@ -514,7 +587,7 @@ export default function AdminPanel() {
                       : 'transparent',
                     color: activeSection === item.id 
                       ? 'white'
-                      : designSystem?.textSecondary || '#6B7280'
+                      : adminColors.textSecondary
                   }}
                 >
                   <Icon 
@@ -538,13 +611,13 @@ export default function AdminPanel() {
         {/* Top Bar */}
         <div 
           className="bg-white shadow-sm border-b px-6 py-4 lg:hidden"
-          style={{ borderColor: designSystem?.grayLight || '#E5E7EB' }}
+          style={{ borderColor: adminColors.border }}
         >
           <div className="flex items-center justify-between">
             <button
               onClick={() => setSidebarOpen(true)}
               className="p-2 rounded-md hover:text-gray-600"
-              style={{ color: designSystem?.textSecondary || '#9CA3AF' }}
+              style={{ color: adminColors.textSecondary }}
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -559,7 +632,7 @@ export default function AdminPanel() {
               </div>
               <span 
                 className="text-lg font-bold"
-                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                style={{ color: adminColors.textPrimary }}
               >
                 Saski AI
               </span>

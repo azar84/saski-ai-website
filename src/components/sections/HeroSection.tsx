@@ -374,7 +374,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
         <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-[var(--color-primary-light)]/6 to-[#8B5CF6]/4 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 w-full px-6 lg:px-8 pt-8">
+      <div className="relative z-10 w-full px-6 lg:px-8 pt-8 pb-8 lg:pb-0">
         <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
           
           {/* Left Side - Refined Text & Actions */}
@@ -523,7 +523,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative"
+            className="relative mb-8 lg:mb-0"
           >
             {/* Floating AI Avatar with Subtle Animation */}
             <motion.div
