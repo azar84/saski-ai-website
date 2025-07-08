@@ -265,7 +265,7 @@ export default function ContactSection({
 
   if (submitStatus === 'success') {
     return (
-      <section className={`py-16 ${className}`}>
+      <section className={`pb-16 ${className}`}>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div 
             className="bg-green-50 border border-green-200 rounded-lg p-8"
@@ -293,7 +293,7 @@ export default function ContactSection({
   }
 
   return (
-    <section className={`py-16 ${className}`}>
+    <section className={`pb-16 ${className}`}>
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
