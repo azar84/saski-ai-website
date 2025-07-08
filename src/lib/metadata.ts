@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from './db';
 import { getPageJsonLd, type SiteSettings as JsonLdSiteSettings } from './jsonld';
+import { getOptimalOgImage } from './imageSeo';
 
 interface SEOMetadata {
   title: string;
@@ -49,7 +50,7 @@ async function getSiteSettings() {
       baseUrl: settings?.baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       siteName: settings?.footerCompanyName || 'Saski AI',
       siteDescription: settings?.footerCompanyDescription || 'Transform Your Customer Communication with AI',
-      ogImage: '/og-image.jpg'
+      ogImage: settings?.logoUrl || settings?.logoLightUrl || '/favicon.svg'
     };
   } catch (error) {
     console.error('Error fetching site settings:', error);
@@ -57,7 +58,7 @@ async function getSiteSettings() {
       baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
       siteName: 'Saski AI',
       siteDescription: 'Transform Your Customer Communication with AI',
-      ogImage: '/og-image.jpg'
+      ogImage: '/favicon.svg'
     };
   }
 }
@@ -95,7 +96,9 @@ async function getJsonLdSiteSettings(): Promise<JsonLdSiteSettings> {
 // Generate metadata for dynamic pages (from database)
 export async function generatePageMetadata(slug: string): Promise<Metadata> {
   try {
-    const [page, siteSettings] = await Promise.all([
+    const siteSettings = await getSiteSettings();
+    
+    const [page, optimalImage] = await Promise.all([
       prisma.page.findFirst({
         where: { slug },
         select: {
@@ -106,7 +109,7 @@ export async function generatePageMetadata(slug: string): Promise<Metadata> {
           updatedAt: true
         }
       }),
-      getSiteSettings()
+      getOptimalOgImage(slug, siteSettings.ogImage)
     ]);
 
     if (!page) {
@@ -116,11 +119,13 @@ export async function generatePageMetadata(slug: string): Promise<Metadata> {
     const title = page.metaTitle || page.title || 'Page';
     const description = page.metaDesc || siteSettings.siteDescription;
     const canonicalUrl = `${siteSettings.baseUrl}/${slug}`;
+    const ogImage = optimalImage?.url || siteSettings.ogImage;
 
     return generateMetadata({
       title: `${title} | ${siteSettings.siteName}`,
       description,
       canonicalUrl,
+      ogImage,
       ogType: 'website',
       lastModified: page.updatedAt?.toISOString()
     });
@@ -168,11 +173,15 @@ export async function generateFAQCategoryMetadata(categorySlug: string): Promise
     const description = category.description || 
       `Find answers to frequently asked questions about ${category.name}. ${category._count.faqs} questions available.`;
     const canonicalUrl = `${siteSettings.baseUrl}/faq/${categorySlug}`;
+    
+    // Try to get optimal image for FAQ category page
+    const optimalImage = await getOptimalOgImage(`faq-${categorySlug}`, siteSettings.ogImage);
 
     return generateMetadata({
       title,
       description,
       canonicalUrl,
+      ogImage: optimalImage?.url || siteSettings.ogImage,
       ogType: 'website',
       lastModified: category.updatedAt.toISOString()
     });
@@ -229,11 +238,15 @@ export async function generateFAQQuestionMetadata(categorySlug: string, question
       ? `${faq.answer.substring(0, 157)}...`
       : faq.answer;
     const canonicalUrl = `${siteSettings.baseUrl}/faq/${categorySlug}/${questionSlug}`;
+    
+    // Try to get optimal image for FAQ question page
+    const optimalImage = await getOptimalOgImage(`faq-${categorySlug}-${questionSlug}`, siteSettings.ogImage);
 
     return generateMetadata({
       title,
       description,
       canonicalUrl,
+      ogImage: optimalImage?.url || siteSettings.ogImage,
       ogType: 'article',
       lastModified: faq.updatedAt.toISOString()
     });
@@ -479,6 +492,15 @@ export async function generateFAQQuestionMetadataWithJsonLd(categorySlug: string
 async function generateMetadata(seoData: SEOMetadata): Promise<Metadata> {
   const siteSettings = await getSiteSettings();
   
+  // Determine image dimensions based on image type
+  const isSvg = (seoData.ogImage || siteSettings.ogImage)?.includes('.svg');
+  const imageConfig = {
+    url: seoData.ogImage || siteSettings.ogImage,
+    width: isSvg ? 1200 : 1200,
+    height: isSvg ? 630 : 630,
+    alt: seoData.title,
+  };
+  
   const metadata: Metadata = {
     title: seoData.title,
     description: seoData.description,
@@ -491,14 +513,7 @@ async function generateMetadata(seoData: SEOMetadata): Promise<Metadata> {
       description: seoData.description,
       url: seoData.canonicalUrl,
       siteName: siteSettings.siteName,
-      images: [
-        {
-          url: seoData.ogImage || siteSettings.ogImage,
-          width: 1200,
-          height: 630,
-          alt: seoData.title,
-        },
-      ],
+      images: [imageConfig],
       locale: "en_US",
       type: seoData.ogType || "website",
     },
