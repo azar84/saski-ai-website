@@ -238,7 +238,7 @@ export default function FAQSection({
             
             <div className="max-w-2xl mx-auto relative">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/4 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
                   placeholder={searchPlaceholder}
@@ -251,7 +251,7 @@ export default function FAQSection({
               {searchTerm && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/4 text-gray-400 hover:text-gray-600"
                 >
                   <Plus className="w-5 h-5 rotate-45" />
                 </button>

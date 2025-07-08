@@ -246,7 +246,7 @@ export default function ContactSection({
           <div className="relative">
             {FieldIcon && (
               <FieldIcon 
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+                className="absolute left-3 top-1/2 transform -translate-y-1/4 w-5 h-5"
                 style={{ color: designSystem?.textSecondary || '#6b7280' }}
               />
             )}

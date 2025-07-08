@@ -229,7 +229,7 @@ const FormSubmissionsManager: React.FC = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/4 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search submissions..."
                 value={searchTerm}

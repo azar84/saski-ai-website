@@ -218,7 +218,7 @@ const UniversalIconPicker: React.FC<UniversalIconPickerProps> = ({
             <div className="p-4 border-b border-gray-100">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/4 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search all icon libraries..."

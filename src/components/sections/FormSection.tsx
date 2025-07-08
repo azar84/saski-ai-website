@@ -728,7 +728,7 @@ export default function FormSection({
 
     // Icon container styles using design system colors
     const iconContainerClasses = `
-      absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 z-10
+      absolute left-3 top-1/2 transform -translate-y-1/4 transition-colors duration-200 z-10
     `;
 
     // Label styles using design system colors and typography
@@ -865,7 +865,7 @@ export default function FormSection({
                 </option>
             ))}
           </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 pointer-events-none" style={{ color: textSecondary }} />
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/4 w-5 h-5 pointer-events-none" style={{ color: textSecondary }} />
           </div>
           {field.helpText && !isError && (
             <p className="mt-1 text-xs" style={{ color: textSecondary }}>
@@ -1141,7 +1141,7 @@ export default function FormSection({
             <button
               type="button"
               onClick={() => setShowPassword(prev => ({ ...prev, [field.fieldName]: !showPasswordForField }))}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 transition-colors hover:text-gray-600"
+              className="absolute right-4 top-1/2 transform -translate-y-1/4 transition-colors hover:text-gray-600"
               style={{ color: textSecondary }}
             >
               {showPasswordForField ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
