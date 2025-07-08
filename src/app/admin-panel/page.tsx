@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { useDesignSystem } from '@/hooks/useDesignSystem';
 import HeroManager from './components/HeroManager';
 import HeroSectionsManager from './components/HeroSectionsManager';
 import FeaturesManager from './components/FeaturesManager';
@@ -79,6 +80,7 @@ const navigation = [
 export default function AdminPanel() {
   const [activeSection, setActiveSection] = useState<Section>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { designSystem } = useDesignSystem();
 
   const renderContent = () => {
     switch (activeSection) {
@@ -124,9 +126,19 @@ export default function AdminPanel() {
         return (
           <div className="p-8">
             <div className="text-center py-12">
-              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Testimonials</h2>
-              <p className="text-gray-600">Testimonials management coming soon...</p>
+              <Users 
+                className="w-16 h-16 mx-auto mb-4" 
+                style={{ color: designSystem?.textMuted || '#9CA3AF' }}
+              />
+              <h2 
+                className="text-2xl font-bold mb-2"
+                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+              >
+                Testimonials
+              </h2>
+              <p style={{ color: designSystem?.textSecondary || '#6B7280' }}>
+                Testimonials management coming soon...
+              </p>
             </div>
           </div>
         );
@@ -134,9 +146,19 @@ export default function AdminPanel() {
         return (
           <div className="p-8">
             <div className="text-center py-12">
-              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Users</h2>
-              <p className="text-gray-600">User management coming soon...</p>
+              <Users 
+                className="w-16 h-16 mx-auto mb-4" 
+                style={{ color: designSystem?.textMuted || '#9CA3AF' }}
+              />
+              <h2 
+                className="text-2xl font-bold mb-2"
+                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+              >
+                Users
+              </h2>
+              <p style={{ color: designSystem?.textSecondary || '#6B7280' }}>
+                User management coming soon...
+              </p>
             </div>
           </div>
         );
@@ -144,9 +166,19 @@ export default function AdminPanel() {
         return (
           <div className="p-8">
             <div className="text-center py-12">
-              <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Analytics</h2>
-              <p className="text-gray-600">Analytics dashboard coming soon...</p>
+              <BarChart3 
+                className="w-16 h-16 mx-auto mb-4" 
+                style={{ color: designSystem?.textMuted || '#9CA3AF' }}
+              />
+              <h2 
+                className="text-2xl font-bold mb-2"
+                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+              >
+                Analytics
+              </h2>
+              <p style={{ color: designSystem?.textSecondary || '#6B7280' }}>
+                Analytics dashboard coming soon...
+              </p>
             </div>
           </div>
         );
@@ -155,9 +187,14 @@ export default function AdminPanel() {
         return (
           <div className="p-8 space-y-8">
             {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-[#5243E9] to-[#7C3AED] rounded-xl p-8 text-white">
+            <div 
+              className="rounded-xl p-8 text-white"
+              style={{
+                background: `linear-gradient(to right, ${designSystem?.primaryColor || '#5243E9'}, ${designSystem?.secondaryColor || '#7C3AED'})`
+              }}
+            >
               <h1 className="text-3xl font-bold mb-2">Welcome to Saski AI Admin</h1>
-              <p className="text-[#E2E8F0]">Manage your website content, pages, and settings from this central dashboard.</p>
+              <p style={{ color: designSystem?.textMuted || '#E2E8F0' }}>Manage your website content, pages, and settings from this central dashboard.</p>
             </div>
 
             {/* Quick Stats */}
@@ -165,67 +202,116 @@ export default function AdminPanel() {
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Total Pages</p>
-                    <p className="text-2xl font-bold text-gray-900">8</p>
+                    <p style={{ color: designSystem?.textSecondary || '#6B7280' }} className="text-sm font-medium">Total Pages</p>
+                    <p style={{ color: designSystem?.textPrimary || '#1F2937' }} className="text-2xl font-bold">8</p>
                   </div>
-                  <div className="p-3 bg-[#10B981]/10 rounded-lg">
-                    <FileText className="w-6 h-6 text-[#10B981]" />
+                  <div 
+                    className="p-3 rounded-lg"
+                    style={{ backgroundColor: `${designSystem?.successColor || '#10B981'}1A` }}
+                  >
+                    <FileText 
+                      className="w-6 h-6" 
+                      style={{ color: designSystem?.successColor || '#10B981' }}
+                    />
                   </div>
                 </div>
                 <div className="mt-4 flex items-center">
-                  <span className="text-sm text-[#10B981] font-medium">+12% from last month</span>
+                  <span 
+                    className="text-sm font-medium"
+                    style={{ color: designSystem?.successColor || '#10B981' }}
+                  >
+                    +12% from last month
+                  </span>
                 </div>
               </Card>
 
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Hero Sections</p>
-                    <p className="text-2xl font-bold text-gray-900">15</p>
+                    <p style={{ color: designSystem?.textSecondary || '#6B7280' }} className="text-sm font-medium">Hero Sections</p>
+                    <p style={{ color: designSystem?.textPrimary || '#1F2937' }} className="text-2xl font-bold">15</p>
                   </div>
-                  <div className="p-3 bg-[#5243E9]/10 rounded-lg">
-                    <Image className="w-6 h-6 text-[#5243E9]" />
+                  <div 
+                    className="p-3 rounded-lg"
+                    style={{ backgroundColor: `${designSystem?.primaryColor || '#5243E9'}1A` }}
+                  >
+                    <Image 
+                      className="w-6 h-6" 
+                      style={{ color: designSystem?.primaryColor || '#5243E9' }}
+                    />
                   </div>
                 </div>
                 <div className="mt-4 flex items-center">
-                  <span className="text-sm text-[#5243E9] font-medium">+8% from last month</span>
+                  <span 
+                    className="text-sm font-medium"
+                    style={{ color: designSystem?.primaryColor || '#5243E9' }}
+                  >
+                    +8% from last month
+                  </span>
                 </div>
               </Card>
 
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Features</p>
-                    <p className="text-2xl font-bold text-gray-900">42</p>
+                    <p style={{ color: designSystem?.textSecondary || '#6B7280' }} className="text-sm font-medium">Features</p>
+                    <p style={{ color: designSystem?.textPrimary || '#1F2937' }} className="text-2xl font-bold">42</p>
                   </div>
-                  <div className="p-3 bg-amber-100 rounded-lg">
-                    <Star className="w-6 h-6 text-amber-600" />
+                  <div 
+                    className="p-3 rounded-lg"
+                    style={{ backgroundColor: `${designSystem?.warningColor || '#F59E0B'}1A` }}
+                  >
+                    <Star 
+                      className="w-6 h-6" 
+                      style={{ color: designSystem?.warningColor || '#F59E0B' }}
+                    />
                   </div>
                 </div>
                 <div className="mt-4 flex items-center">
-                  <span className="text-sm text-amber-600 font-medium">+24% from last month</span>
+                  <span 
+                    className="text-sm font-medium"
+                    style={{ color: designSystem?.warningColor || '#F59E0B' }}
+                  >
+                    +24% from last month
+                  </span>
                 </div>
               </Card>
 
               <Card className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Pricing Plans</p>
-                    <p className="text-2xl font-bold text-gray-900">3</p>
+                    <p style={{ color: designSystem?.textSecondary || '#6B7280' }} className="text-sm font-medium">Pricing Plans</p>
+                    <p style={{ color: designSystem?.textPrimary || '#1F2937' }} className="text-2xl font-bold">3</p>
                   </div>
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <DollarSign className="w-6 h-6 text-green-600" />
+                  <div 
+                    className="p-3 rounded-lg"
+                    style={{ backgroundColor: `${designSystem?.successColor || '#10B981'}1A` }}
+                  >
+                    <DollarSign 
+                      className="w-6 h-6" 
+                      style={{ color: designSystem?.successColor || '#10B981' }}
+                    />
                   </div>
                 </div>
                 <div className="mt-4 flex items-center">
-                  <span className="text-sm text-green-600 font-medium">Professional most popular</span>
+                  <span 
+                    className="text-sm font-medium"
+                    style={{ color: designSystem?.successColor || '#10B981' }}
+                  >
+                    Professional most popular
+                  </span>
                 </div>
               </Card>
             </div>
 
             {/* Quick Actions */}
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+              <h2 
+                className="text-xl font-semibold mb-4"
+                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+              >
+                Quick Actions
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Button
                   onClick={() => setActiveSection('pages')}
@@ -260,42 +346,111 @@ export default function AdminPanel() {
 
             {/* Recent Activity */}
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+              <h2 
+                className="text-xl font-semibold mb-4"
+                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+              >
+                Recent Activity
+              </h2>
               <div className="space-y-4">
                 <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <FileText className="w-4 h-4 text-green-600" />
+                  <div 
+                    className="p-2 rounded-lg"
+                    style={{ backgroundColor: `${designSystem?.successColor || '#10B981'}1A` }}
+                  >
+                    <FileText 
+                      className="w-4 h-4" 
+                      style={{ color: designSystem?.successColor || '#10B981' }}
+                    />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">New page "About Us" created</p>
-                    <p className="text-xs text-gray-500">2 hours ago</p>
+                    <p 
+                      className="text-sm font-medium"
+                      style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                    >
+                      New page "About Us" created
+                    </p>
+                    <p 
+                      className="text-xs"
+                      style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                    >
+                      2 hours ago
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <FolderOpen className="w-4 h-4 text-blue-600" />
+                  <div 
+                    className="p-2 rounded-lg"
+                    style={{ backgroundColor: `${designSystem?.infoColor || '#3B82F6'}1A` }}
+                  >
+                    <FolderOpen 
+                      className="w-4 h-4" 
+                      style={{ color: designSystem?.infoColor || '#3B82F6' }}
+                    />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">5 new images uploaded to media library</p>
-                    <p className="text-xs text-gray-500">4 hours ago</p>
+                    <p 
+                      className="text-sm font-medium"
+                      style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                    >
+                      5 new images uploaded to media library
+                    </p>
+                    <p 
+                      className="text-xs"
+                      style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                    >
+                      4 hours ago
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Image className="w-4 h-4 text-purple-600" />
+                  <div 
+                    className="p-2 rounded-lg"
+                    style={{ backgroundColor: `${designSystem?.secondaryColor || '#7C3AED'}1A` }}
+                  >
+                    <Image 
+                      className="w-4 h-4" 
+                      style={{ color: designSystem?.secondaryColor || '#7C3AED' }}
+                    />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">Hero section updated on homepage</p>
-                    <p className="text-xs text-gray-500">6 hours ago</p>
+                    <p 
+                      className="text-sm font-medium"
+                      style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                    >
+                      Hero section updated on homepage
+                    </p>
+                    <p 
+                      className="text-xs"
+                      style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                    >
+                      6 hours ago
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-amber-100 rounded-lg">
-                    <Star className="w-4 h-4 text-amber-600" />
+                  <div 
+                    className="p-2 rounded-lg"
+                    style={{ backgroundColor: `${designSystem?.warningColor || '#F59E0B'}1A` }}
+                  >
+                    <Star 
+                      className="w-4 h-4" 
+                      style={{ color: designSystem?.warningColor || '#F59E0B' }}
+                    />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">New feature "AI Integration" added</p>
-                    <p className="text-xs text-gray-500">1 day ago</p>
+                    <p 
+                      className="text-sm font-medium"
+                      style={{ color: designSystem?.textPrimary || '#1F2937' }}
+                    >
+                      New feature "AI Integration" added
+                    </p>
+                    <p 
+                      className="text-xs"
+                      style={{ color: designSystem?.textSecondary || '#6B7280' }}
+                    >
+                      1 day ago
+                    </p>
                   </div>
                 </div>
               </div>
@@ -309,12 +464,25 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div 
+          className="flex items-center justify-between h-16 px-6 border-b"
+          style={{ borderColor: designSystem?.grayLight || '#E5E7EB' }}
+        >
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#5243E9] to-[#7C3AED] rounded-lg flex items-center justify-center">
+            <div 
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{
+                background: `linear-gradient(to bottom right, ${designSystem?.primaryColor || '#5243E9'}, ${designSystem?.secondaryColor || '#7C3AED'})`
+              }}
+            >
               <Globe className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">Saski AI</span>
+            <span 
+              className="text-xl font-bold"
+              style={{ color: designSystem?.textPrimary || '#1F2937' }}
+            >
+              Saski AI
+            </span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -337,11 +505,26 @@ export default function AdminPanel() {
                   }}
                   className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     activeSection === item.id
-                      ? 'bg-[#5243E9] text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'text-white'
+                      : 'hover:bg-gray-100'
                   }`}
+                  style={{
+                    backgroundColor: activeSection === item.id 
+                      ? designSystem?.primaryColor || '#5243E9'
+                      : 'transparent',
+                    color: activeSection === item.id 
+                      ? 'white'
+                      : designSystem?.textSecondary || '#6B7280'
+                  }}
                 >
-                  <Icon className={`mr-3 w-5 h-5 ${activeSection === item.id ? 'text-white' : item.color}`} />
+                  <Icon 
+                    className="mr-3 w-5 h-5" 
+                    style={{ 
+                      color: activeSection === item.id 
+                        ? 'white' 
+                        : designSystem?.primaryColor || '#5243E9'
+                    }} 
+                  />
                   {item.name}
                 </button>
               );
@@ -353,19 +536,33 @@ export default function AdminPanel() {
       {/* Main Content */}
       <div className="flex-1 lg:ml-0">
         {/* Top Bar */}
-        <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 lg:hidden">
+        <div 
+          className="bg-white shadow-sm border-b px-6 py-4 lg:hidden"
+          style={{ borderColor: designSystem?.grayLight || '#E5E7EB' }}
+        >
           <div className="flex items-center justify-between">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-md text-gray-400 hover:text-gray-600"
+              className="p-2 rounded-md hover:text-gray-600"
+              style={{ color: designSystem?.textSecondary || '#9CA3AF' }}
             >
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-[#5243E9] to-[#7C3AED] rounded-md flex items-center justify-center">
+              <div 
+                className="w-6 h-6 rounded-md flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(to bottom right, ${designSystem?.primaryColor || '#5243E9'}, ${designSystem?.secondaryColor || '#7C3AED'})`
+                }}
+              >
                 <Globe className="w-4 h-4 text-white" />
               </div>
-              <span className="text-lg font-bold text-gray-900">Saski AI</span>
+              <span 
+                className="text-lg font-bold"
+                style={{ color: designSystem?.textPrimary || '#1F2937' }}
+              >
+                Saski AI
+              </span>
             </div>
           </div>
         </div>
