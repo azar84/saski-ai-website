@@ -1423,7 +1423,7 @@ export default function FormSection({
 
           {/* Main Content Container */}
           <div className={`
-            ${(form.contactPosition === 'left' || form.contactPosition === 'right') && activeContactInfo ? 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start' : 
+            ${(form.contactPosition === 'left' || form.contactPosition === 'right') && activeContactInfo ? 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start pt-[1vh] lg:pt-[10vh]' : 
               'max-w-4xl mx-auto'}
           `}>
             {/* Contact Information - Top Position */}
