@@ -38,10 +38,23 @@ export async function POST(request: NextRequest) {
       data: {
         text: validatedData.text,
         url: validatedData.url,
+        customId: validatedData.customId || null,
         icon: validatedData.icon || null,
         style: validatedData.style,
         target: validatedData.target,
-        isActive: validatedData.isActive
+        isActive: validatedData.isActive,
+        // JavaScript Events
+        onClickEvent: validatedData.onClickEvent || null,
+        onHoverEvent: validatedData.onHoverEvent || null,
+        onMouseOutEvent: validatedData.onMouseOutEvent || null,
+        onFocusEvent: validatedData.onFocusEvent || null,
+        onBlurEvent: validatedData.onBlurEvent || null,
+        onKeyDownEvent: validatedData.onKeyDownEvent || null,
+        onKeyUpEvent: validatedData.onKeyUpEvent || null,
+        onTouchStartEvent: validatedData.onTouchStartEvent || null,
+        onTouchEndEvent: validatedData.onTouchEndEvent || null,
+        // Enhanced Events
+        events: validatedData.events || null,
       }
     });
 
@@ -76,10 +89,23 @@ export async function PUT(request: NextRequest) {
       data: {
         ...(validatedData.text !== undefined && { text: validatedData.text }),
         ...(validatedData.url !== undefined && { url: validatedData.url }),
+        ...(validatedData.customId !== undefined && { customId: validatedData.customId || null }),
         ...(validatedData.icon !== undefined && { icon: validatedData.icon || null }),
         ...(validatedData.style !== undefined && { style: validatedData.style }),
         ...(validatedData.target !== undefined && { target: validatedData.target }),
         ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
+        // JavaScript Events
+        ...(validatedData.onClickEvent !== undefined && { onClickEvent: validatedData.onClickEvent || null }),
+        ...(validatedData.onHoverEvent !== undefined && { onHoverEvent: validatedData.onHoverEvent || null }),
+        ...(validatedData.onMouseOutEvent !== undefined && { onMouseOutEvent: validatedData.onMouseOutEvent || null }),
+        ...(validatedData.onFocusEvent !== undefined && { onFocusEvent: validatedData.onFocusEvent || null }),
+        ...(validatedData.onBlurEvent !== undefined && { onBlurEvent: validatedData.onBlurEvent || null }),
+        ...(validatedData.onKeyDownEvent !== undefined && { onKeyDownEvent: validatedData.onKeyDownEvent || null }),
+        ...(validatedData.onKeyUpEvent !== undefined && { onKeyUpEvent: validatedData.onKeyUpEvent || null }),
+        ...(validatedData.onTouchStartEvent !== undefined && { onTouchStartEvent: validatedData.onTouchStartEvent || null }),
+        ...(validatedData.onTouchEndEvent !== undefined && { onTouchEndEvent: validatedData.onTouchEndEvent || null }),
+        // Enhanced Events
+        ...(validatedData.events !== undefined && { events: validatedData.events || null }),
         updatedAt: new Date()
       }
     });

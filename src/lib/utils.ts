@@ -298,3 +298,157 @@ export function getBaseUrl(): string {
   // Fallback for local development
   return 'http://localhost:3000';
 } 
+
+// CTA JavaScript Events Utility
+export interface CTAWithEvents {
+  id: number;
+  text: string;
+  url: string;
+  customId?: string;
+  icon?: string;
+  style: string;
+  target: string;
+  isActive: boolean;
+  onClickEvent?: string;
+  onHoverEvent?: string;
+  onMouseOutEvent?: string;
+  onFocusEvent?: string;
+  onBlurEvent?: string;
+  onKeyDownEvent?: string;
+  onKeyUpEvent?: string;
+  onTouchStartEvent?: string;
+  onTouchEndEvent?: string;
+}
+
+export const applyCTAEvents = (cta: CTAWithEvents) => {
+  const events: { [key: string]: string } = {};
+  
+  if (cta.onClickEvent) events.onClick = cta.onClickEvent;
+  if (cta.onHoverEvent) events.onMouseOver = cta.onHoverEvent;
+  if (cta.onMouseOutEvent) events.onMouseOut = cta.onMouseOutEvent;
+  if (cta.onFocusEvent) events.onFocus = cta.onFocusEvent;
+  if (cta.onBlurEvent) events.onBlur = cta.onBlurEvent;
+  if (cta.onKeyDownEvent) events.onKeyDown = cta.onKeyDownEvent;
+  if (cta.onKeyUpEvent) events.onKeyUp = cta.onKeyUpEvent;
+  if (cta.onTouchStartEvent) events.onTouchStart = cta.onTouchStartEvent;
+  if (cta.onTouchEndEvent) events.onTouchEnd = cta.onTouchEndEvent;
+  
+  return events;
+};
+
+export const hasCTAEvents = (cta: CTAWithEvents): boolean => {
+  return !!(cta.onClickEvent || cta.onHoverEvent || cta.onMouseOutEvent || 
+           cta.onFocusEvent || cta.onBlurEvent || cta.onKeyDownEvent || 
+           cta.onKeyUpEvent || cta.onTouchStartEvent || cta.onTouchEndEvent);
+};
+
+// Enhanced CTA event execution with support for both legacy and new event systems
+export const executeCTAEvent = (eventCode: string, event: React.SyntheticEvent, element: HTMLElement) => {
+  try {
+    // Check if the event code calls any global functions that might not be loaded yet
+    const globalFunctionCalls = eventCode.match(/(\w+)\(/g);
+    if (globalFunctionCalls) {
+      const functionNames = globalFunctionCalls.map(call => call.replace('(', ''));
+      
+      // Check if any of these functions are not defined
+      const undefinedFunctions = functionNames.filter(funcName => typeof (window as any)[funcName] !== 'function');
+      
+      if (undefinedFunctions.length > 0) {
+        // Wait for scripts to load and retry
+        setTimeout(() => {
+          try {
+            executeEventCode(eventCode, event, element);
+          } catch (retryError) {
+            console.error('CTA event execution error after retry:', retryError);
+            console.error('Functions not found:', undefinedFunctions);
+          }
+        }, 500); // Wait 500ms for scripts to load
+        return;
+      }
+    }
+
+    executeEventCode(eventCode, event, element);
+  } catch (error) {
+    console.error('CTA event execution error:', error);
+  }
+};
+
+// Helper function to execute event code
+const executeEventCode = (eventCode: string, event: React.SyntheticEvent, element: HTMLElement) => {
+  // Create a context object with element properties
+  const context = {
+    style: element.style,
+    textContent: element.textContent,
+    id: element.id,
+    className: element.className,
+    innerHTML: element.innerHTML,
+    outerHTML: element.outerHTML,
+    tagName: element.tagName,
+    // Add any other commonly used properties
+  };
+  
+  // Execute the event code with the context
+  const executeWithContext = new Function('context', 'event', `
+    const { style, textContent, id, className, innerHTML, outerHTML, tagName } = context;
+    ${eventCode}
+  `);
+  
+  executeWithContext(context, event.nativeEvent);
+};
+
+// New function to execute CTA events from the enhanced event system
+export const executeCTAEventFromConfig = (events: any[], eventType: string, event: React.SyntheticEvent, element: HTMLElement) => {
+  try {
+    if (!events || !Array.isArray(events)) return;
+    
+    // Find events that match the current event type
+    const matchingEvents = events.filter(eventConfig => eventConfig.eventType === eventType);
+    
+    matchingEvents.forEach(eventConfig => {
+      if (eventConfig.functionName) {
+        // Extract function name and parameters from the function call string
+        const functionCall = eventConfig.functionName;
+        const functionMatch = functionCall.match(/^(\w+)\s*\(([^)]*)\)$/);
+        
+        if (functionMatch) {
+          const [, functionName, paramsString] = functionMatch;
+          
+          // Check if the function exists globally
+          if (typeof (window as any)[functionName] === 'function') {
+            try {
+              // Parse parameters (handle strings, numbers, etc.)
+              let params: any[] = [];
+              if (paramsString.trim()) {
+                // Simple parameter parsing - handle strings and numbers
+                const paramMatches = paramsString.match(/'([^']*)'|"([^"]*)"|(\d+)/g);
+                if (paramMatches) {
+                  params = paramMatches.map((param: string) => {
+                    // Remove quotes if it's a string
+                    if (param.startsWith("'") || param.startsWith('"')) {
+                      return param.slice(1, -1);
+                    }
+                    // Convert to number if it's numeric
+                    return isNaN(Number(param)) ? param : Number(param);
+                  });
+                }
+              }
+              
+              // Call the global function with parameters
+              (window as any)[functionName](...params);
+              console.log(`✅ Executed CTA function: ${functionName}(${params.join(', ')})`);
+            } catch (error) {
+              console.error(`Error executing CTA function ${functionName}:`, error);
+            }
+          } else {
+            console.warn(`Function ${functionName} is not defined globally`);
+            console.log('Available global functions:', Object.keys(window).filter(key => typeof (window as any)[key] === 'function'));
+          }
+        } else {
+          console.warn(`Invalid function call format: ${functionCall}`);
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error executing CTA events from config:', error);
+  }
+}; 

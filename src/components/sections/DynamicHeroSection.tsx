@@ -3,15 +3,27 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { renderIcon } from '@/lib/iconUtils';
+import { applyCTAEvents, hasCTAEvents, executeCTAEvent, type CTAWithEvents } from '@/lib/utils';
 
 interface CTA {
   id: number;
   text: string;
   url: string;
+  customId?: string;
   icon?: string;
   style: string;
   target: string;
   isActive: boolean;
+  // JavaScript Events
+  onClickEvent?: string;
+  onHoverEvent?: string;
+  onMouseOutEvent?: string;
+  onFocusEvent?: string;
+  onBlurEvent?: string;
+  onKeyDownEvent?: string;
+  onKeyUpEvent?: string;
+  onTouchStartEvent?: string;
+  onTouchEndEvent?: string;
 }
 
 interface HeroSectionData {
@@ -321,35 +333,189 @@ const DynamicHeroSection: React.FC<DynamicHeroSectionProps> = ({
     const ctas: React.ReactElement[] = [];
 
     if (ctaPrimary && ctaPrimary.isActive) {
-      ctas.push(
-        <motion.a
-          key="primary"
-          href={ctaPrimary.url}
-          target={ctaPrimary.target}
-          className={`inline-flex items-center gap-2.5 ${getButtonClasses('primary', ctaPrimary.style)}`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {ctaPrimary.icon && getIconComponent(ctaPrimary.icon)}
-          {ctaPrimary.text}
-        </motion.a>
-      );
+      const ctaEvents = applyCTAEvents(ctaPrimary as CTAWithEvents);
+      // Runtime safeguard for allowed styles
+      const allowedStyles = ['primary', 'secondary', 'accent', 'ghost', 'outline', 'muted'];
+      const safeStyle = allowedStyles.includes(ctaPrimary.style) ? ctaPrimary.style : 'primary';
+      // Always render as <a> tag if URL is present (even if it's '#')
+      if (ctaPrimary.url) {
+        ctas.push(
+          <motion.a
+            key="primary"
+            href={ctaPrimary.url}
+            target={ctaPrimary.target}
+            id={ctaPrimary.customId}
+            className={`inline-flex items-center gap-2.5 ${getButtonClasses('primary', safeStyle)}`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={ctaEvents.onClick ? (e) => {
+              executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+            } : undefined}
+            onMouseOver={ctaEvents.onMouseOver ? (e) => {
+              executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+            } : undefined}
+            onMouseOut={ctaEvents.onMouseOut ? (e) => {
+              executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+            } : undefined}
+            onFocus={ctaEvents.onFocus ? (e) => {
+              executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+            } : undefined}
+            onBlur={ctaEvents.onBlur ? (e) => {
+              executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+            } : undefined}
+            onKeyDown={ctaEvents.onKeyDown ? (e) => {
+              executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+            } : undefined}
+            onKeyUp={ctaEvents.onKeyUp ? (e) => {
+              executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+            } : undefined}
+            onTouchStart={ctaEvents.onTouchStart ? (e) => {
+              executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+            } : undefined}
+            onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+              executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+            } : undefined}
+          >
+            {ctaPrimary.icon && getIconComponent(ctaPrimary.icon)}
+            {ctaPrimary.text}
+          </motion.a>
+        );
+      } else {
+        // Fallback to button if no URL
+        ctas.push(
+          <motion.button
+            key="primary"
+            type="button"
+            id={ctaPrimary.customId}
+            className={`inline-flex items-center gap-2.5 ${getButtonClasses('primary', safeStyle)}`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={ctaEvents.onClick ? (e) => {
+              executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+            } : undefined}
+            onMouseOver={ctaEvents.onMouseOver ? (e) => {
+              executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+            } : undefined}
+            onMouseOut={ctaEvents.onMouseOut ? (e) => {
+              executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+            } : undefined}
+            onFocus={ctaEvents.onFocus ? (e) => {
+              executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+            } : undefined}
+            onBlur={ctaEvents.onBlur ? (e) => {
+              executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+            } : undefined}
+            onKeyDown={ctaEvents.onKeyDown ? (e) => {
+              executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+            } : undefined}
+            onKeyUp={ctaEvents.onKeyUp ? (e) => {
+              executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+            } : undefined}
+            onTouchStart={ctaEvents.onTouchStart ? (e) => {
+              executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+            } : undefined}
+            onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+              executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+            } : undefined}
+          >
+            {ctaPrimary.icon && getIconComponent(ctaPrimary.icon)}
+            {ctaPrimary.text}
+          </motion.button>
+        );
+      }
     }
 
     if (ctaSecondary && ctaSecondary.isActive) {
-      ctas.push(
-        <motion.a
-          key="secondary"
-          href={ctaSecondary.url}
-          target={ctaSecondary.target}
-          className={`inline-flex items-center gap-2.5 ${getButtonClasses('secondary', ctaSecondary.style)}`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {ctaSecondary.icon && getIconComponent(ctaSecondary.icon)}
-          {ctaSecondary.text}
-        </motion.a>
-      );
+      const ctaEvents = applyCTAEvents(ctaSecondary as CTAWithEvents);
+      // Runtime safeguard for allowed styles
+      const allowedStyles = ['primary', 'secondary', 'accent', 'ghost', 'outline', 'muted'];
+      const safeStyle = allowedStyles.includes(ctaSecondary.style) ? ctaSecondary.style : 'primary';
+      // Always render as <a> tag if URL is present (even if it's '#')
+      if (ctaSecondary.url) {
+        ctas.push(
+          <motion.a
+            key="secondary"
+            href={ctaSecondary.url}
+            target={ctaSecondary.target}
+            id={ctaSecondary.customId}
+            className={`inline-flex items-center gap-2.5 ${getButtonClasses('secondary', safeStyle)}`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={ctaEvents.onClick ? (e) => {
+              executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+            } : undefined}
+            onMouseOver={ctaEvents.onMouseOver ? (e) => {
+              executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+            } : undefined}
+            onMouseOut={ctaEvents.onMouseOut ? (e) => {
+              executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+            } : undefined}
+            onFocus={ctaEvents.onFocus ? (e) => {
+              executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+            } : undefined}
+            onBlur={ctaEvents.onBlur ? (e) => {
+              executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+            } : undefined}
+            onKeyDown={ctaEvents.onKeyDown ? (e) => {
+              executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+            } : undefined}
+            onKeyUp={ctaEvents.onKeyUp ? (e) => {
+              executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+            } : undefined}
+            onTouchStart={ctaEvents.onTouchStart ? (e) => {
+              executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+            } : undefined}
+            onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+              executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+            } : undefined}
+          >
+            {ctaSecondary.icon && getIconComponent(ctaSecondary.icon)}
+            {ctaSecondary.text}
+          </motion.a>
+        );
+      } else {
+        // Fallback to button if no URL
+        ctas.push(
+          <motion.button
+            key="secondary"
+            type="button"
+            id={ctaSecondary.customId}
+            className={`inline-flex items-center gap-2.5 ${getButtonClasses('secondary', safeStyle)}`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={ctaEvents.onClick ? (e) => {
+              executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+            } : undefined}
+            onMouseOver={ctaEvents.onMouseOver ? (e) => {
+              executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+            } : undefined}
+            onMouseOut={ctaEvents.onMouseOut ? (e) => {
+              executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+            } : undefined}
+            onFocus={ctaEvents.onFocus ? (e) => {
+              executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+            } : undefined}
+            onBlur={ctaEvents.onBlur ? (e) => {
+              executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+            } : undefined}
+            onKeyDown={ctaEvents.onKeyDown ? (e) => {
+              executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+            } : undefined}
+            onKeyUp={ctaEvents.onKeyUp ? (e) => {
+              executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+            } : undefined}
+            onTouchStart={ctaEvents.onTouchStart ? (e) => {
+              executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+            } : undefined}
+            onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+              executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+            } : undefined}
+          >
+            {ctaSecondary.icon && getIconComponent(ctaSecondary.icon)}
+            {ctaSecondary.text}
+          </motion.button>
+        );
+      }
     }
 
     return ctas.length > 0 ? (

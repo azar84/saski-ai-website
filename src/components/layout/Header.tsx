@@ -9,9 +9,20 @@ import ClientHeader from './ClientHeader';
 interface CTAButton {
   text: string;
   url: string;
+  customId?: string;
   icon?: string;
   style: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
   target: '_self' | '_blank';
+  // JavaScript Events
+  onClickEvent?: string;
+  onHoverEvent?: string;
+  onMouseOutEvent?: string;
+  onFocusEvent?: string;
+  onBlurEvent?: string;
+  onKeyDownEvent?: string;
+  onKeyUpEvent?: string;
+  onTouchStartEvent?: string;
+  onTouchEndEvent?: string;
 }
 
 interface Page {
@@ -52,8 +63,15 @@ export default function Header() {
   useEffect(() => {
     const fetchHeaderData = async () => {
       try {
-        // Fetch header configuration from API
-        const headerResponse = await fetch('/api/admin/header-config');
+        // Fetch header configuration from API with cache-busting
+        const headerResponse = await fetch(`/api/admin/header-config?t=${Date.now()}`, {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
         
         if (!headerResponse.ok) {
           console.error('Failed to fetch header config, status:', headerResponse.status);
@@ -146,9 +164,20 @@ export default function Header() {
     ctaButtons = headerConfig.headerCTAs.map((item: any) => ({
       text: item.cta.text,
       url: item.cta.url,
+      customId: item.cta.customId,
       ...(item.cta.icon && { icon: item.cta.icon }),
       style: item.cta.style as "info" | "primary" | "secondary" | "accent" | "ghost" | "destructive" | "success" | "outline" | "muted",
-      target: item.cta.target as "_self" | "_blank"
+      target: item.cta.target as "_self" | "_blank",
+      // JavaScript Events
+      onClickEvent: item.cta.onClickEvent,
+      onHoverEvent: item.cta.onHoverEvent,
+      onMouseOutEvent: item.cta.onMouseOutEvent,
+      onFocusEvent: item.cta.onFocusEvent,
+      onBlurEvent: item.cta.onBlurEvent,
+      onKeyDownEvent: item.cta.onKeyDownEvent,
+      onKeyUpEvent: item.cta.onKeyUpEvent,
+      onTouchStartEvent: item.cta.onTouchStartEvent,
+      onTouchEndEvent: item.cta.onTouchEndEvent
     }));
 
   }

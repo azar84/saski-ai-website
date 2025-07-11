@@ -111,6 +111,10 @@ export const CTATargetEnum = z.enum(['_self', '_blank']);
 const CTAUrlSchema = z.string()
   .min(1, 'URL is required')
   .refine((url) => {
+    // Allow empty anchor tags (#)
+    if (url === '#') {
+      return true;
+    }
     // Allow anchor links (starting with #)
     if (url.startsWith('#')) {
       return url.length > 1; // Must have content after #
@@ -127,16 +131,34 @@ const CTAUrlSchema = z.string()
       return false;
     }
   }, {
-    message: 'Must be a valid URL, relative path (/page), or anchor link (#section)'
+    message: 'Must be a valid URL, relative path (/page), anchor link (#section), or empty anchor (#)'
   });
 
 export const CreateCTASchema = z.object({
   text: z.string().min(1, 'Text is required').max(50),
   url: CTAUrlSchema,
+  customId: z.string().max(50).optional(),
   icon: z.string().max(50).optional(),
   style: CTAStyleEnum.default('primary'),
   target: CTATargetEnum.default('_self'),
   isActive: z.boolean().default(true),
+  // JavaScript Events
+  onClickEvent: z.string().max(1000).optional(),
+  onHoverEvent: z.string().max(1000).optional(),
+  onMouseOutEvent: z.string().max(1000).optional(),
+  onFocusEvent: z.string().max(1000).optional(),
+  onBlurEvent: z.string().max(1000).optional(),
+  onKeyDownEvent: z.string().max(1000).optional(),
+  onKeyUpEvent: z.string().max(1000).optional(),
+  onTouchStartEvent: z.string().max(1000).optional(),
+  onTouchEndEvent: z.string().max(1000).optional(),
+  // Enhanced Events
+  events: z.array(z.object({
+    id: z.string(),
+    eventType: z.enum(['onClick', 'onHover', 'onMouseOut', 'onFocus', 'onBlur', 'onKeyDown', 'onKeyUp', 'onTouchStart', 'onTouchEnd']),
+    functionName: z.string(),
+    description: z.string()
+  })).optional(),
 });
 
 export const UpdateCTASchema = CreateCTASchema.extend({

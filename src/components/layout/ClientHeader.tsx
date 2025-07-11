@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ChevronDown, UserPlus, LogIn, Star, ArrowRight } from 'lucide-react';
 import { renderIcon } from '@/lib/iconUtils';
-import { cn, getAppropriateLogoUrl } from '@/lib/utils';
+import { cn, getAppropriateLogoUrl, applyCTAEvents, hasCTAEvents, executeCTAEvent, type CTAWithEvents } from '@/lib/utils';
 import { useDesignSystem } from '@/hooks/useDesignSystem';
 import { Button } from '@/components/ui/Button';
 
@@ -54,9 +54,20 @@ interface SiteSettings {
 interface CTAButton {
   text: string;
   url: string;
+  customId?: string;
   icon?: string; // Optional Lucide icon name
   style: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
   target: '_self' | '_blank';
+  // JavaScript Events
+  onClickEvent?: string;
+  onHoverEvent?: string;
+  onMouseOutEvent?: string;
+  onFocusEvent?: string;
+  onBlurEvent?: string;
+  onKeyDownEvent?: string;
+  onKeyUpEvent?: string;
+  onTouchStartEvent?: string;
+  onTouchEndEvent?: string;
 }
 
 interface ClientHeaderProps {
@@ -515,6 +526,11 @@ export default function ClientHeader({
               transition={{ duration: 0.8, delay: 0.5 }}
             >
               {ctaButtons.map((cta, index) => {
+                const ctaEvents = applyCTAEvents(cta as CTAWithEvents);
+                const hasEvents = hasCTAEvents(cta as CTAWithEvents);
+                // Runtime safeguard for allowed styles
+                const allowedStyles = ['primary', 'secondary', 'accent', 'ghost', 'outline', 'muted'];
+                const safeStyle = allowedStyles.includes(cta.style) ? cta.style : 'primary';
                 return (
                   <motion.div
                     key={`header-cta-${cta.text}-${index}`}
@@ -527,24 +543,52 @@ export default function ClientHeader({
                     <Link
                       href={cta.url}
                       target={cta.target}
+                      id={cta.customId}
                       className={cn(
                         'inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg transition-all duration-200 select-none relative overflow-hidden',
-                        `btn-${cta.style}`,
-                        cta.style === 'primary' && 'focus-visible:ring-blue-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 before:transition-opacity hover:before:opacity-100',
-                        cta.style === 'secondary' && 'focus-visible:ring-blue-500',
-                        cta.style === 'accent' && 'focus-visible:ring-purple-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 before:transition-opacity hover:before:opacity-100',
-                        cta.style === 'ghost' && 'focus-visible:ring-blue-500',
-                        cta.style === 'destructive' && 'focus-visible:ring-red-500',
-                        cta.style === 'success' && 'focus-visible:ring-green-500',
-                        cta.style === 'info' && 'focus-visible:ring-blue-400',
-                        cta.style === 'outline' && 'focus-visible:ring-blue-500',
-                        cta.style === 'muted' && 'cursor-not-allowed'
+                        `btn-${safeStyle}`,
+                        safeStyle === 'primary' && 'focus-visible:ring-blue-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 before:transition-opacity hover:before:opacity-100',
+                        safeStyle === 'secondary' && 'focus-visible:ring-blue-500',
+                        safeStyle === 'accent' && 'focus-visible:ring-purple-500 before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent before:opacity-0 before:transition-opacity hover:before:opacity-100',
+                        safeStyle === 'ghost' && 'focus-visible:ring-blue-500',
+                        safeStyle === 'destructive' && 'focus-visible:ring-red-500',
+                        safeStyle === 'success' && 'focus-visible:ring-green-500',
+                        safeStyle === 'info' && 'focus-visible:ring-blue-400',
+                        safeStyle === 'outline' && 'focus-visible:ring-blue-500',
+                        safeStyle === 'muted' && 'cursor-not-allowed'
                       )}
                       style={{
                         fontSize: 'var(--font-size-base)',
                         fontWeight: 'var(--font-weight-medium)',
                         fontFamily: 'var(--font-family-sans)',
                       }}
+                      onClick={ctaEvents.onClick ? (e) => {
+                        executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                      } : undefined}
+                      onMouseOver={ctaEvents.onMouseOver ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+                      } : undefined}
+                      onMouseOut={ctaEvents.onMouseOut ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+                      } : undefined}
+                      onFocus={ctaEvents.onFocus ? (e) => {
+                        executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+                      } : undefined}
+                      onBlur={ctaEvents.onBlur ? (e) => {
+                        executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+                      } : undefined}
+                      onKeyDown={ctaEvents.onKeyDown ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+                      } : undefined}
+                      onKeyUp={ctaEvents.onKeyUp ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+                      } : undefined}
+                      onTouchStart={ctaEvents.onTouchStart ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+                      } : undefined}
+                      onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+                      } : undefined}
                     >
                       {cta.icon && getIconComponent(cta.icon)}
                       <span>{cta.text}</span>
@@ -853,6 +897,8 @@ export default function ClientHeader({
                 >
                   <div className="flex flex-col space-y-3">
                     {ctaButtons.map((cta, index) => {
+                      const ctaEvents = applyCTAEvents(cta as CTAWithEvents);
+                      
                       return (
                         <motion.div
                           key={`mobile-cta-${cta.text}-${index}`}
@@ -863,7 +909,13 @@ export default function ClientHeader({
                           <Link
                             href={cta.url}
                             target={cta.target}
-                            onClick={() => setIsMenuOpen(false)}
+                            id={cta.customId}
+                            onClick={(e) => {
+                              setIsMenuOpen(false);
+                              if (ctaEvents.onClick) {
+                                executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                              }
+                            }}
                             className={cn(
                               'inline-flex items-center justify-center gap-2 w-full h-12 px-6 rounded-lg transition-all duration-200 select-none relative overflow-hidden',
                               `btn-${cta.style}`,
@@ -882,6 +934,30 @@ export default function ClientHeader({
                               fontWeight: 'var(--font-weight-medium)',
                               fontFamily: 'var(--font-family-sans)',
                             }}
+                            onMouseOver={ctaEvents.onMouseOver ? (e) => {
+                              executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+                            } : undefined}
+                            onMouseOut={ctaEvents.onMouseOut ? (e) => {
+                              executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+                            } : undefined}
+                            onFocus={ctaEvents.onFocus ? (e) => {
+                              executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+                            } : undefined}
+                            onBlur={ctaEvents.onBlur ? (e) => {
+                              executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+                            } : undefined}
+                            onKeyDown={ctaEvents.onKeyDown ? (e) => {
+                              executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+                            } : undefined}
+                            onKeyUp={ctaEvents.onKeyUp ? (e) => {
+                              executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+                            } : undefined}
+                            onTouchStart={ctaEvents.onTouchStart ? (e) => {
+                              executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+                            } : undefined}
+                            onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+                              executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+                            } : undefined}
                           >
                             {cta.icon && getIconComponent(cta.icon)}
                             <span>{cta.text}</span>

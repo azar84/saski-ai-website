@@ -28,10 +28,21 @@ interface CTA {
   id: number;
   text: string;
   url: string;
+  customId?: string;
   icon?: string;
   style: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
   target: '_self' | '_blank';
   isActive: boolean;
+  // JavaScript Events
+  onClickEvent?: string;
+  onHoverEvent?: string;
+  onMouseOutEvent?: string;
+  onFocusEvent?: string;
+  onBlurEvent?: string;
+  onKeyDownEvent?: string;
+  onKeyUpEvent?: string;
+  onTouchStartEvent?: string;
+  onTouchEndEvent?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -48,10 +59,28 @@ interface HeaderCTA {
 interface CTAFormData {
     text: string;
     url: string;
+    customId: string;
     icon: string;
     style: 'primary' | 'secondary' | 'accent' | 'ghost' | 'destructive' | 'success' | 'info' | 'outline' | 'muted';
     target: '_self' | '_blank';
     isActive: boolean;
+    // Enhanced JavaScript Events
+    events: Array<{
+        id: string;
+        eventType: 'onClick' | 'onHover' | 'onMouseOut' | 'onFocus' | 'onBlur' | 'onKeyDown' | 'onKeyUp' | 'onTouchStart' | 'onTouchEnd';
+        functionName: string;
+        description: string;
+    }>;
+    // Legacy fields for backward compatibility
+    onClickEvent?: string;
+    onHoverEvent?: string;
+    onMouseOutEvent?: string;
+    onFocusEvent?: string;
+    onBlurEvent?: string;
+    onKeyDownEvent?: string;
+    onKeyUpEvent?: string;
+    onTouchStartEvent?: string;
+    onTouchEndEvent?: string;
 }
 
 export default function CTAManager() {
@@ -61,14 +90,49 @@ export default function CTAManager() {
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showGlobalFunctions, setShowGlobalFunctions] = useState(false);
+  const [globalFunctions, setGlobalFunctions] = useState<string>('');
   const [formData, setFormData] = useState<CTAFormData>({
     text: '',
     url: '',
+    customId: '',
     icon: '',
     style: 'primary',
     target: '_self',
-    isActive: true
+    isActive: true,
+    events: [],
+    onClickEvent: '',
+    onHoverEvent: '',
+    onMouseOutEvent: '',
+    onFocusEvent: '',
+    onBlurEvent: '',
+    onKeyDownEvent: '',
+    onKeyUpEvent: '',
+    onTouchStartEvent: '',
+    onTouchEndEvent: ''
   });
+
+  // Event type options
+  const eventTypeOptions = [
+    { value: 'onClick', label: 'Click Event', description: 'Executes when button is clicked' },
+    { value: 'onHover', label: 'Hover Event', description: 'Executes when mouse enters button' },
+    { value: 'onMouseOut', label: 'Mouse Out Event', description: 'Executes when mouse leaves button' },
+    { value: 'onFocus', label: 'Focus Event', description: 'Executes when button gains focus' },
+    { value: 'onBlur', label: 'Blur Event', description: 'Executes when button loses focus' },
+    { value: 'onKeyDown', label: 'Key Down Event', description: 'Executes when key is pressed' },
+    { value: 'onKeyUp', label: 'Key Up Event', description: 'Executes when key is released' },
+    { value: 'onTouchStart', label: 'Touch Start Event', description: 'Executes when touch begins' },
+    { value: 'onTouchEnd', label: 'Touch End Event', description: 'Executes when touch ends' }
+  ];
+
+  // Predefined function templates
+  const functionTemplates = [
+    { name: 'openYouTubePopup', code: 'function openYouTubePopup() {\n  // Create modal or popup for YouTube video\n  const modal = document.createElement("div");\n  modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;";\n  modal.innerHTML = \'<iframe width="560" height="315" src="https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=1" frameborder="0" allowfullscreen></iframe><button onclick="this.parentElement.remove()" style="position:absolute;top:20px;right:20px;background:white;border:none;padding:10px;cursor:pointer;">×</button>\';\n  document.body.appendChild(modal);\n}' },
+    { name: 'trackAnalytics', code: 'function trackAnalytics(eventName, category = "CTA") {\n  // Google Analytics tracking\n  if (typeof gtag !== "undefined") {\n    gtag("event", eventName, {\n      event_category: category,\n      event_label: "CTA Button"\n    });\n  }\n  console.log(`Analytics: ${eventName} in ${category}`);\n}' },
+    { name: 'showNotification', code: 'function showNotification(message, type = "info") {\n  const notification = document.createElement("div");\n  notification.style.cssText = "position:fixed;top:20px;right:20px;padding:15px;border-radius:5px;color:white;z-index:9999;max-width:300px;";\n  notification.style.background = type === "success" ? "#10B981" : type === "error" ? "#EF4444" : "#3B82F6";\n  notification.textContent = message;\n  document.body.appendChild(notification);\n  setTimeout(() => notification.remove(), 3000);\n}' },
+    { name: 'scrollToSection', code: 'function scrollToSection(sectionId) {\n  const element = document.getElementById(sectionId);\n  if (element) {\n    element.scrollIntoView({ behavior: "smooth" });\n  }\n}' },
+    { name: 'toggleModal', code: 'function toggleModal(modalId) {\n  const modal = document.getElementById(modalId);\n  if (modal) {\n    modal.style.display = modal.style.display === "none" ? "block" : "none";\n  }\n}' }
+  ];
 
   const fetchCtas = async () => {
     try {
@@ -111,10 +175,37 @@ export default function CTAManager() {
     }
   };
 
+  const fetchGlobalFunctions = async () => {
+    try {
+      const response = await fetch('/api/admin/global-functions');
+      if (response.ok) {
+        const data = await response.json();
+        setGlobalFunctions(data.functions || '');
+      }
+    } catch (error) {
+      console.error('Error fetching global functions:', error);
+    }
+  };
+
+  const saveGlobalFunctions = async () => {
+    try {
+      const response = await fetch('/api/admin/global-functions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ functions: globalFunctions })
+      });
+      if (response.ok) {
+        console.log('Global functions saved successfully');
+      }
+    } catch (error) {
+      console.error('Error saving global functions:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchCtas(), fetchHeaderConfig()]);
+      await Promise.all([fetchCtas(), fetchHeaderConfig(), fetchGlobalFunctions()]);
       setIsLoading(false);
     };
     fetchData();
@@ -126,9 +217,34 @@ export default function CTAManager() {
     try {
       const url = '/api/admin/cta-buttons';
       const method = editingId ? 'PUT' : 'POST';
-      const body = editingId 
-        ? { ...formData, id: editingId }
-        : formData;
+      
+      // Prepare the body with both legacy and new event systems
+      const body = editingId ? { 
+        ...formData, 
+        id: editingId,
+        // Convert new events to legacy format for backward compatibility
+        onClickEvent: formData.events.find(e => e.eventType === 'onClick')?.functionName || formData.onClickEvent,
+        onHoverEvent: formData.events.find(e => e.eventType === 'onHover')?.functionName || formData.onHoverEvent,
+        onMouseOutEvent: formData.events.find(e => e.eventType === 'onMouseOut')?.functionName || formData.onMouseOutEvent,
+        onFocusEvent: formData.events.find(e => e.eventType === 'onFocus')?.functionName || formData.onFocusEvent,
+        onBlurEvent: formData.events.find(e => e.eventType === 'onBlur')?.functionName || formData.onBlurEvent,
+        onKeyDownEvent: formData.events.find(e => e.eventType === 'onKeyDown')?.functionName || formData.onKeyDownEvent,
+        onKeyUpEvent: formData.events.find(e => e.eventType === 'onKeyUp')?.functionName || formData.onKeyUpEvent,
+        onTouchStartEvent: formData.events.find(e => e.eventType === 'onTouchStart')?.functionName || formData.onTouchStartEvent,
+        onTouchEndEvent: formData.events.find(e => e.eventType === 'onTouchEnd')?.functionName || formData.onTouchEndEvent,
+      } : {
+        ...formData,
+        // Convert new events to legacy format for backward compatibility
+        onClickEvent: formData.events.find(e => e.eventType === 'onClick')?.functionName || formData.onClickEvent,
+        onHoverEvent: formData.events.find(e => e.eventType === 'onHover')?.functionName || formData.onHoverEvent,
+        onMouseOutEvent: formData.events.find(e => e.eventType === 'onMouseOut')?.functionName || formData.onMouseOutEvent,
+        onFocusEvent: formData.events.find(e => e.eventType === 'onFocus')?.functionName || formData.onFocusEvent,
+        onBlurEvent: formData.events.find(e => e.eventType === 'onBlur')?.functionName || formData.onBlurEvent,
+        onKeyDownEvent: formData.events.find(e => e.eventType === 'onKeyDown')?.functionName || formData.onKeyDownEvent,
+        onKeyUpEvent: formData.events.find(e => e.eventType === 'onKeyUp')?.functionName || formData.onKeyUpEvent,
+        onTouchStartEvent: formData.events.find(e => e.eventType === 'onTouchStart')?.functionName || formData.onTouchStartEvent,
+        onTouchEndEvent: formData.events.find(e => e.eventType === 'onTouchEnd')?.functionName || formData.onTouchEndEvent,
+      };
 
       const response = await fetch(url, {
         method,
@@ -240,10 +356,21 @@ export default function CTAManager() {
     setFormData({
       text: '',
       url: '',
+      customId: '',
       icon: '',
       style: 'primary',
       target: '_self',
-      isActive: true
+      isActive: true,
+      events: [],
+      onClickEvent: '',
+      onHoverEvent: '',
+      onMouseOutEvent: '',
+      onFocusEvent: '',
+      onBlurEvent: '',
+      onKeyDownEvent: '',
+      onKeyUpEvent: '',
+      onTouchStartEvent: '',
+      onTouchEndEvent: ''
     });
     setEditingId(null);
     setShowForm(false);
@@ -253,10 +380,21 @@ export default function CTAManager() {
     setFormData({
       text: cta.text,
       url: cta.url,
+      customId: cta.customId || '',
       icon: cta.icon || '',
       style: cta.style,
       target: cta.target,
-      isActive: cta.isActive
+      isActive: cta.isActive,
+      events: [], // Clear events when editing
+      onClickEvent: cta.onClickEvent || '',
+      onHoverEvent: cta.onHoverEvent || '',
+      onMouseOutEvent: cta.onMouseOutEvent || '',
+      onFocusEvent: cta.onFocusEvent || '',
+      onBlurEvent: cta.onBlurEvent || '',
+      onKeyDownEvent: cta.onKeyDownEvent || '',
+      onKeyUpEvent: cta.onKeyUpEvent || '',
+      onTouchStartEvent: cta.onTouchStartEvent || '',
+      onTouchEndEvent: cta.onTouchEndEvent || ''
     });
     setEditingId(cta.id);
     setShowForm(true);
@@ -281,6 +419,39 @@ export default function CTAManager() {
     return headerCtas.some(headerCta => headerCta.ctaId === ctaId);
   };
 
+  const addEvent = () => {
+    const newEvent = {
+      id: Date.now().toString(),
+      eventType: 'onClick' as const,
+      functionName: '',
+      description: ''
+    };
+    setFormData({
+      ...formData,
+      events: [...formData.events, newEvent]
+    });
+  };
+
+  const removeEvent = (eventId: string) => {
+    setFormData({
+      ...formData,
+      events: formData.events.filter(event => event.id !== eventId)
+    });
+  };
+
+  const updateEvent = (eventId: string, field: string, value: string) => {
+    setFormData({
+      ...formData,
+      events: formData.events.map(event => 
+        event.id === eventId ? { ...event, [field]: value } : event
+      )
+    });
+  };
+
+  const insertFunctionTemplate = (template: { name: string; code: string }) => {
+    setGlobalFunctions(prev => prev + '\n\n' + template.code);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -303,10 +474,21 @@ export default function CTAManager() {
             setFormData({
               text: '',
               url: '',
+              customId: '',
               icon: '',
               style: 'primary',
               target: '_self',
-              isActive: true
+              isActive: true,
+              events: [],
+              onClickEvent: '',
+              onHoverEvent: '',
+              onMouseOutEvent: '',
+              onFocusEvent: '',
+              onBlurEvent: '',
+              onKeyDownEvent: '',
+              onKeyUpEvent: '',
+              onTouchStartEvent: '',
+              onTouchEndEvent: ''
             });
             setShowForm(true);
           }}
@@ -358,12 +540,28 @@ export default function CTAManager() {
                   type="text"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  placeholder="https://example.com, /page, or #section"
+                  placeholder="https://example.com, /page, #section, or #"
                   required
                   className="h-12"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Enter a full URL, relative path, or anchor link (e.g., #pricing, #contact)
+                  Enter a full URL, relative path, anchor link (e.g., #pricing, #contact), or empty anchor (#)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Custom ID (Optional)
+                </label>
+                <Input
+                  type="text"
+                  value={formData.customId}
+                  onChange={(e) => setFormData({ ...formData, customId: e.target.value })}
+                  placeholder="e.g., cta-primary, signup-button, hero-cta"
+                  className="h-12"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Custom HTML ID for the button element (for CSS/JS targeting)
                 </p>
               </div>
 
@@ -464,6 +662,172 @@ export default function CTAManager() {
                   placeholder="Select an icon"
                   className="w-full"
                 />
+              </div>
+            </div>
+
+            {/* Enhanced JavaScript Events Section */}
+            <div className="md:col-span-2">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <MousePointer className="w-5 h-5 mr-2 text-purple-600" />
+                  JavaScript Events & Functions
+                </h4>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowGlobalFunctions(!showGlobalFunctions)}
+                  className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                >
+                  {showGlobalFunctions ? 'Hide' : 'Show'} Global Functions
+                </Button>
+              </div>
+
+              {/* Global Functions Section */}
+              {showGlobalFunctions && (
+                <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h5 className="text-md font-semibold text-purple-900">Global JavaScript Functions</h5>
+                    <div className="flex space-x-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={saveGlobalFunctions}
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        Save Functions
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-purple-700 mb-3">
+                    These functions will be loaded globally and available to all CTAs. They're injected after the body tag opens.
+                  </p>
+
+                  {/* Function Templates */}
+                  <div className="mb-3">
+                    <p className="text-xs font-medium text-purple-700 mb-2">Quick Templates:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {functionTemplates.map((template) => (
+                        <Button
+                          key={template.name}
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => insertFunctionTemplate(template)}
+                          className="text-xs border-purple-300 text-purple-700 hover:bg-purple-100"
+                        >
+                          {template.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <textarea
+                    value={globalFunctions}
+                    onChange={(e) => setGlobalFunctions(e.target.value)}
+                    placeholder="// Add your global JavaScript functions here\n// These will be available to all CTAs\n\nfunction exampleFunction() {\n  console.log('Hello from global function!');\n}"
+                    className="w-full h-32 px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm font-mono bg-white"
+                  />
+                </div>
+              )}
+
+              {/* Event Configuration */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-md font-semibold text-gray-900">Event Configuration</h5>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addEvent}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Event
+                  </Button>
+                </div>
+
+                {formData.events.length === 0 ? (
+                  <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                    <MousePointer className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-gray-600">No events configured</p>
+                    <p className="text-sm text-gray-500">Click "Add Event" to configure JavaScript events</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {formData.events.map((event) => (
+                      <div key={event.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <h6 className="text-sm font-medium text-gray-900">Event #{event.id}</h6>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeEvent(event.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Event Type
+                            </label>
+                            <select
+                              value={event.eventType}
+                              onChange={(e) => updateEvent(event.id, 'eventType', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              {eventTypeOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Function Name
+                            </label>
+                            <input
+                              type="text"
+                              value={event.functionName}
+                              onChange={(e) => updateEvent(event.id, 'functionName', e.target.value)}
+                              placeholder="e.g., openYouTubePopup, trackAnalytics"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              Description
+                            </label>
+                            <input
+                              type="text"
+                              value={event.description}
+                              onChange={(e) => updateEvent(event.id, 'description', e.target.value)}
+                              placeholder="Brief description of what this does"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>💡 How it works:</strong> 
+                  <br />• Global functions are loaded once at the app root level
+                  <br />• Event functions are called when the specified event occurs
+                  <br />• Use <code className="bg-blue-100 px-1 rounded">this</code> to reference the button element
+                  <br />• Use <code className="bg-blue-100 px-1 rounded">event</code> for event details
+                </p>
               </div>
             </div>
 
@@ -628,9 +992,20 @@ export default function CTAManager() {
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <Badge className={getStyleColor(cta.style)}>
-                    {cta.style}
-                  </Badge>
+                  <div className="flex items-center space-x-2">
+                    <Badge className={getStyleColor(cta.style)}>
+                      {cta.style}
+                    </Badge>
+                    {/* JavaScript Events Indicator */}
+                    {(cta.onClickEvent || cta.onHoverEvent || cta.onMouseOutEvent || cta.onFocusEvent || 
+                      cta.onBlurEvent || cta.onKeyDownEvent || cta.onKeyUpEvent || cta.onTouchStartEvent || 
+                      cta.onTouchEndEvent) && (
+                      <Badge className="bg-purple-100 text-purple-800 text-xs">
+                        <MousePointer className="w-3 h-3 mr-1" />
+                        JS Events
+                      </Badge>
+                    )}
+                  </div>
                   <div className="flex space-x-1">
                     {!isCtaInHeader(cta.id) && cta.isActive && (
                       <Button

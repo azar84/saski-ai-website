@@ -6,6 +6,7 @@ import DesignSystemProvider from "../components/layout/DesignSystemProvider";
 import DynamicFavicon from "../components/layout/DynamicFavicon";
 import AnalyticsProvider from "../components/layout/AnalyticsProvider";
 import ScriptInjector from "../components/layout/ScriptInjector";
+import GlobalJavaScriptInjector from "../components/layout/GlobalJavaScriptInjector";
 import "./globals.css";
 
 // Force dynamic rendering to prevent static generation issues
@@ -100,6 +101,7 @@ export default function RootLayout({
               <DynamicFavicon />
               <AnalyticsProvider />
               <ScriptInjector />
+              <GlobalJavaScriptInjector />
               {children}
             </ThemeProvider>
           </DesignSystemProvider>

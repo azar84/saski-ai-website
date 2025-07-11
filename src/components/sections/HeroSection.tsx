@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { renderIcon } from '@/lib/iconUtils';
 import { Button, Input } from '@/components/ui';
+import { applyCTAEvents, hasCTAEvents, executeCTAEvent, executeCTAEventFromConfig, type CTAWithEvents } from '@/lib/utils';
 
 // AI Assistant Avatar Component
 const AIAvatar = ({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg', className?: string }) => {
@@ -413,81 +414,287 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
               transition={{ duration: 0.7, delay: 0.8 }}
               className="flex flex-col sm:flex-row gap-4 pt-2"
             >
-              {heroData?.primaryCtaId && heroData?.primaryCta && (
-                <Button 
-                  size="lg"
-                  variant={heroData.primaryCta.style as 'primary' | 'secondary' | 'outline' | 'ghost'}
-                  className={getButtonStyles(heroData.primaryCta.style)}
-                  onClick={() => {
-                    if (heroData?.primaryCta?.url) {
-                      if (heroData.primaryCta.url.startsWith('#')) {
-                        // Scroll to element for anchor links
-                        const element = document.querySelector(heroData.primaryCta.url);
-                        element?.scrollIntoView({ behavior: 'smooth' });
-                      } else {
-                        // Navigate to URL based on target
-                        if (heroData.primaryCta.target === '_blank') {
+              {heroData?.primaryCtaId && heroData?.primaryCta && (() => {
+                const ctaEvents = applyCTAEvents(heroData.primaryCta as CTAWithEvents);
+                const hasEvents = hasCTAEvents(heroData.primaryCta as CTAWithEvents);
+                
+                // Runtime safeguard for allowed styles
+                const allowedStyles = ['primary', 'secondary', 'accent', 'ghost', 'outline', 'muted'];
+                const safeStyle = allowedStyles.includes(heroData.primaryCta.style) ? heroData.primaryCta.style : 'primary';
+                
+                // Always render as <a> tag if URL is present (even if it's '#')
+                if (heroData.primaryCta.url) {
+                  return (
+                    <motion.a
+                      href={heroData.primaryCta.url}
+                      target={heroData.primaryCta.target}
+                      id={heroData.primaryCta.customId}
+                      className={`inline-flex items-center gap-2.5 ${getButtonStyles(safeStyle)}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={(e) => {
+                        // Handle URL navigation
+                        if (heroData.primaryCta.url.startsWith('#')) {
+                          const selector = heroData.primaryCta.url;
+                          if (selector.length > 1) {
+                            const element = document.querySelector(selector);
+                            element?.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        } else if (heroData.primaryCta.target === '_blank') {
                           window.open(heroData.primaryCta.url, '_blank');
                         } else {
                           window.location.href = heroData.primaryCta.url;
                         }
-                      }
-                    }
-                  }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
-                    initial={{ x: '-100%' }}
-                    whileHover={{ x: '100%' }}
-                    transition={{ duration: 0.6 }}
-                  />
-                  <span className="relative z-10 flex items-center gap-2">
-                    {heroData?.primaryCta?.icon && (() => {
-                      const IconComponent = getIconComponent(heroData.primaryCta.icon);
-                      return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
-                    })()}
-                    {heroData?.primaryCta?.text || 'Try Live Demo'}
-                  </span>
-                </Button>
-              )}
+                        
+                        // Execute CTA events (only use new event system)
+                        if (heroData.primaryCta.events) {
+                          executeCTAEventFromConfig(heroData.primaryCta.events, 'onClick', e, e.currentTarget);
+                        } else if (ctaEvents.onClick) {
+                          // Fallback to legacy system only if no new events
+                          executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                        }
+                      }}
+                      onMouseOver={ctaEvents.onMouseOver ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+                      } : undefined}
+                      onMouseOut={ctaEvents.onMouseOut ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+                      } : undefined}
+                      onFocus={ctaEvents.onFocus ? (e) => {
+                        executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+                      } : undefined}
+                      onBlur={ctaEvents.onBlur ? (e) => {
+                        executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+                      } : undefined}
+                      onKeyDown={ctaEvents.onKeyDown ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+                      } : undefined}
+                      onKeyUp={ctaEvents.onKeyUp ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+                      } : undefined}
+                      onTouchStart={ctaEvents.onTouchStart ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+                      } : undefined}
+                      onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+                      } : undefined}
+                    >
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
+                        initial={{ x: '-100%' }}
+                        whileHover={{ x: '100%' }}
+                        transition={{ duration: 0.6 }}
+                      />
+                      <span className="relative z-10 flex items-center gap-2">
+                        {heroData.primaryCta.icon && (() => {
+                          const IconComponent = getIconComponent(heroData.primaryCta.icon);
+                          return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
+                        })()}
+                        {heroData.primaryCta.text || 'Try Live Demo'}
+                      </span>
+                    </motion.a>
+                  );
+                } else {
+                  // Fallback to button if no URL
+                  return (
+                    <motion.button
+                      type="button"
+                      id={heroData.primaryCta.customId}
+                      className={`inline-flex items-center gap-2.5 ${getButtonStyles(safeStyle)}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={(e) => {
+                        // Execute CTA events (only use new event system)
+                        if (heroData.primaryCta.events) {
+                          executeCTAEventFromConfig(heroData.primaryCta.events, 'onClick', e, e.currentTarget);
+                        } else if (ctaEvents.onClick) {
+                          // Fallback to legacy system only if no new events
+                          executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                        }
+                      }}
+                      onMouseOver={ctaEvents.onMouseOver ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+                      } : undefined}
+                      onMouseOut={ctaEvents.onMouseOut ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+                      } : undefined}
+                      onFocus={ctaEvents.onFocus ? (e) => {
+                        executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+                      } : undefined}
+                      onBlur={ctaEvents.onBlur ? (e) => {
+                        executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+                      } : undefined}
+                      onKeyDown={ctaEvents.onKeyDown ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+                      } : undefined}
+                      onKeyUp={ctaEvents.onKeyUp ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+                      } : undefined}
+                      onTouchStart={ctaEvents.onTouchStart ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+                      } : undefined}
+                      onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+                      } : undefined}
+                    >
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
+                        initial={{ x: '-100%' }}
+                        whileHover={{ x: '100%' }}
+                        transition={{ duration: 0.6 }}
+                      />
+                      <span className="relative z-10 flex items-center gap-2">
+                        {heroData.primaryCta.icon && (() => {
+                          const IconComponent = getIconComponent(heroData.primaryCta.icon);
+                          return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
+                        })()}
+                        {heroData.primaryCta.text || 'Try Live Demo'}
+                      </span>
+                    </motion.button>
+                  );
+                }
+              })()}
               
-              {heroData?.secondaryCtaId && heroData?.secondaryCta && (
-                <Button 
-                  size="lg"
-                  variant={heroData.secondaryCta.style as 'primary' | 'secondary' | 'outline' | 'ghost'}
-                  className={getButtonStyles(heroData.secondaryCta.style)}
-                  onClick={() => {
-                    if (heroData?.secondaryCta?.url) {
-                      if (heroData.secondaryCta.url.startsWith('#')) {
-                        // Scroll to element for anchor links
-                        const element = document.querySelector(heroData.secondaryCta.url);
-                        element?.scrollIntoView({ behavior: 'smooth' });
-                      } else {
-                        // Navigate to URL based on target
-                        if (heroData.secondaryCta.target === '_blank') {
+              {heroData?.secondaryCtaId && heroData?.secondaryCta && (() => {
+                const ctaEvents = applyCTAEvents(heroData.secondaryCta as CTAWithEvents);
+                const hasEvents = hasCTAEvents(heroData.secondaryCta as CTAWithEvents);
+                
+                // Runtime safeguard for allowed styles
+                const allowedStyles = ['primary', 'secondary', 'accent', 'ghost', 'outline', 'muted'];
+                const safeStyle = allowedStyles.includes(heroData.secondaryCta.style) ? heroData.secondaryCta.style : 'secondary';
+                
+                // Always render as <a> tag if URL is present (even if it's '#')
+                if (heroData.secondaryCta.url) {
+                  return (
+                    <motion.a
+                      href={heroData.secondaryCta.url}
+                      target={heroData.secondaryCta.target}
+                      id={heroData.secondaryCta.customId}
+                      className={`inline-flex items-center gap-2.5 ${getButtonStyles(safeStyle)}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={(e) => {
+                        // Handle URL navigation
+                        if (heroData.secondaryCta.url.startsWith('#')) {
+                          const selector = heroData.secondaryCta.url;
+                          if (selector.length > 1) {
+                            const element = document.querySelector(selector);
+                            element?.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        } else if (heroData.secondaryCta.target === '_blank') {
                           window.open(heroData.secondaryCta.url, '_blank');
                         } else {
                           window.location.href = heroData.secondaryCta.url;
                         }
-                      }
-                    }
-                  }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/10 to-transparent"
-                    initial={{ x: '-100%' }}
-                    whileHover={{ x: '100%' }}
-                    transition={{ duration: 0.6 }}
-                  />
-                  <span className="relative z-10 flex items-center gap-2">
-                    {heroData?.secondaryCta?.icon && (() => {
-                      const IconComponent = getIconComponent(heroData.secondaryCta.icon);
-                      return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
-                    })()}
-                    {heroData?.secondaryCta?.text || 'Join Waitlist'}
-                  </span>
-                </Button>
-              )}
+                        
+                        // Execute CTA events (only use new event system)
+                        if (heroData.secondaryCta.events) {
+                          executeCTAEventFromConfig(heroData.secondaryCta.events, 'onClick', e, e.currentTarget);
+                        } else if (ctaEvents.onClick) {
+                          // Fallback to legacy system only if no new events
+                          executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                        }
+                      }}
+                      onMouseOver={ctaEvents.onMouseOver ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+                      } : undefined}
+                      onMouseOut={ctaEvents.onMouseOut ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+                      } : undefined}
+                      onFocus={ctaEvents.onFocus ? (e) => {
+                        executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+                      } : undefined}
+                      onBlur={ctaEvents.onBlur ? (e) => {
+                        executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+                      } : undefined}
+                      onKeyDown={ctaEvents.onKeyDown ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+                      } : undefined}
+                      onKeyUp={ctaEvents.onKeyUp ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+                      } : undefined}
+                      onTouchStart={ctaEvents.onTouchStart ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+                      } : undefined}
+                      onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+                      } : undefined}
+                    >
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/10 to-transparent"
+                        initial={{ x: '-100%' }}
+                        whileHover={{ x: '100%' }}
+                        transition={{ duration: 0.6 }}
+                      />
+                      <span className="relative z-10 flex items-center gap-2">
+                        {heroData.secondaryCta.icon && (() => {
+                          const IconComponent = getIconComponent(heroData.secondaryCta.icon);
+                          return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
+                        })()}
+                        {heroData.secondaryCta.text || 'Join Waitlist'}
+                      </span>
+                    </motion.a>
+                  );
+                } else {
+                  // Fallback to button if no URL
+                  return (
+                    <motion.button
+                      type="button"
+                      id={heroData.secondaryCta.customId}
+                      className={`inline-flex items-center gap-2.5 ${getButtonStyles(safeStyle)}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={(e) => {
+                        // Execute CTA events (only use new event system)
+                        if (heroData.secondaryCta.events) {
+                          executeCTAEventFromConfig(heroData.secondaryCta.events, 'onClick', e, e.currentTarget);
+                        } else if (ctaEvents.onClick) {
+                          // Fallback to legacy system only if no new events
+                          executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                        }
+                      }}
+                      onMouseOver={ctaEvents.onMouseOver ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
+                      } : undefined}
+                      onMouseOut={ctaEvents.onMouseOut ? (e) => {
+                        executeCTAEvent(ctaEvents.onMouseOut, e, e.currentTarget);
+                      } : undefined}
+                      onFocus={ctaEvents.onFocus ? (e) => {
+                        executeCTAEvent(ctaEvents.onFocus, e, e.currentTarget);
+                      } : undefined}
+                      onBlur={ctaEvents.onBlur ? (e) => {
+                        executeCTAEvent(ctaEvents.onBlur, e, e.currentTarget);
+                      } : undefined}
+                      onKeyDown={ctaEvents.onKeyDown ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyDown, e, e.currentTarget);
+                      } : undefined}
+                      onKeyUp={ctaEvents.onKeyUp ? (e) => {
+                        executeCTAEvent(ctaEvents.onKeyUp, e, e.currentTarget);
+                      } : undefined}
+                      onTouchStart={ctaEvents.onTouchStart ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchStart, e, e.currentTarget);
+                      } : undefined}
+                      onTouchEnd={ctaEvents.onTouchEnd ? (e) => {
+                        executeCTAEvent(ctaEvents.onTouchEnd, e, e.currentTarget);
+                      } : undefined}
+                    >
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/10 to-transparent"
+                        initial={{ x: '-100%' }}
+                        whileHover={{ x: '100%' }}
+                        transition={{ duration: 0.6 }}
+                      />
+                      <span className="relative z-10 flex items-center gap-2">
+                        {heroData.secondaryCta.icon && (() => {
+                          const IconComponent = getIconComponent(heroData.secondaryCta.icon);
+                          return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
+                        })()}
+                        {heroData.secondaryCta.text || 'Join Waitlist'}
+                      </span>
+                    </motion.button>
+                  );
+                }
+              })()}
             </motion.div>
 
             {/* Responsive Trust Indicators */}

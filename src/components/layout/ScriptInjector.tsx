@@ -59,12 +59,14 @@ const ScriptInjector: React.FC = () => {
         if (srcMatch) {
           scriptElement.src = srcMatch[1];
         } else {
-          // Fallback to inline script
-          scriptElement.textContent = script.scriptContent;
+          // Fallback to inline script - extract content from script tags
+          const contentMatch = script.scriptContent.match(/<script[^>]*>([\s\S]*?)<\/script>/);
+          scriptElement.textContent = contentMatch ? contentMatch[1] : script.scriptContent;
         }
       } else {
-        // Inline script
-        scriptElement.textContent = script.scriptContent;
+        // Inline script - extract content from script tags if present
+        const contentMatch = script.scriptContent.match(/<script[^>]*>([\s\S]*?)<\/script>/);
+        scriptElement.textContent = contentMatch ? contentMatch[1] : script.scriptContent;
       }
       
       // Inject into footer (end of body)

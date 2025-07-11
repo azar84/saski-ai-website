@@ -39,10 +39,53 @@ CREATE TABLE "site_settings" (
     "footerCompanyDescription" TEXT,
     "footerBackgroundColor" TEXT DEFAULT '#F9FAFB',
     "footerTextColor" TEXT DEFAULT '#374151',
+    "baseUrl" TEXT DEFAULT '',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "gaMeasurementId" TEXT DEFAULT 'NULL',
+    "gtmContainerId" TEXT DEFAULT 'NULL',
+    "gtmEnabled" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "site_settings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "service_account_credentials" (
+    "id" SERIAL NOT NULL,
+    "projectId" TEXT NOT NULL,
+    "clientEmail" TEXT NOT NULL,
+    "privateKey" TEXT NOT NULL,
+    "privateKeyId" TEXT NOT NULL,
+    "clientId" TEXT NOT NULL,
+    "authUri" TEXT NOT NULL,
+    "tokenUri" TEXT NOT NULL,
+    "authProviderX509CertUrl" TEXT NOT NULL,
+    "clientX509CertUrl" TEXT NOT NULL,
+    "universeDomain" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "service_account_credentials_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "sitemap_submission_logs" (
+    "id" TEXT NOT NULL,
+    "sitemapUrl" TEXT NOT NULL,
+    "siteUrl" TEXT NOT NULL,
+    "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status" TEXT NOT NULL,
+    "searchEngine" TEXT NOT NULL,
+    "googleResponse" TEXT,
+    "errorMessage" TEXT,
+    "statusCode" INTEGER,
+    "submissionId" TEXT,
+    "warnings" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "sitemap_submission_logs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -384,6 +427,7 @@ CREATE TABLE "feature_groups" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "layoutType" TEXT NOT NULL DEFAULT 'grid',
+    "backgroundColor" TEXT DEFAULT '#FFFFFF',
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -439,6 +483,8 @@ CREATE TABLE "page_sections" (
     "htmlSectionId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "scriptSectionId" INTEGER,
+    "headerSectionId" INTEGER,
 
     CONSTRAINT "page_sections_pkey" PRIMARY KEY ("id")
 );
@@ -905,6 +951,8 @@ The Team',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "newsletterAction" BOOLEAN NOT NULL DEFAULT false,
+    "newsletterEmailField" TEXT,
 
     CONSTRAINT "forms_pkey" PRIMARY KEY ("id")
 );
@@ -981,6 +1029,54 @@ CREATE TABLE "page_html_sections" (
     CONSTRAINT "page_html_sections_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "script_sections" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "scriptType" TEXT NOT NULL DEFAULT 'javascript',
+    "scriptContent" TEXT NOT NULL,
+    "placement" TEXT NOT NULL DEFAULT 'footer',
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "loadAsync" BOOLEAN NOT NULL DEFAULT false,
+    "loadDefer" BOOLEAN NOT NULL DEFAULT false,
+    "priority" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "script_sections_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "newsletter_subscribers" (
+    "id" SERIAL NOT NULL,
+    "email" TEXT NOT NULL,
+    "subscribed" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "newsletter_subscribers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "header_sections" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "backgroundColor" TEXT DEFAULT '#ffffff',
+    "menuTextColor" TEXT DEFAULT '#374151',
+    "menuHoverColor" TEXT DEFAULT '#5243E9',
+    "menuActiveColor" TEXT DEFAULT '#5243E9',
+    "isSticky" BOOLEAN NOT NULL DEFAULT true,
+    "showLogo" BOOLEAN NOT NULL DEFAULT true,
+    "showNavigation" BOOLEAN NOT NULL DEFAULT true,
+    "showCTAs" BOOLEAN NOT NULL DEFAULT true,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "header_sections_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "pages_slug_key" ON "pages"("slug");
 
@@ -1023,11 +1119,17 @@ CREATE UNIQUE INDEX "page_pricing_sections_pageId_pricingSectionId_key" ON "page
 -- CreateIndex
 CREATE UNIQUE INDEX "page_html_sections_pageId_htmlSectionId_key" ON "page_html_sections"("pageId", "htmlSectionId");
 
--- AddForeignKey
-ALTER TABLE "hero_sections" ADD CONSTRAINT "hero_sections_ctaSecondaryId_fkey" FOREIGN KEY ("ctaSecondaryId") REFERENCES "ctas"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- CreateIndex
+CREATE UNIQUE INDEX "script_sections_name_key" ON "script_sections"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "newsletter_subscribers_email_key" ON "newsletter_subscribers"("email");
 
 -- AddForeignKey
 ALTER TABLE "hero_sections" ADD CONSTRAINT "hero_sections_ctaPrimaryId_fkey" FOREIGN KEY ("ctaPrimaryId") REFERENCES "ctas"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "hero_sections" ADD CONSTRAINT "hero_sections_ctaSecondaryId_fkey" FOREIGN KEY ("ctaSecondaryId") REFERENCES "ctas"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "features" ADD CONSTRAINT "features_pageId_fkey" FOREIGN KEY ("pageId") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1045,16 +1147,16 @@ ALTER TABLE "MenuItem" ADD CONSTRAINT "MenuItem_pageId_fkey" FOREIGN KEY ("pageI
 ALTER TABLE "MenuItem" ADD CONSTRAINT "MenuItem_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "MenuItem"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "HeaderConfigMenu" ADD CONSTRAINT "HeaderConfigMenu_menuId_fkey" FOREIGN KEY ("menuId") REFERENCES "Menu"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "HeaderConfigMenu" ADD CONSTRAINT "HeaderConfigMenu_headerConfigId_fkey" FOREIGN KEY ("headerConfigId") REFERENCES "header_config"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "header_nav_items" ADD CONSTRAINT "header_nav_items_pageId_fkey" FOREIGN KEY ("pageId") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "HeaderConfigMenu" ADD CONSTRAINT "HeaderConfigMenu_menuId_fkey" FOREIGN KEY ("menuId") REFERENCES "Menu"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "header_nav_items" ADD CONSTRAINT "header_nav_items_headerConfigId_fkey" FOREIGN KEY ("headerConfigId") REFERENCES "header_config"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "header_nav_items" ADD CONSTRAINT "header_nav_items_pageId_fkey" FOREIGN KEY ("pageId") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "header_ctas" ADD CONSTRAINT "header_ctas_ctaId_fkey" FOREIGN KEY ("ctaId") REFERENCES "ctas"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1063,28 +1165,22 @@ ALTER TABLE "header_ctas" ADD CONSTRAINT "header_ctas_ctaId_fkey" FOREIGN KEY ("
 ALTER TABLE "header_ctas" ADD CONSTRAINT "header_ctas_headerConfigId_fkey" FOREIGN KEY ("headerConfigId") REFERENCES "header_config"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "home_page_hero" ADD CONSTRAINT "home_page_hero_ctaSecondaryId_fkey" FOREIGN KEY ("ctaSecondaryId") REFERENCES "ctas"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "home_page_hero" ADD CONSTRAINT "home_page_hero_ctaPrimaryId_fkey" FOREIGN KEY ("ctaPrimaryId") REFERENCES "ctas"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "feature_group_items" ADD CONSTRAINT "feature_group_items_featureId_fkey" FOREIGN KEY ("featureId") REFERENCES "global_features"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "home_page_hero" ADD CONSTRAINT "home_page_hero_ctaSecondaryId_fkey" FOREIGN KEY ("ctaSecondaryId") REFERENCES "ctas"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "feature_group_items" ADD CONSTRAINT "feature_group_items_featureGroupId_fkey" FOREIGN KEY ("featureGroupId") REFERENCES "feature_groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "feature_group_items" ADD CONSTRAINT "feature_group_items_featureId_fkey" FOREIGN KEY ("featureId") REFERENCES "global_features"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "page_feature_groups" ADD CONSTRAINT "page_feature_groups_featureGroupId_fkey" FOREIGN KEY ("featureGroupId") REFERENCES "feature_groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "page_feature_groups" ADD CONSTRAINT "page_feature_groups_pageId_fkey" FOREIGN KEY ("pageId") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_htmlSectionId_fkey" FOREIGN KEY ("htmlSectionId") REFERENCES "html_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_formId_fkey" FOREIGN KEY ("formId") REFERENCES "forms"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_contactSectionId_fkey" FOREIGN KEY ("contactSectionId") REFERENCES "contact_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1096,19 +1192,31 @@ ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_faqCategoryId_fkey" FO
 ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_faqSectionId_fkey" FOREIGN KEY ("faqSectionId") REFERENCES "faq_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_pricingSectionId_fkey" FOREIGN KEY ("pricingSectionId") REFERENCES "pricing_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_mediaSectionId_fkey" FOREIGN KEY ("mediaSectionId") REFERENCES "media_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_featureGroupId_fkey" FOREIGN KEY ("featureGroupId") REFERENCES "feature_groups"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_formId_fkey" FOREIGN KEY ("formId") REFERENCES "forms"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_headerSectionId_fkey" FOREIGN KEY ("headerSectionId") REFERENCES "header_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_heroSectionId_fkey" FOREIGN KEY ("heroSectionId") REFERENCES "hero_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_htmlSectionId_fkey" FOREIGN KEY ("htmlSectionId") REFERENCES "html_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_mediaSectionId_fkey" FOREIGN KEY ("mediaSectionId") REFERENCES "media_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_pageId_fkey" FOREIGN KEY ("pageId") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_pricingSectionId_fkey" FOREIGN KEY ("pricingSectionId") REFERENCES "pricing_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "page_sections" ADD CONSTRAINT "page_sections_scriptSectionId_fkey" FOREIGN KEY ("scriptSectionId") REFERENCES "script_sections"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "faqs" ADD CONSTRAINT "faqs_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "faq_categories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1168,10 +1276,10 @@ ALTER TABLE "pricing_section_plans" ADD CONSTRAINT "pricing_section_plans_planId
 ALTER TABLE "pricing_section_plans" ADD CONSTRAINT "pricing_section_plans_pricingSectionId_fkey" FOREIGN KEY ("pricingSectionId") REFERENCES "pricing_sections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "page_pricing_sections" ADD CONSTRAINT "page_pricing_sections_pricingSectionId_fkey" FOREIGN KEY ("pricingSectionId") REFERENCES "pricing_sections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "page_pricing_sections" ADD CONSTRAINT "page_pricing_sections_pageId_fkey" FOREIGN KEY ("pageId") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "page_pricing_sections" ADD CONSTRAINT "page_pricing_sections_pageId_fkey" FOREIGN KEY ("pageId") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "page_pricing_sections" ADD CONSTRAINT "page_pricing_sections_pricingSectionId_fkey" FOREIGN KEY ("pricingSectionId") REFERENCES "pricing_sections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "form_fields" ADD CONSTRAINT "form_fields_formId_fkey" FOREIGN KEY ("formId") REFERENCES "forms"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1184,3 +1292,4 @@ ALTER TABLE "page_html_sections" ADD CONSTRAINT "page_html_sections_htmlSectionI
 
 -- AddForeignKey
 ALTER TABLE "page_html_sections" ADD CONSTRAINT "page_html_sections_pageId_fkey" FOREIGN KEY ("pageId") REFERENCES "pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+

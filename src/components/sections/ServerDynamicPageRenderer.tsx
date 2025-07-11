@@ -50,19 +50,41 @@ interface PageSection {
       id: number;
       text: string;
       url: string;
+      customId?: string;
       icon?: string;
       style: string;
       target: string;
       isActive: boolean;
+      // JavaScript Events
+      onClickEvent?: string;
+      onHoverEvent?: string;
+      onMouseOutEvent?: string;
+      onFocusEvent?: string;
+      onBlurEvent?: string;
+      onKeyDownEvent?: string;
+      onKeyUpEvent?: string;
+      onTouchStartEvent?: string;
+      onTouchEndEvent?: string;
     };
     ctaSecondary?: {
       id: number;
       text: string;
       url: string;
+      customId?: string;
       icon?: string;
       style: string;
       target: string;
       isActive: boolean;
+      // JavaScript Events
+      onClickEvent?: string;
+      onHoverEvent?: string;
+      onMouseOutEvent?: string;
+      onFocusEvent?: string;
+      onBlurEvent?: string;
+      onKeyDownEvent?: string;
+      onKeyUpEvent?: string;
+      onTouchStartEvent?: string;
+      onTouchEndEvent?: string;
     };
   };
   featureGroup?: {
@@ -591,7 +613,7 @@ const ServerDynamicPageRenderer: React.FC<ServerDynamicPageRendererProps> = asyn
     const sectionId = generateSectionId(section, index);
     
     const wrapWithSectionDiv = (content: React.ReactNode) => (
-      <div id={sectionId} className="scroll-mt-20">
+      <div id={sectionId} className="scroll-mt-20 relative">
         {content}
       </div>
     );

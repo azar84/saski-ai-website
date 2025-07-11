@@ -365,10 +365,23 @@ model CTA {
   id                Int            @id @default(autoincrement())
   text              String
   url               String
+  customId          String?        // Custom ID for the CTA element
   icon              String?
   style             String         @default("primary")
   target            String         @default("_self")
   isActive          Boolean        @default(true)
+  // JavaScript Events
+  onClickEvent      String?        // JavaScript code for onclick event
+  onHoverEvent      String?        // JavaScript code for onmouseover event
+  onMouseOutEvent   String?        // JavaScript code for onmouseout event
+  onFocusEvent      String?        // JavaScript code for onfocus event
+  onBlurEvent       String?        // JavaScript code for onblur event
+  onKeyDownEvent    String?        // JavaScript code for onkeydown event
+  onKeyUpEvent      String?        // JavaScript code for onkeyup event
+  onTouchStartEvent String?        // JavaScript code for ontouchstart event
+  onTouchEndEvent   String?        // JavaScript code for ontouchend event
+  // Enhanced Events (JSON array)
+  events            Json?          // Array of event configurations
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   headerCTAs        HeaderCTA[]
@@ -378,6 +391,15 @@ model CTA {
   homeHeroSecondary HomePageHero[] @relation("HomeHeroSecondaryCTA")
 
   @@map("ctas")
+}
+
+model GlobalFunctions {
+  id        Int      @id @default(autoincrement())
+  functions String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("global_functions")
 }
 
 model HeaderCTA {
