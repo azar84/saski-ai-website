@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         onTouchStartEvent: validatedData.onTouchStartEvent || null,
         onTouchEndEvent: validatedData.onTouchEndEvent || null,
         // Enhanced Events
-        events: validatedData.events || null,
+        events: validatedData.events || undefined,
       }
     });
 
@@ -105,7 +105,7 @@ export async function PUT(request: NextRequest) {
         ...(validatedData.onTouchStartEvent !== undefined && { onTouchStartEvent: validatedData.onTouchStartEvent || null }),
         ...(validatedData.onTouchEndEvent !== undefined && { onTouchEndEvent: validatedData.onTouchEndEvent || null }),
         // Enhanced Events
-        ...(validatedData.events !== undefined && { events: validatedData.events || null }),
+        ...(validatedData.events !== undefined && { events: validatedData.events || undefined }),
         updatedAt: new Date()
       }
     });
