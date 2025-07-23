@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -22,12 +24,14 @@ import {
   Grid,
   Zap,
   MessageSquare,
-  Mail
+  Mail,
+  LogOut
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useDesignSystem, getAdminPanelColors } from '@/hooks/useDesignSystem';
 import { useAdminApi } from '@/hooks/useApi';
+
 import HeroManager from './components/HeroManager';
 import HeroSectionsManager from './components/HeroSectionsManager';
 import FeaturesManager from './components/FeaturesManager';
@@ -49,6 +53,7 @@ import MenuManager from './components/MenuManager';
 import SEOManager from './components/SEOManager';
 import ScriptSectionManager from './components/ScriptSectionManager';
 import NewsletterManager from './components/NewsletterManager';
+import UserManagement from './components/UserManagement';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -94,34 +99,65 @@ interface SiteSettings {
 }
 
 export default function AdminPanel() {
+  const { user: authUser, isLoading: authLoading, isAuthenticated, logout: authLogout } = useAuth();
   const [activeSection, setActiveSection] = useState<Section>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { designSystem } = useDesignSystem();
   const adminColors = getAdminPanelColors();
   const { get } = useAdminApi();
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
   
-  // Site settings state
+  // Site settings state - moved to top to follow Rules of Hooks
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [loadingSettings, setLoadingSettings] = useState(true);
 
+  // Check authentication
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/admin-panel/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
   // Fetch site settings on component mount
   useEffect(() => {
-    const fetchSiteSettings = async () => {
-      try {
-        setLoadingSettings(true);
-        const response = await get<{ success: boolean; data: SiteSettings }>('/api/admin/site-settings');
-        if (response.success) {
-          setSiteSettings(response.data);
+    if (isAuthenticated) {
+      const fetchSiteSettings = async () => {
+        try {
+          setLoadingSettings(true);
+          const response = await get<{ success: boolean; data: SiteSettings }>('/api/admin/site-settings');
+          if (response.success) {
+            setSiteSettings(response.data);
+          }
+        } catch (error) {
+          console.error('Error fetching site settings:', error);
+        } finally {
+          setLoadingSettings(false);
         }
-      } catch (error) {
-        console.error('Error fetching site settings:', error);
-      } finally {
-        setLoadingSettings(false);
-      }
-    };
+      };
 
-    fetchSiteSettings();
-  }, [get]);
+      fetchSiteSettings();
+    }
+  }, [get, isAuthenticated]);
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Simple logout function
+  const logout = () => {
+    authLogout();
+  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -255,22 +291,8 @@ export default function AdminPanel() {
         );
       case 'users':
         return (
-          <div className="p-8">
-            <div className="text-center py-12">
-              <Users 
-                className="w-16 h-16 mx-auto mb-4" 
-                style={{ color: adminColors.textMuted }}
-              />
-              <h2 
-                className="text-2xl font-bold mb-2"
-                style={{ color: adminColors.textPrimary }}
-              >
-                Users
-              </h2>
-              <p style={{ color: adminColors.textSecondary }}>
-                User management coming soon...
-              </p>
-            </div>
+          <div className="p-8 space-y-8">
+            <UserManagement />
           </div>
         );
       case 'analytics':
@@ -605,12 +627,21 @@ export default function AdminPanel() {
               {siteSettings?.footerCompanyName || 'Saski AI'}
             </span>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={logout}
+              className="p-1 rounded-md text-gray-400 hover:text-gray-600"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
         
         <nav className="mt-6 px-3">

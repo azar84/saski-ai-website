@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface GlobalFunctions {
   functions: string;
@@ -9,8 +10,18 @@ interface GlobalFunctions {
 export default function GlobalJavaScriptInjector() {
   const [functions, setFunctions] = useState<string>('');
   const [isLoaded, setIsLoaded] = useState(false);
+  const pathname = usePathname();
+
+  // Check if we're on an admin panel page
+  const isAdminPanel = pathname?.startsWith('/admin-panel');
 
   useEffect(() => {
+    // Skip global functions injection if we're on admin panel pages
+    if (isAdminPanel) {
+      console.log('🚫 Skipping global functions injection on admin panel page');
+      return;
+    }
+
     const fetchAndInjectFunctions = async () => {
       try {
         const response = await fetch('/api/admin/global-functions');
@@ -57,7 +68,7 @@ export default function GlobalJavaScriptInjector() {
         script.remove();
       }
     };
-  }, []);
+  }, [isAdminPanel]);
 
   // This component doesn't render anything visible
   return null;

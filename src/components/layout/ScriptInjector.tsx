@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface ScriptSection {
   id: number;
@@ -13,8 +14,18 @@ interface ScriptSection {
 const ScriptInjector: React.FC = () => {
   const [scripts, setScripts] = useState<ScriptSection[]>([]);
   const [injectedScripts, setInjectedScripts] = useState<Set<number>>(new Set());
+  const pathname = usePathname();
+
+  // Check if we're on an admin panel page
+  const isAdminPanel = pathname?.startsWith('/admin-panel');
 
   useEffect(() => {
+    // Skip script injection if we're on admin panel pages
+    if (isAdminPanel) {
+      console.log('🚫 Skipping script injection on admin panel page');
+      return;
+    }
+
     const fetchAndInjectScripts = async () => {
       try {
         const response = await fetch('/api/admin/script-sections');
@@ -43,7 +54,7 @@ const ScriptInjector: React.FC = () => {
     };
 
     fetchAndInjectScripts();
-  }, [injectedScripts]);
+  }, [injectedScripts, isAdminPanel]);
 
   const injectScript = (script: ScriptSection) => {
     try {
