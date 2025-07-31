@@ -49,7 +49,6 @@ const HtmlSection: React.FC<HtmlSectionProps> = ({ htmlSection, className = '' }
     }
 
     let styleElement: HTMLStyleElement | null = null;
-    let scriptElement: HTMLScriptElement | null = null;
 
     // Add CSS styles if provided
     if (htmlSection.cssContent?.trim()) {
@@ -97,13 +96,6 @@ const HtmlSection: React.FC<HtmlSectionProps> = ({ htmlSection, className = '' }
           styleElement.remove();
         } catch (error) {
           console.warn('Error removing style during cleanup:', error);
-        }
-      }
-      if (scriptElement) {
-        try {
-          scriptElement.remove();
-        } catch (error) {
-          console.warn('Error removing script during cleanup:', error);
         }
       }
     };
