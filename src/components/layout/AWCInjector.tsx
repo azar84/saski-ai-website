@@ -17,28 +17,6 @@ const AWCInjector: React.FC = () => {
     }
   }, []);
 
-  // Add defensive canvas protection
-  useEffect(() => {
-    // Override getContext to prevent errors when canvas doesn't exist
-    const originalGetContext = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function(contextId, ...args) {
-      try {
-        if (this && this.getContext) {
-          return originalGetContext.call(this, contextId, ...args);
-        }
-        return null;
-      } catch (error) {
-        console.warn('Canvas getContext error prevented:', error);
-        return null;
-      }
-    };
-
-    // Cleanup function
-    return () => {
-      HTMLCanvasElement.prototype.getContext = originalGetContext;
-    };
-  }, []);
-
   return null;
 };
 
