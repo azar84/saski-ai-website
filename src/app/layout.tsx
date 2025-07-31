@@ -7,7 +7,6 @@ import DynamicFavicon from "../components/layout/DynamicFavicon";
 import AnalyticsProvider from "../components/layout/AnalyticsProvider";
 import ScriptInjector from "../components/layout/ScriptInjector";
 import GlobalJavaScriptInjector from "../components/layout/GlobalJavaScriptInjector";
-import AWCInjector from "../components/layout/AWCInjector";
 import "./globals.css";
 
 // Force dynamic rendering to prevent static generation issues
@@ -89,6 +88,25 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning data-theme="light" style={{colorScheme: 'light'}}>
       <head>
         <meta name="color-scheme" content="light" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const urlParams = new URLSearchParams(window.location.search);
+                  const awc = urlParams.get('awc');
+                  
+                  if (awc) {
+                    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString();
+                    document.cookie = 'awc=' + encodeURIComponent(awc) + '; expires=' + expires + '; path=/; domain=.saskiai.com; Secure; SameSite=Strict';
+                  }
+                } catch (error) {
+                  console.warn('AWC script error:', error);
+                }
+              })();
+            `
+          }}
+        />
       </head>
       <body className={`${manrope.variable} font-sans antialiased`}>
         <ErrorBoundary>
@@ -103,7 +121,6 @@ export default function RootLayout({
               <AnalyticsProvider />
               <ScriptInjector />
               <GlobalJavaScriptInjector />
-              <AWCInjector />
               {children}
             </ThemeProvider>
           </DesignSystemProvider>
