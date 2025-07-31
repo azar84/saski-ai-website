@@ -432,7 +432,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                       className={`inline-flex items-center gap-2.5 ${getButtonStyles(safeStyle)}`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={(e) => {
+                      onClick={ctaEvents.onClick ? (e) => {
                         // Handle URL navigation
                         if (heroData.primaryCta.url.startsWith('#')) {
                           const selector = heroData.primaryCta.url;
@@ -446,14 +446,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                           window.location.href = heroData.primaryCta.url;
                         }
                         
-                        // Execute CTA events (only use new event system)
-                        if (heroData.primaryCta.events) {
-                          executeCTAEventFromConfig(heroData.primaryCta.events, 'onClick', e, e.currentTarget);
-                        } else if (ctaEvents.onClick) {
-                          // Fallback to legacy system only if no new events
-                          executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
-                        }
-                      }}
+                        // Execute CTA events using legacy system
+                        executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                      } : undefined}
                       onMouseOver={ctaEvents.onMouseOver ? (e) => {
                         executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
                       } : undefined}
@@ -503,15 +498,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                       className={`inline-flex items-center gap-2.5 ${getButtonStyles(safeStyle)}`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={(e) => {
-                        // Execute CTA events (only use new event system)
-                        if (heroData.primaryCta.events) {
-                          executeCTAEventFromConfig(heroData.primaryCta.events, 'onClick', e, e.currentTarget);
-                        } else if (ctaEvents.onClick) {
-                          // Fallback to legacy system only if no new events
-                          executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
-                        }
-                      }}
+                      onClick={ctaEvents.onClick ? (e) => {
+                        // Execute CTA events using legacy system
+                        executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                      } : undefined}
                       onMouseOver={ctaEvents.onMouseOver ? (e) => {
                         executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
                       } : undefined}
@@ -573,7 +563,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                       className={`inline-flex items-center gap-2.5 ${getButtonStyles(safeStyle)}`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={(e) => {
+                      onClick={ctaEvents.onClick ? (e) => {
                         // Handle URL navigation
                         if (heroData.secondaryCta.url.startsWith('#')) {
                           const selector = heroData.secondaryCta.url;
@@ -587,14 +577,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                           window.location.href = heroData.secondaryCta.url;
                         }
                         
-                        // Execute CTA events (only use new event system)
-                        if (heroData.secondaryCta.events) {
-                          executeCTAEventFromConfig(heroData.secondaryCta.events, 'onClick', e, e.currentTarget);
-                        } else if (ctaEvents.onClick) {
-                          // Fallback to legacy system only if no new events
-                          executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
-                        }
-                      }}
+                        // Execute CTA events using legacy system
+                        executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                      } : undefined}
                       onMouseOver={ctaEvents.onMouseOver ? (e) => {
                         executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
                       } : undefined}
@@ -621,7 +606,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                       } : undefined}
                     >
                       <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/10 to-transparent"
+                        className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
                         initial={{ x: '-100%' }}
                         whileHover={{ x: '100%' }}
                         transition={{ duration: 0.6 }}
@@ -631,7 +616,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                           const IconComponent = getIconComponent(heroData.secondaryCta.icon);
                           return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
                         })()}
-                        {heroData.secondaryCta.text || 'Join Waitlist'}
+                        {heroData.secondaryCta.text || 'Learn More'}
                       </span>
                     </motion.a>
                   );
@@ -644,15 +629,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                       className={`inline-flex items-center gap-2.5 ${getButtonStyles(safeStyle)}`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={(e) => {
-                        // Execute CTA events (only use new event system)
-                        if (heroData.secondaryCta.events) {
-                          executeCTAEventFromConfig(heroData.secondaryCta.events, 'onClick', e, e.currentTarget);
-                        } else if (ctaEvents.onClick) {
-                          // Fallback to legacy system only if no new events
-                          executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
-                        }
-                      }}
+                      onClick={ctaEvents.onClick ? (e) => {
+                        // Execute CTA events using legacy system
+                        executeCTAEvent(ctaEvents.onClick, e, e.currentTarget);
+                      } : undefined}
                       onMouseOver={ctaEvents.onMouseOver ? (e) => {
                         executeCTAEvent(ctaEvents.onMouseOver, e, e.currentTarget);
                       } : undefined}
@@ -679,7 +659,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                       } : undefined}
                     >
                       <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/10 to-transparent"
+                        className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
                         initial={{ x: '-100%' }}
                         whileHover={{ x: '100%' }}
                         transition={{ duration: 0.6 }}
@@ -689,7 +669,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ heroData: propHeroData }) => 
                           const IconComponent = getIconComponent(heroData.secondaryCta.icon);
                           return <IconComponent className="w-5 h-5 group-hover:scale-110 transition-transform" />;
                         })()}
-                        {heroData.secondaryCta.text || 'Join Waitlist'}
+                        {heroData.secondaryCta.text || 'Learn More'}
                       </span>
                     </motion.button>
                   );

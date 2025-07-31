@@ -75,135 +75,161 @@ const FeaturesListLayout: React.FC<FeaturesListLayoutProps> = ({
 
   // Create DNA base pairs
   const createDNABases = () => {
-    const strands = dnaRef.current?.querySelectorAll('.dna-strand');
-    strands?.forEach((strand, strandIndex) => {
-      strand.innerHTML = '';
-      for (let i = 0; i < 50; i++) {
-        const base = document.createElement('div');
-        base.className = 'dna-base';
-        base.style.position = 'absolute';
-        base.style.width = '20px';
-        base.style.height = '2px';
-        base.style.background = secondaryColor;
-        base.style.top = `${i * 4}%`;
-        base.style.left = `${Math.sin(i * 0.5 + strandIndex * 2) * 30}px`;
-        base.style.animation = `dnaPulse 2s ease-in-out infinite ${i * 0.1}s`;
-        strand.appendChild(base);
+    try {
+      const strands = dnaRef.current?.querySelectorAll('.dna-strand');
+      if (!strands || strands.length === 0) {
+        console.warn('No DNA strands found');
+        return;
       }
-    });
+      
+      strands.forEach((strand, strandIndex) => {
+        if (!strand) return;
+        
+        strand.innerHTML = '';
+        for (let i = 0; i < 50; i++) {
+          const base = document.createElement('div');
+          base.className = 'dna-base';
+          base.style.position = 'absolute';
+          base.style.width = '20px';
+          base.style.height = '2px';
+          base.style.background = secondaryColor;
+          base.style.top = `${i * 4}%`;
+          base.style.left = `${Math.sin(i * 0.5 + strandIndex * 2) * 30}px`;
+          base.style.animation = `dnaPulse 2s ease-in-out infinite ${i * 0.1}s`;
+          strand.appendChild(base);
+        }
+      });
+    } catch (error) {
+      console.error('Error creating DNA bases:', error);
+    }
   };
 
   // Create particle system
   const createParticles = () => {
-    if (!particlesRef.current) return;
-    particlesRef.current.innerHTML = '';
-    
-    for (let i = 0; i < 50; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.position = 'absolute';
-      particle.style.width = '3px';
-      particle.style.height = '3px';
-      particle.style.background = primaryColor;
-      particle.style.borderRadius = '50%';
-      particle.style.left = `${Math.random() * 100}%`;
-      particle.style.animation = `particleFloat ${15 + Math.random() * 10}s linear infinite ${Math.random() * 15}s`;
-      particlesRef.current.appendChild(particle);
+    try {
+      if (!particlesRef.current) {
+        console.warn('Particles container not found');
+        return;
+      }
+      
+      particlesRef.current.innerHTML = '';
+      
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.position = 'absolute';
+        particle.style.width = '3px';
+        particle.style.height = '3px';
+        particle.style.background = primaryColor;
+        particle.style.borderRadius = '50%';
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.animation = `particleFloat ${15 + Math.random() * 10}s linear infinite ${Math.random() * 15}s`;
+        particlesRef.current.appendChild(particle);
+      }
+    } catch (error) {
+      console.error('Error creating particles:', error);
     }
   };
 
   // Create geometric shapes
   const createGeometricShapes = () => {
-    if (!geometricRef.current) return;
-    
-    // Clear existing shapes
-    geometricRef.current.innerHTML = '';
-    
-    // Create various geometric shapes
-    for (let i = 0; i < 15; i++) {
-      const shape = document.createElement('div');
-      const shapeType = Math.floor(Math.random() * 3);
-      
-      shape.style.position = 'absolute';
-      shape.style.left = `${Math.random() * 100}%`;
-      shape.style.top = `${Math.random() * 100}%`;
-      shape.style.animation = `geometryFloat ${10 + Math.random() * 10}s ease-in-out infinite ${Math.random() * 10}s`;
-      
-      if (shapeType === 0) {
-        // Circle
-        shape.style.width = `${20 + Math.random() * 30}px`;
-        shape.style.height = shape.style.width;
-        shape.style.borderRadius = '50%';
-        shape.style.background = `linear-gradient(45deg, ${primaryColor}40, ${secondaryColor}40)`;
-      } else if (shapeType === 1) {
-        // Triangle
-        shape.style.width = '0';
-        shape.style.height = '0';
-        const size = 15 + Math.random() * 20;
-        shape.style.borderLeft = `${size}px solid transparent`;
-        shape.style.borderRight = `${size}px solid transparent`;
-        shape.style.borderBottom = `${size * 1.5}px solid ${accentColor}40`;
-      } else {
-        // Square
-        const size = 15 + Math.random() * 25;
-        shape.style.width = `${size}px`;
-        shape.style.height = `${size}px`;
-        shape.style.background = `linear-gradient(45deg, ${accentColor}40, ${primaryColor}40)`;
-        shape.style.transform = `rotate(${Math.random() * 360}deg)`;
+    try {
+      if (!geometricRef.current) {
+        console.warn('Geometric container not found');
+        return;
       }
       
-      geometricRef.current.appendChild(shape);
-    }
+      // Clear existing shapes
+      geometricRef.current.innerHTML = '';
+      
+      // Create various geometric shapes
+      for (let i = 0; i < 15; i++) {
+        const shape = document.createElement('div');
+        const shapeType = Math.floor(Math.random() * 3);
+        
+        shape.style.position = 'absolute';
+        shape.style.left = `${Math.random() * 100}%`;
+        shape.style.top = `${Math.random() * 100}%`;
+        shape.style.animation = `geometryFloat ${10 + Math.random() * 10}s ease-in-out infinite ${Math.random() * 10}s`;
+        
+        if (shapeType === 0) {
+          // Circle
+          shape.style.width = `${20 + Math.random() * 30}px`;
+          shape.style.height = shape.style.width;
+          shape.style.borderRadius = '50%';
+          shape.style.background = `linear-gradient(45deg, ${primaryColor}40, ${secondaryColor}40)`;
+        } else if (shapeType === 1) {
+          // Triangle
+          shape.style.width = '0';
+          shape.style.height = '0';
+          const size = 15 + Math.random() * 20;
+          shape.style.borderLeft = `${size}px solid transparent`;
+          shape.style.borderRight = `${size}px solid transparent`;
+          shape.style.borderBottom = `${size * 1.5}px solid ${accentColor}40`;
+        } else {
+          // Square
+          const size = 15 + Math.random() * 25;
+          shape.style.width = `${size}px`;
+          shape.style.height = `${size}px`;
+          shape.style.background = `linear-gradient(45deg, ${accentColor}40, ${primaryColor}40)`;
+          shape.style.transform = `rotate(${Math.random() * 360}deg)`;
+        }
+        
+        geometricRef.current.appendChild(shape);
+      }
 
-    // Create animated SaskiAI logos spread across full width
-    console.log('🚀 Creating 15 animated SaskiAI logos...');
-    for (let i = 0; i < 15; i++) {
-      const logoContainer = document.createElement('div');
-      logoContainer.className = 'saski-logo';
-      logoContainer.style.position = 'absolute';
-      logoContainer.style.left = `${Math.random() * 100}%`;
-      logoContainer.style.top = `${Math.random() * 100}%`;
-      logoContainer.style.animation = `logoFloat ${20 + Math.random() * 10}s linear infinite ${Math.random() * 20}s`;
-      logoContainer.style.zIndex = '35';
-      
-      // Create SaskiAI logo using the actual favicon.svg
-      const logo = document.createElement('img');
-      logo.src = '/favicon.svg';
-      logo.alt = 'SaskiAI';
-      logo.style.width = '60px';
-      logo.style.height = '60px';
-      logo.style.opacity = '0.8';
-      logo.style.filter = `hue-rotate(${Math.random() * 360}deg) brightness(1.8) saturate(1.5)`;
-      logo.style.animation = `logoSpin ${6 + Math.random() * 8}s linear infinite`;
-      logo.style.boxShadow = `0 0 40px ${primaryColor}90, 0 0 80px ${primaryColor}60, 0 0 120px ${primaryColor}30`;
-      logo.style.borderRadius = '50%';
-      logo.style.border = `3px solid ${primaryColor}50`;
-      
-      // Add error handling - fallback to styled div if SVG doesn't load
-      logo.onerror = () => {
-        const fallback = document.createElement('div');
-        fallback.style.width = '60px';
-        fallback.style.height = '60px';
-        fallback.style.borderRadius = '50%';
-        fallback.style.background = `linear-gradient(45deg, ${primaryColor}, ${accentColor})`;
-        fallback.style.display = 'flex';
-        fallback.style.alignItems = 'center';
-        fallback.style.justifyContent = 'center';
-        fallback.style.fontSize = '28px';
-        fallback.style.fontWeight = 'bold';
-        fallback.style.color = 'white';
-        fallback.style.fontFamily = 'Arial, sans-serif';
-        fallback.textContent = 'S';
-        fallback.style.opacity = '0.8';
-        fallback.style.filter = `hue-rotate(${Math.random() * 360}deg) brightness(1.8) saturate(1.5)`;
-        fallback.style.animation = `logoSpin ${6 + Math.random() * 8}s linear infinite`;
-        fallback.style.boxShadow = `0 0 40px ${primaryColor}90, 0 0 80px ${primaryColor}60, 0 0 120px ${primaryColor}30`;
-        fallback.style.border = `3px solid ${primaryColor}50`;
-        logoContainer.replaceChild(fallback, logo);
-      };
-      
-      logoContainer.appendChild(logo);
-      geometricRef.current.appendChild(logoContainer);
+      // Create animated SaskiAI logos spread across full width
+      console.log('🚀 Creating 15 animated SaskiAI logos...');
+      for (let i = 0; i < 15; i++) {
+        const logoContainer = document.createElement('div');
+        logoContainer.className = 'saski-logo';
+        logoContainer.style.position = 'absolute';
+        logoContainer.style.left = `${Math.random() * 100}%`;
+        logoContainer.style.top = `${Math.random() * 100}%`;
+        logoContainer.style.animation = `logoFloat ${20 + Math.random() * 10}s linear infinite ${Math.random() * 20}s`;
+        logoContainer.style.zIndex = '35';
+        
+        // Create SaskiAI logo using the actual favicon.svg
+        const logo = document.createElement('img');
+        logo.src = '/favicon.svg';
+        logo.alt = 'SaskiAI';
+        logo.style.width = '60px';
+        logo.style.height = '60px';
+        logo.style.opacity = '0.8';
+        logo.style.filter = `hue-rotate(${Math.random() * 360}deg) brightness(1.8) saturate(1.5)`;
+        logo.style.animation = `logoSpin ${6 + Math.random() * 8}s linear infinite`;
+        logo.style.boxShadow = `0 0 40px ${primaryColor}90, 0 0 80px ${primaryColor}60, 0 0 120px ${primaryColor}30`;
+        logo.style.borderRadius = '50%';
+        logo.style.border = `3px solid ${primaryColor}50`;
+        
+        // Add error handling - fallback to styled div if SVG doesn't load
+        logo.onerror = () => {
+          const fallback = document.createElement('div');
+          fallback.style.width = '60px';
+          fallback.style.height = '60px';
+          fallback.style.borderRadius = '50%';
+          fallback.style.background = `linear-gradient(45deg, ${primaryColor}, ${accentColor})`;
+          fallback.style.display = 'flex';
+          fallback.style.alignItems = 'center';
+          fallback.style.justifyContent = 'center';
+          fallback.style.fontSize = '28px';
+          fallback.style.fontWeight = 'bold';
+          fallback.style.color = 'white';
+          fallback.style.fontFamily = 'Arial, sans-serif';
+          fallback.textContent = 'S';
+          fallback.style.opacity = '0.8';
+          fallback.style.filter = `hue-rotate(${Math.random() * 360}deg) brightness(1.8) saturate(1.5)`;
+          fallback.style.animation = `logoSpin ${6 + Math.random() * 8}s linear infinite`;
+          fallback.style.boxShadow = `0 0 40px ${primaryColor}90, 0 0 80px ${primaryColor}60, 0 0 120px ${primaryColor}30`;
+          fallback.style.border = `3px solid ${primaryColor}50`;
+          logoContainer.replaceChild(fallback, logo);
+        };
+        
+        logoContainer.appendChild(logo);
+        geometricRef.current.appendChild(logoContainer);
+      }
+    } catch (error) {
+      console.error('Error creating geometric shapes:', error);
     }
   };
 
@@ -248,11 +274,28 @@ const FeaturesListLayout: React.FC<FeaturesListLayoutProps> = ({
   // Initialize animations
   useEffect(() => {
     const timer = setTimeout(() => {
-      console.log('🎬 Initializing FeaturesListLayout animations...');
-      createDNABases();
-      createParticles();
-      createGeometricShapes();
-      console.log('✅ All animations initialized');
+      try {
+        console.log('🎬 Initializing FeaturesListLayout animations...');
+        
+        // Add safety checks before creating animations
+        if (typeof document === 'undefined' || typeof window === 'undefined') {
+          console.log('🚫 Skipping animations - not in browser environment');
+          return;
+        }
+
+        // Check if required elements exist before proceeding
+        if (!dnaRef.current || !particlesRef.current || !geometricRef.current) {
+          console.log('🚫 Skipping animations - required elements not found');
+          return;
+        }
+
+        createDNABases();
+        createParticles();
+        createGeometricShapes();
+        console.log('✅ All animations initialized');
+      } catch (error) {
+        console.error('❌ Error initializing animations:', error);
+      }
     }, 100);
 
     return () => clearTimeout(timer);
@@ -520,19 +563,6 @@ const FeaturesListLayout: React.FC<FeaturesListLayoutProps> = ({
         }
 
         @keyframes gradientShift {
-          0%, 100% {
-            transform: rotate(0deg) scale(1);
-            opacity: 0.3;
-          }
-          33% {
-            transform: rotate(120deg) scale(1.1);
-            opacity: 0.5;
-          }
-          66% {
-            transform: rotate(240deg) scale(0.9);
-            opacity: 0.4;
-          }
-        }
           0%, 100% {
             transform: rotate(0deg) scale(1);
             opacity: 0.3;

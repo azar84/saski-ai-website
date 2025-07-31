@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface HtmlSectionProps {
   htmlSection: {
@@ -16,56 +16,98 @@ interface HtmlSectionProps {
 }
 
 const HtmlSection: React.FC<HtmlSectionProps> = ({ htmlSection, className = '' }) => {
-  const styleRef = useRef<HTMLStyleElement | null>(null);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const [htmlRendered, setHtmlRendered] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Wait for component to be fully mounted and stable
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100); // Small delay to ensure everything is stable
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Mark HTML as rendered after a brief delay
+  useEffect(() => {
+    if (isReady && htmlSection.htmlContent) {
+      const timer = setTimeout(() => {
+        setHtmlRendered(true);
+      }, 50); // Brief delay to ensure HTML is rendered
+
+      return () => clearTimeout(timer);
+    }
+  }, [isReady, htmlSection.htmlContent]);
 
   useEffect(() => {
-    if (!htmlSection.isActive) return;
+    if (!htmlSection.isActive || !isReady || !htmlRendered) return;
 
-    // Clean up previous styles and scripts
-    if (styleRef.current) {
-      styleRef.current.remove();
-      styleRef.current = null;
+    // Additional safety checks
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
     }
-    if (scriptRef.current) {
-      scriptRef.current.remove();
-      scriptRef.current = null;
-    }
+
+    let styleElement: HTMLStyleElement | null = null;
+    let scriptElement: HTMLScriptElement | null = null;
 
     // Add CSS styles if provided
     if (htmlSection.cssContent?.trim()) {
-      const style = document.createElement('style');
-      style.textContent = htmlSection.cssContent;
-      style.setAttribute('data-html-section-id', htmlSection.id.toString());
-      document.head.appendChild(style);
-      styleRef.current = style;
+      try {
+        // Remove any existing styles for this section
+        const existingStyles = document.querySelectorAll(`[data-html-section-id="${htmlSection.id}"]`);
+        existingStyles.forEach(el => {
+          if (el.tagName === 'STYLE') {
+            el.remove();
+          }
+        });
+
+        styleElement = document.createElement('style');
+        styleElement.textContent = htmlSection.cssContent;
+        styleElement.setAttribute('data-html-section-id', htmlSection.id.toString());
+        
+        // Use a more reliable method to append
+        if (document.head) {
+          document.head.appendChild(styleElement);
+        }
+      } catch (error) {
+        console.error(`Error adding CSS for HTML section ${htmlSection.id}:`, error);
+      }
     }
 
-    // Add JavaScript if provided
+    // Add JavaScript if provided - with additional safety checks
     if (htmlSection.jsContent?.trim()) {
       try {
-        const script = document.createElement('script');
-        script.textContent = htmlSection.jsContent;
-        script.setAttribute('data-html-section-id', htmlSection.id.toString());
-        document.body.appendChild(script);
-        scriptRef.current = script;
+        // Temporarily disable JavaScript injection to prevent appendChild errors
+        console.warn('JavaScript injection disabled for HTML section to prevent DOM manipulation errors');
+        
+        // For now, just log that JavaScript was found but not executed
+        console.log(`HTML section ${htmlSection.id} has JavaScript content but execution is disabled for safety`);
+        
+        // TODO: Re-enable JavaScript injection with better error handling in the future
       } catch (error) {
-        console.error(`Error executing JavaScript for HTML section ${htmlSection.id}:`, error);
+        console.error(`Error processing JavaScript for HTML section ${htmlSection.id}:`, error);
       }
     }
 
     // Cleanup function
     return () => {
-      if (styleRef.current) {
-        styleRef.current.remove();
-        styleRef.current = null;
+      if (styleElement) {
+        try {
+          styleElement.remove();
+        } catch (error) {
+          console.warn('Error removing style during cleanup:', error);
+        }
       }
-      if (scriptRef.current) {
-        scriptRef.current.remove();
-        scriptRef.current = null;
+      if (scriptElement) {
+        try {
+          scriptElement.remove();
+        } catch (error) {
+          console.warn('Error removing script during cleanup:', error);
+        }
       }
     };
-  }, [htmlSection]);
+  }, [htmlSection, isReady, htmlRendered]);
 
   // Don't render if section is inactive
   if (!htmlSection.isActive) {
@@ -74,6 +116,7 @@ const HtmlSection: React.FC<HtmlSectionProps> = ({ htmlSection, className = '' }
 
   return (
     <div 
+      ref={containerRef}
       className={className}
       data-html-section-id={htmlSection.id}
       dangerouslySetInnerHTML={{ __html: htmlSection.htmlContent }}
